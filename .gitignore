@@ -4,3 +4,7 @@
 
 # Module directory
 .terraform/
+
+# Vagrant files
+resources/minion/.vagrant
+resources/minion/hosts

@@ -1,0 +1,8 @@
+<foreign-source xmlns="http://xmlns.opennms.org/xsd/config/foreign-source" name="OpenNMS" date-stamp="2018-01-23T13:08:08.548-05:00">
+   <scan-interval>1d</scan-interval>
+   <detectors>
+      <detector name="ICMP" class="org.opennms.netmgt.provision.detector.icmp.IcmpDetector"/>
+      <detector name="SNMP" class="org.opennms.netmgt.provision.detector.snmp.SnmpDetector"/>
+   </detectors>
+   <policies/>
+</foreign-source>

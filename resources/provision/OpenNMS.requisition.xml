@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model-import xmlns="http://xmlns.opennms.org/xsd/config/model-import" date-stamp="2018-01-01T00:00:00.000-05:00" foreign-source="OpenNMS">
+  <node building="AWS" foreign-id="opennms" node-label="opennms-server">
+    <interface descr="eth0" ip-addr="172.16.1.100" status="1" snmp-primary="P"/>
+    <interface descr="lo0" ip-addr="127.0.0.1" status="1" snmp-primary="N">
+      <monitored-service service-name="OpenNMS-JVM"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="postgresql" node-label="postgresql-server">
+    <interface descr="eth0" ip-addr="172.16.1.101" status="1" snmp-primary="P">
+      <monitored-service service-name="PostgreSQL"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="kibana" node-label="kibana-01-server">
+    <interface descr="eth0" ip-addr="172.16.1.50" status="1" snmp-primary="P"/>
+  </node>
+  <node building="AWS" foreign-id="es01" node-label="elastic-01-server">
+    <interface descr="eth0" ip-addr="172.16.1.51" status="1" snmp-primary="P">
+      <monitored-service service-name="Elasticsearch"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="es02" node-label="elastic-02-server">
+    <interface descr="eth0" ip-addr="172.16.1.52" status="1" snmp-primary="P">
+      <monitored-service service-name="Elasticsearch"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="es03" node-label="elastic-03-server">
+    <interface descr="eth0" ip-addr="172.16.1.53" status="1" snmp-primary="P">
+      <monitored-service service-name="Elasticsearch"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="amq01" node-label="activemq-01-server">
+    <interface descr="eth0" ip-addr="172.16.1.11" status="1" snmp-primary="P"/>
+  </node>
+  <node building="AWS" foreign-id="amq02" node-label="activemq-02-server">
+    <interface descr="eth0" ip-addr="172.16.1.12" status="1" snmp-primary="P"/>
+  </node>
+  <node building="AWS" foreign-id="zoo1" node-label="zookeeper-01-server">
+    <interface descr="eth0" ip-addr="172.16.1.21" status="1" snmp-primary="P"/>
+  </node>
+  <node building="AWS" foreign-id="zoo2" node-label="zookeeper-02-server">
+    <interface descr="eth0" ip-addr="172.16.1.22" status="1" snmp-primary="P"/>
+  </node>
+  <node building="AWS" foreign-id="zoo3" node-label="zookeeper-03-server">
+    <interface descr="eth0" ip-addr="172.16.1.23" status="1" snmp-primary="P"/>
+  </node>
+  <node building="AWS" foreign-id="kafka1" node-label="kafka-01-server">
+    <interface descr="eth0" ip-addr="172.16.1.31" status="1" snmp-primary="P">
+      <monitored-service service-name="JMX-Kafka"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="kafka2" node-label="kafka-02-server">
+    <interface descr="eth0" ip-addr="172.16.1.32" status="1" snmp-primary="P">
+      <monitored-service service-name="JMX-Kafka"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="kafka3" node-label="kafka-03-server">
+    <interface descr="eth0" ip-addr="172.16.1.33" status="1" snmp-primary="P">
+      <monitored-service service-name="JMX-Kafka"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="cassandra1" node-label="cassandra-01-server">
+    <interface descr="eth0" ip-addr="172.16.1.41" status="1" snmp-primary="P">
+      <monitored-service service-name="JMX-Cassandra"/>
+      <monitored-service service-name="JMX-Cassandra-Newts"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="cassandra2" node-label="cassandra-02-server">
+    <interface descr="eth0" ip-addr="172.16.1.42" status="1" snmp-primary="P">
+      <monitored-service service-name="JMX-Cassandra"/>
+      <monitored-service service-name="JMX-Cassandra-Newts"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="cassandra3" node-label="cassandra-03-server">
+    <interface descr="eth0" ip-addr="172.16.1.43" status="1" snmp-primary="P">
+      <monitored-service service-name="JMX-Cassandra"/>
+      <monitored-service service-name="JMX-Cassandra-Newts"/>
+    </interface>
+  </node>
+</model-import>
