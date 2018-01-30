@@ -109,13 +109,14 @@ zookeeper zookeeper
 EOF
 chmod 400 $password_file
 
+jmxport=9998
 cat <<EOF > /opt/zookeeper/conf/zookeeper-env.sh
 JMXLOCALONLY=false
 JMXDISABLE=false
-JMXPORT=9998
+JMXPORT=$jmxport
 JMXAUTH=false
 JMXSSL=false
-JVMFLAGS="-Djava.rmi.server.hostname=${hostname}"
+JVMFLAGS="-Djava.rmi.server.hostname=${hostname} -Dcom.sun.management.jmxremote.rmi.port=$jmxport"
 EOF
 
 echo "### Enabling and starting Zookeeper..."

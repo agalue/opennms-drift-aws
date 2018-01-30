@@ -119,8 +119,8 @@ DAEMON_PATH=/opt/kafka/bin
 PATH=\$PATH:\$DAEMON_PATH
 
 HOSTNAME=\`hostname\`
-export KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=$HOSTNAME -Djava.net.preferIPv4Stack=true"
 export JMX_PORT=9999
+export KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=$HOSTNAME -Djava.net.preferIPv4Stack=true"
 
 pid=\`ps ax | grep -i 'kafka.Kafka' | grep -v grep | awk '{print \$1}'\`
 
