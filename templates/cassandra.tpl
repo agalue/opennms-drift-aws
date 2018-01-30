@@ -1,12 +1,13 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+# Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
 # - node_id
 # - vpc_cidr
 # - hostname
 # - domainname
-# - cassandra_version
+# - repo_version
 # - cluster_name
 # - seed_list
 
@@ -59,7 +60,7 @@ echo "### Downloading and installing Cassandra..."
 cat <<EOF > /etc/yum.repos.d/cassandra.repo
 [cassandra]
 name=Apache Cassandra
-baseurl=https://www.apache.org/dist/cassandra/redhat/${cassandra_version}/
+baseurl=https://www.apache.org/dist/cassandra/redhat/${repo_version}/
 gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://www.apache.org/dist/cassandra/KEYS

@@ -1,5 +1,6 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+# Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
 # - node_id

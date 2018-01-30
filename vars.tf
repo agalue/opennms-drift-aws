@@ -16,7 +16,7 @@ variable "aws_private_key" {
 
 variable "aws_region" {
     description = "EC2 Region for the VPC"
-    default = "us-east-2"
+    default = "us-east-2" # For testing purposes only
 }
 
 variable "aws_amis" {  # Amazon Linux
@@ -165,13 +165,13 @@ variable "versions" {
     type = "map"
 
     default = {
-        postgresql    = "9.6-2"
-        elasticsearch = "6.1.1"
-        kibana        = "6.1.1"
-        activemq      = "5.13.5"
-        kafka         = "1.0.0"
-        scala         = "2.12"
-        zookeeper     = "3.4.11"
-        cassandra     = "311x"
+        elasticsearch   = "6.1.1"
+        kibana          = "6.1.1"
+        activemq        = "5.13.5"
+        kafka           = "1.0.0"
+        scala           = "2.12"
+        zookeeper       = "3.4.11"
+        postgresql_repo = "9.6-2"
+        cassandra_repo  = "311x"
     }
 }

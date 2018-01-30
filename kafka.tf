@@ -12,9 +12,9 @@ data "template_file" "kafka" {
         kafka_version       = "${lookup(var.versions, "kafka")}"
         scala_version       = "${lookup(var.versions, "scala")}"
         zookeeper_connect   = "${join(",",formatlist("%v:2181", keys(var.zookeeper_ip_addresses)))}/kafka"
-        num_partitions      = 8
+        num_partitions      = 16
         replication_factor  = 2
-        min_insync_replicas = 2
+        min_insync_replicas = 1
     }
 }
 

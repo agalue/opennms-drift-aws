@@ -26,8 +26,8 @@ resource "aws_instance" "zookeeper" {
     associate_public_ip_address = true
 
     vpc_security_group_ids = [
-      "${aws_security_group.common.id}",
-      "${aws_security_group.zookeeper.id}"
+        "${aws_security_group.common.id}",
+        "${aws_security_group.zookeeper.id}"
     ]
 
     connection {

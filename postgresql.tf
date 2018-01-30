@@ -7,7 +7,7 @@ data "template_file" "postgresql" {
         vpc_cidr        = "${var.vpc_cidr}"
         hostname        = "${element(keys(var.pg_ip_addresses),0)}"
         domainname      = "${var.dns_zone}"
-        pg_repo_version = "${lookup(var.versions, "postgresql")}"
+        pg_repo_version = "${lookup(var.versions, "postgresql_repo")}"
     }
 }
 

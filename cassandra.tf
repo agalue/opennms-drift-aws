@@ -5,13 +5,13 @@ data "template_file" "cassandra" {
     template = "${file("${path.module}/templates/cassandra.tpl")}"
 
     vars {
-        node_id           = "${count.index + 1}"
-        vpc_cidr          = "${var.vpc_cidr}"
-        hostname          = "${element(keys(var.cassandra_ip_addresses), count.index)}"
-        domainname        = "${var.dns_zone}"
-        cassandra_version = "${lookup(var.versions, "cassandra")}"
-        cluster_name      = "OpenNMS-Cluster"
-        seed_list         = "${element(keys(var.cassandra_ip_addresses), 0)}"
+        node_id      = "${count.index + 1}"
+        vpc_cidr     = "${var.vpc_cidr}"
+        hostname     = "${element(keys(var.cassandra_ip_addresses), count.index)}"
+        domainname   = "${var.dns_zone}"
+        repo_version = "${lookup(var.versions, "cassandra_repo")}"
+        cluster_name = "OpenNMS-Cluster"
+        seed_list    = "${element(keys(var.cassandra_ip_addresses), 0)}"
     }
 }
 

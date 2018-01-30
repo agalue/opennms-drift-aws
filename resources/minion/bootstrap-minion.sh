@@ -143,6 +143,12 @@ trapd.listen.interface=0.0.0.0
 trapd.listen.port=162
 EOF
 
+  cat <<EOF > org.opennms.features.telemetry.listeners-udp-50001.cfg
+name=NXOS
+class-name=org.opennms.netmgt.telemetry.listeners.udp.UdpListener
+listener.port=50001
+EOF
+
   systemctl enable minion
   systemctl start minion
 fi
