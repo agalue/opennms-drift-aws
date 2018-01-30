@@ -36,6 +36,11 @@ resource "aws_instance" "elasticsearch" {
         private_key = "${file("${var.aws_private_key}")}"
     }
 
+    timeouts {
+        create = "30m"
+        delete = "15m"
+    }
+
     tags {
         Name = "Terraform Elasticsearch Server ${count.index + 1}"
     }

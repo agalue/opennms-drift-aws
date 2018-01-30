@@ -43,6 +43,11 @@ resource "aws_instance" "kafka" {
         private_key = "${file("${var.aws_private_key}")}"
     }
 
+    timeouts {
+        create = "30m"
+        delete = "15m"
+    }
+
     tags {
         Name = "Terraform Kafka Server ${count.index + 1}"
     }

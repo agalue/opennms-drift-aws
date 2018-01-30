@@ -278,12 +278,58 @@ resource "aws_security_group" "kibana" {
 }
 
 resource "aws_security_group" "opennms" {
-    name = "terraform-opennms-ui-sg"
+    name = "terraform-opennms-sg"
     description = "Allow OpenNMS connections."
 
     ingress {
         from_port   = 8980
         to_port     = 8980
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress { # NFS
+        from_port   = 2049
+        to_port     = 2049
+        protocol    = "tcp"
+        cidr_blocks = ["${var.vpc_cidr}"]
+    }
+
+    egress {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    vpc_id = "${aws_vpc.default.id}"
+
+    tags {
+        Name = "Terraform OpenNMS UI SG"
+    }
+}
+
+resource "aws_security_group" "opennms_ui" {
+    name = "terraform-opennms-ui-sg"
+    description = "Allow OpenNMS connections."
+
+    ingress {
+        from_port   = 80
+        to_port     = 80
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+        from_port   = 8980
+        to_port     = 8980
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+        from_port   = 3000
+        to_port     = 3000
         protocol    = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }

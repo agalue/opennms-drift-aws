@@ -85,6 +85,16 @@ variable "onms_ip_addresses" {
     }
 }
 
+variable "onms_ui_ip_addresses" {
+    description = "OpenNMS UI Servers Private IPs"
+    type = "map"
+
+    default = {
+        onmsui1 = "172.16.1.111"
+        onmsui2 = "172.16.1.112"
+    }
+}
+
 variable "amq_ip_addresses" {
     description = "ActiveMQ IP Pair: 2 instances working on a Network of Brokers config, for failover"
     type = "map"
@@ -173,5 +183,7 @@ variable "versions" {
         zookeeper       = "3.4.11"
         postgresql_repo = "9.6-2"
         cassandra_repo  = "311x"
+        onms_repo       = "branches-features-drift"
+        onms_version    = "-latest-"
     }
 }

@@ -31,6 +31,11 @@ resource "aws_instance" "postgresql" {
         private_key = "${file("${var.aws_private_key}")}"
     }
 
+    timeouts {
+        create = "30m"
+        delete = "15m"
+    }
+
     tags {
         Name = "Terraform PostgreSQL Server"
     }

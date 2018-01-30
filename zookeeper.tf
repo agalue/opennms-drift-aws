@@ -35,6 +35,11 @@ resource "aws_instance" "zookeeper" {
         private_key = "${file("${var.aws_private_key}")}"
     }
 
+    timeouts {
+        create = "30m"
+        delete = "15m"
+    }
+
     tags {
         Name = "Terraform Zookeeper Server ${count.index + 1}"
     }

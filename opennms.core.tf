@@ -7,8 +7,8 @@ data "template_file" "opennms" {
         vpc_cidr          = "${var.vpc_cidr}"
         hostname          = "${element(keys(var.onms_ip_addresses),0)}"
         domainname        = "${var.dns_zone}"
-        onms_repo         = "branches-features-drift"
-        onms_version      = "-latest-"
+        onms_repo         = "${lookup(var.versions, "onms_repo")}"
+        onms_version      = "${lookup(var.versions, "onms_version")}"
         postgres_server   = "${element(keys(var.pg_ip_addresses),0)}"
         activemq_url      = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
         elastic_url       = "${join(",",formatlist("http://%v:9200", keys(var.es_ip_addresses)))}"
@@ -42,6 +42,11 @@ resource "aws_instance" "opennms" {
     connection {
         user        = "ec2-user"
         private_key = "${file("${var.aws_private_key}")}"
+    }
+
+    timeouts {
+        create = "30m"
+        delete = "15m"
     }
 
     tags {

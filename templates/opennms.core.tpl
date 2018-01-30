@@ -19,6 +19,7 @@ echo "### Configuring Hostname and Domain..."
 sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
 hostname ${hostname}.${domainname}
 domainname ${domainname}
+sed -i -r "s/#Domain =.*/Domain = ${domainname}/" /etc/idmapd.conf
 
 echo "### Configuring Timezone..."
 
@@ -266,6 +267,15 @@ webxml=$opennms_home/jetty-webapps/opennms/WEB-INF/web.xml
 cp $webxml $webxml.bak
 sed -r -i '/[<][!]--/{$!{N;s/[<][!]--\n  ([<]filter-mapping)/\1/}}' $webxml
 sed -r -i '/nrt/{$!{N;N;s/(nrt.*\n  [<]\/filter-mapping[>])\n  --[>]/\1/}}' $webxml
+
+echo "### Configuring NFS..."
+
+# TODO Using the server itself as NFS server
+cat <<EOF > /etc/exports
+/opt/opennms/etc ${vpc_cidr}(rw,sync,no_root_squash)
+EOF
+chkconfig nfs on
+service nfs start
 
 echo "### Running OpenNMS install script..."
 

@@ -61,9 +61,28 @@ The architecture involves the following components:
 
 * A cluster of 3 EC2 instances for Elasticsearch.
 
+* A cluster of 2 EC2 instances for OpenNMS UI and Grafana.
+
 * An EC2 instance for PostgreSQL.
 
 * An EC2 instance for the central OpenNMS.
 
 * An EC2 instance for Kibana.
- 
+
+* A elastic load balancer for the Elasticsearch instances.
+
+* A elastic load balancer for the OpenNMS UI instances.
+
+* Private DNS through Route 53 for all the instances.
+
+## Limitations
+
+* The core OpenNMS server is sharing its own configuration directory through NFS. A better approach could be configure an external NFS server, copy the configuration there, and share it between the OpenNMS core server and the UI servers.
+
+* This is not a production ready deployment. This is just a proof of concept for all the components required to deploy Drift. Several changes are required not only on the EC2 instance types, but also on the configuration of the several components to make it production ready.
+
+* The bootstrap scripts are very simple and are not designed to be re-executed, as they do not perform validations. Also, in order to get the runtime version of the scripts, the following command should be executed from the desired instance:
+
+```SHELL
+curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
+```

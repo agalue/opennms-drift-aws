@@ -79,15 +79,22 @@ sed -r -i "/listen_address/s/localhost/$ip_address/" $conf_file
 sed -r -i "/rpc_address/s/localhost/$ip_address/" $conf_file
 sed -r -i "/endpoint_snitch/s/SimpleSnitch/Ec2Snitch/" $conf_file
 
+echo "### Configuring Kernel..."
+
+nofile=`grep nofile /etc/security/limits.d/cassandra.conf | sed 's/.*nofile //'`
+ulimit -n $nofile
+
 echo "### Configuring JMX..."
 
 env_file=$conf_dir/cassandra-env.sh
 jmx_passwd=/etc/cassandra/jmxremote.password
 jmx_access=/etc/cassandra/jmxremote.access
+
 sed -r -i "/rmi.server.hostname/s/^\#//" $env_file
 sed -r -i "/rmi.server.hostname/s/.public name./$ip_address/" $env_file
 sed -r -i "/jmxremote.access/s/#//" $env_file
 sed -r -i "/LOCAL_JMX=/s/yes/no/" $env_file
+
 cat <<EOF > $jmx_passwd
 monitorRole QED
 controlRole R&D
@@ -105,6 +112,7 @@ controlRole   readwrite \
 EOF
 chmod 0400 $jmx_access
 chown cassandra:cassandra $jmx_access
+
 chown cassandra:cassandra $conf_dir/*
 
 echo "### Enabling and starting Cassandra..."

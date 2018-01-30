@@ -158,6 +158,14 @@ EOF
 
 chmod +x $kafka_init_d
 
+echo "### Configuring Kernel..."
+
+nofile=100000
+echo <<EOF > /etc/security/limits.d/kafka.conf
+* - nofile $nofile
+EOF
+ulimit -n $nofile
+
 echo "### Enabling and starting Kafka..."
 
 start_delay=$((60*(${node_id}-1)))
