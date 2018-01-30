@@ -20,7 +20,7 @@ foreach $_ (@data) {
   my $index = 1;
   foreach my $ip (@addresses) {
     my $srv = "$app$index";
-    printf OUT "%s\t%s\t%s\n", $ip, $srv, "$srv.local";
+    printf OUT "%s\t%s\t%s\n", $ip, $srv, "$srv.terraform.opennms.local";
     $index++;
   }
 }
