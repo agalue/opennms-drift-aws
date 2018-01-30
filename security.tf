@@ -100,7 +100,7 @@ resource "aws_security_group" "zookeeper" {
         from_port   = 9998
         to_port     = 9998
         protocol    = "tcp"
-        cidr_blocks = ["${var.vpc_cidr}"]
+        cidr_blocks = ["0.0.0.0/0"]
     }
 
     egress {
@@ -132,7 +132,7 @@ resource "aws_security_group" "kafka" {
         from_port   = 9999
         to_port     = 9999
         protocol    = "tcp"
-        cidr_blocks = ["${var.vpc_cidr}"]
+        cidr_blocks = ["0.0.0.0/0"]
     }
 
     egress {

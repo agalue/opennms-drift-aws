@@ -270,12 +270,9 @@ for f in "$${files[@]}"; do
   sed -r -i '/logmsg/s/logonly/donotpersist/' $f
 done
 
-cat <<EOF > $opennms_etc/opennms.properties.d/frontpage.properties
-org.opennms.web.console.centerUrl=/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
-EOF
-
 cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
 opennms.web.base-url=%s://%x%c/
+org.opennms.web.console.centerUrl=/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
 EOF
 
 mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
@@ -394,8 +391,8 @@ http {
     location /grafana/ {
       proxy_pass http://127.0.0.1:3000/;
     }
-    location /kibana/ {
-      proxy_pass https://${kibana_server}:5601/;
+    location /app/kibana/ {
+      proxy_pass http://${kibana_server}:5601/app/kibana/;
     }
   }
 }
@@ -415,7 +412,7 @@ cat <<EOF > /usr/share/nginx/html/index.html
     <div class="row text-center">
       <div class="col-md-4"><a href="/opennms/" class="btn btn-success btn-lg">Click here to open OpenNMS WebUI</a></div>
       <div class="col-md-4"><a href="/grafana/" class="btn btn-primary btn-lg">Click here to open Grafana Dashboard</a></div>
-      <div class="col-md-4"><a href="/kibana/" class="btn btn-danger btn-lg">Click here to open Kibana</a></div>
+      <div class="col-md-4"><a href="/app/kibana/" class="btn btn-danger btn-lg">Click here to open Kibana</a></div>
     </div>
   </div>
   </body>
