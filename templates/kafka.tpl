@@ -115,6 +115,21 @@ chmod 400 $password_file
 kafka_init_d=/etc/init.d/kafka
 cat <<EOF > $kafka_init_d
 #!/bin/bash
+#
+# chkconfig: 345 99 01
+# description: Kafka Server
+#
+### BEGIN INIT INFO
+# Provides: kafka
+# Required-Start: $local_fs $network
+# Required-Stop: $local_fs $network
+# Default-Start: 3 5
+# Default-Stop: 0 1 2 6
+# Description: Kafka Server
+# Short-Description: Kafka Server
+### END INIT INFO
+
+PROG=kafka
 DAEMON_PATH=/opt/kafka/bin
 PATH=\$PATH:\$DAEMON_PATH
 
@@ -126,16 +141,15 @@ pid=\`ps ax | grep -i 'kafka.Kafka' | grep -v grep | awk '{print \$1}'\`
 
 case "\$1" in
   start)
-    # Start daemon.
     if [ -n "\$pid" ]; then
-      echo "Kafka is already running"
+      echo "\$PROG is already running"
     else
-      echo "Starting Kafka"
+      echo -n "Starting \$PROG: ";echo
       \$DAEMON_PATH/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
     fi
     ;;
   stop)
-    echo "Shutting down Kafka"
+    echo -n "Stopping \$PROG: ";echo
     \$DAEMON_PATH/kafka-server-stop.sh
     ;;
   restart)
@@ -145,9 +159,9 @@ case "\$1" in
     ;;
   status)
     if [ -n "\$pid" ]; then
-      echo "Kafka is Running as PID: \$pid"
+      echo "\$PROG is Running as PID: \$pid"
     else
-      echo "Kafka is not Running"
+      echo "\$PROG is not Running"
     fi
     ;;
   *)
@@ -157,7 +171,6 @@ esac
 
 exit 0
 EOF
-
 chmod +x $kafka_init_d
 
 echo "### Configuring Kernel..."
