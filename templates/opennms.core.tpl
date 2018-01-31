@@ -112,6 +112,7 @@ wget -qO $opennms_home/jetty-webapps/hawtio.war $hawtio_url && \
 
 echo "### Configuring OpenNMS..."
 
+# Database connections
 cat <<EOF > $opennms_etc/opennms-datasources.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <datasource-configuration xmlns:this="http://xmlns.opennms.org/xsd/config/opennms-datasources"
@@ -143,6 +144,9 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
                     password="postgres" />
 </datasource-configuration>
 EOF
+
+# Eventd settings
+sed -r -i 's/127.0.0.1/0.0.0.0/g' $opennms_etc/eventd-configuration.xml
 
 # JVM Settings
 mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`

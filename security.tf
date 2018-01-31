@@ -295,6 +295,13 @@ resource "aws_security_group" "opennms" {
         cidr_blocks = ["${var.vpc_cidr}"]
     }
 
+    ingress {
+        from_port   = 5817
+        to_port     = 5817
+        protocol    = "tcp"
+        cidr_blocks = ["${var.vpc_cidr}"]
+    }
+
     ingress { # NFS
         from_port   = 2049
         to_port     = 2049

@@ -72,18 +72,25 @@ resource "aws_elb" "opennms_ui" {
     security_groups = ["${aws_security_group.opennms_ui.id}"]
 
     listener {
-        instance_port     = 80
+        instance_port     = 8980
         instance_protocol = "http"
-        lb_port           = 80
+        lb_port           = 8980
+        lb_protocol       = "http"
+    }
+
+    listener {
+        instance_port     = 3000
+        instance_protocol = "http"
+        lb_port           = 3000
         lb_protocol       = "http"
     }
 
     health_check {
-      healthy_threshold   = 2
-      unhealthy_threshold = 2
-      timeout             = 3
-      target              = "HTTP:80/index.html"
-      interval            = 30
+        healthy_threshold   = 2
+        unhealthy_threshold = 2
+        timeout             = 3
+        target              = "HTTP:8980/opennms/login.jsp"
+        interval            = 30
     }
 
     tags {

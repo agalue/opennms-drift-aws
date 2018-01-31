@@ -107,7 +107,7 @@ else
   yum install -y -q opennms-core-${onms_version} opennms-webapp-jetty-${onms_version}
 fi
 
-yum install -y -q opennms-helm nginx R
+yum install -y -q opennms-helm R
 
 echo "### Installing Hawtio..."
 
@@ -302,10 +302,7 @@ ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=${hostname}"
 EOF
 
-cat <<EOF > $opennms_etc/jmxremote.access
-admin readwrite
-jmx   readonly
-EOF
+sed -r -i '/datachoices/d' $opennms_etc/org.apache.karaf.features.cfg
 
 echo "### Configuring OpenNMS Jetty Server..."
 
@@ -329,7 +326,7 @@ echo "### Configurng Grafana..."
 grafana_cfg=/etc/grafana/grafana.ini
 cp $grafana_cfg $grafana_cfg.bak
 sed -r -i 's/;domain = localhost/domain = ${webui_endpoint}/' $grafana_cfg
-sed -r -i 's/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s:\/grafana/' $grafana_cfg
+sed -r -i 's/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s' $grafana_cfg
 sed -r -i 's/;type = sqlite3/type = postgres/' $grafana_cfg
 sed -r -i 's/;host = 127.0.0.1:3306/host = ${postgres_server}:5432/' $grafana_cfg
 sed -r -i '/;name = grafana/s/;//' $grafana_cfg
@@ -354,74 +351,3 @@ echo "### Starting and enabling Grafana server..."
 service grafana-server start
 chkconfig grafana-server on
 
-echo "### Configuring nginx..."
-
-nginx_cfg=/etc/nginx/nginx.conf
-cp $nginx_cfg $nginx_cfg.bak
-cat <<EOF > $nginx_cfg
-user nginx;
-worker_processes auto;
-error_log /var/log/nginx/error.log;
-pid /var/run/nginx.pid;
-include /usr/share/nginx/modules/*.conf;
-events {
-  worker_connections 1024;
-}
-http {
-  sendfile            on;
-  tcp_nopush          on;
-  tcp_nodelay         on;
-  keepalive_timeout   65;
-  types_hash_max_size 2048;
-  include             /etc/nginx/mime.types;
-  default_type        application/octet-stream;
-  index               index.html;
-  server {
-    listen 80 default_server;
-    server_name ${hostname};
-    root /usr/share/nginx/html;
-    error_page 404 500 502 503 504 /;
-    proxy_set_header X-Real-IP \$remote_addr;
-    proxy_set_header X-Host ${webui_endpoint}:80;
-    proxy_set_header X-Forwarded-For \$Proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto \$scheme;
-    location / {
-    }
-    location /opennms/ {
-      proxy_pass http://127.0.0.1:8980;
-    }
-    location /grafana/ {
-      proxy_pass http://127.0.0.1:3000/;
-    }
-    location /app/kibana/ {
-      proxy_pass http://${kibana_server}:5601/app/kibana/;
-    }
-  }
-}
-EOF
-
-cat <<EOF > /usr/share/nginx/html/index.html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-  </head>
-  <body>
-  <div class="container">
-    <div class="jumbotron text-center"><h1>Welcome OpenNMS User</h1></div>
-    <div class="row text-center">
-      <div class="col-md-4"><a href="/opennms/" class="btn btn-success btn-lg">Click here to open OpenNMS WebUI</a></div>
-      <div class="col-md-4"><a href="/grafana/" class="btn btn-primary btn-lg">Click here to open Grafana Dashboard</a></div>
-      <div class="col-md-4"><a href="/app/kibana/" class="btn btn-danger btn-lg">Click here to open Kibana</a></div>
-    </div>
-  </div>
-  </body>
-</html>
-EOF
-
-echo "### Starting and enabling nginx..."
-
-service nginx start
-chkconfig nginx on
