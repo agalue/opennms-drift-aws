@@ -271,7 +271,6 @@ for f in "$${files[@]}"; do
 done
 
 cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
-opennms.web.base-url=%s://%x%c/
 org.opennms.web.console.centerUrl=/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
 EOF
 
