@@ -7,12 +7,12 @@
     </interface>
   </node>
   <node building="AWS" foreign-id="onmsui1" node-label="onmsui-01-server">
-    <interface descr="eth0" ip-addr="172.16.1.111" status="1" snmp-primary="P">
+    <interface descr="eth0" ip-addr="172.16.1.71" status="1" snmp-primary="P">
       <monitored-service service-name="OpenNMS-JVM"/>
     </interface>
   </node>
   <node building="AWS" foreign-id="onmsui2" node-label="onmsui-02-server">
-    <interface descr="eth0" ip-addr="172.16.1.112" status="1" snmp-primary="P">
+    <interface descr="eth0" ip-addr="172.16.1.72" status="1" snmp-primary="P">
       <monitored-service service-name="OpenNMS-JVM"/>
     </interface>
   </node>

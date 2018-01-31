@@ -11,7 +11,7 @@ data "template_file" "cassandra" {
         domainname   = "${var.dns_zone}"
         repo_version = "${lookup(var.versions, "cassandra_repo")}"
         cluster_name = "OpenNMS-Cluster"
-        seed_list    = "${element(keys(var.cassandra_ip_addresses), 0)}"
+        seed_name    = "${element(keys(var.cassandra_ip_addresses), 0)}"
     }
 }
 

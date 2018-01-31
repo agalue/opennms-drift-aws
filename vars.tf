@@ -90,8 +90,8 @@ variable "onms_ui_ip_addresses" {
     type = "map"
 
     default = {
-        onmsui1 = "172.16.1.111"
-        onmsui2 = "172.16.1.112"
+        onmsui1 = "172.16.1.71"
+        onmsui2 = "172.16.1.72"
     }
 }
 

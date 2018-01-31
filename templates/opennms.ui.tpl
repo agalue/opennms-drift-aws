@@ -277,6 +277,7 @@ EOF
 
 mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
 half_mem_in_mb=`expr $mem_in_mb / 2`
+jmxport=18980
 cat <<EOF > $opennms_etc/opennms.conf
 START_TIMEOUT=0
 JAVA_HEAP_SIZE=$half_mem_in_mb
@@ -288,7 +289,8 @@ ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Xloggc:$opennms_home/l
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
 
 # Configure Remote JMX
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.port=18980"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.port=$jmxport"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.rmi.port=$jmxport"
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.local.only=false"
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.ssl=false"
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.authenticate=true"
@@ -379,13 +381,13 @@ http {
     server_name ${hostname};
     root /usr/share/nginx/html;
     error_page 404 500 502 503 504 /;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Host ${webui_endpoint}:80;
+    proxy_set_header X-Forwarded-For \$Proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
     location / {
     }
     location /opennms/ {
-      proxy_set_header X-Real-IP \$remote_addr;
-      proxy_set_header X-Host ${webui_endpoint}:80;
-      proxy_set_header X-Forwarded-For \$Proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto \$scheme;
       proxy_pass http://127.0.0.1:8980;
     }
     location /grafana/ {

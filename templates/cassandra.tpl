@@ -9,7 +9,7 @@
 # - domainname
 # - repo_version
 # - cluster_name
-# - seed_list
+# - seed_name
 
 echo "### Configuring Hostname and Domain..."
 
@@ -74,7 +74,7 @@ ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
 conf_dir=/etc/cassandra/conf
 conf_file=$conf_dir/cassandra.yaml
 sed -r -i "/cluster_name/s/Test Cluster/${cluster_name}/" $conf_file
-sed -r -i "/seeds/s/127.0.0.1/${seed_list}/" $conf_file
+sed -r -i "/seeds/s/127.0.0.1/${seed_name}/" $conf_file
 sed -r -i "/listen_address/s/localhost/$ip_address/" $conf_file
 sed -r -i "/rpc_address/s/localhost/$ip_address/" $conf_file
 sed -r -i "/endpoint_snitch/s/SimpleSnitch/Ec2Snitch/" $conf_file
@@ -115,11 +115,19 @@ chown cassandra:cassandra $jmx_access
 
 chown cassandra:cassandra $conf_dir/*
 
-echo "### Enabling and starting Cassandra..."
+echo "### Checking cluster prior start..."
 
 start_delay=$((60*(${node_id}-1)))
-echo "### Waiting $start_delay seconds prior starting Cassandra..."
-sleep $start_delay
+if [[ $start_delay != 0 ]]; then
+  until nc -z ${seed_name} 9042; do
+    echo "### ${seed_name} is unavailable - sleeping"
+    sleep 5
+  done
+  echo "### Waiting $start_delay seconds prior starting Cassandra..."
+  sleep $start_delay
+fi
+
+echo "### Enabling and starting Cassandra..."
 
 chkconfig cassandra on
 service cassandra start

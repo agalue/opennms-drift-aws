@@ -9,9 +9,7 @@
 # - domainname
 # - es_version
 # - es_cluster_name
-# - es_seed_list
-
-echo "### Configuring Hostname and Domain..."
+# - nameho "### Configuring Hostname and Domain..."
 
 sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
 hostname ${hostname}.${domainname}
@@ -77,7 +75,19 @@ ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
 sed -i -r "s/[#]?cluster.name:.*/cluster.name: ${es_cluster_name}/" $es_yaml
 sed -i -r "s/[#]?network.host:.*/network.host: $ip_address/" $es_yaml
 sed -i -r "s/[#]?node.name:.*/node.name: ${hostname}/" $es_yaml
-sed -i -r "s/[#]?discovery.zen.ping.unicast.hosts:.*/discovery.zen.ping.unicast.hosts: [\"${es_seed_list}\"]/" $es_yaml
+sed -i -r "s/[#]?discovery.zen.ping.unicast.hosts:.*/discovery.zen.ping.unicast.hosts: [\"${es_seed_name}\"]/" $es_yaml
+
+echo "### Checking cluster prior start..."
+
+start_delay=$((60*(${node_id}-1)))
+if [[ $start_delay != 0 ]]; then
+  until nc -z ${es_seed_name} 9200; do
+    echo "### ${es_seed_name} is unavailable - sleeping"
+    sleep 5
+  done
+  echo "### Waiting $start_delay seconds prior starting Elasticsearch..."
+  sleep $start_delay
+fi
 
 echo "### Enabling and starting Elasticsearch..."
 

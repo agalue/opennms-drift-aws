@@ -312,7 +312,7 @@ resource "aws_security_group" "opennms" {
     vpc_id = "${aws_vpc.default.id}"
 
     tags {
-        Name = "Terraform OpenNMS UI SG"
+        Name = "Terraform OpenNMS Core SG"
     }
 }
 
@@ -325,6 +325,13 @@ resource "aws_security_group" "opennms_ui" {
         to_port     = 80
         protocol    = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+        from_port   = 18980
+        to_port     = 18980
+        protocol    = "tcp"
+        cidr_blocks = ["${var.vpc_cidr}"]
     }
 
     ingress {
