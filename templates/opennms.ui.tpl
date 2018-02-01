@@ -3,6 +3,7 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
+# - node_id
 # - vpc_cidr
 # - hostname
 # - domainname
@@ -13,7 +14,6 @@
 # - opennms_server
 # - nfs_server
 # - cassandra_servers
-# - kibana_server
 # - webui_endpoint
 
 echo "### Configuring Hostname and Domain..."

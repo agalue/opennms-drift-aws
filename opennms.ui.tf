@@ -15,7 +15,6 @@ data "template_file" "opennms_ui" {
         opennms_server    = "${element(keys(var.onms_ip_addresses),0)}"
         postgres_server   = "${element(keys(var.pg_ip_addresses),0)}"
         nfs_server        = "${element(keys(var.onms_ip_addresses),0)}" # TODO Using the Core OpenNMS
-        kibana_server     = "${element(keys(var.kibana_ip_addresses),0)}"
         cassandra_servers = "${join(",", keys(var.cassandra_ip_addresses))}"
         webui_endpoint    = "${aws_elb.opennms_ui.dns_name}"
     }
