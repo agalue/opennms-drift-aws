@@ -143,6 +143,11 @@ trapd.listen.interface=0.0.0.0
 trapd.listen.port=162
 EOF
 
+  cat <<EOF > org.opennms.netmgt.syslog.cfg
+syslog.listen.interface=0.0.0.0
+syslog.listen.port = 514
+EOF
+
   cat <<EOF > org.opennms.features.telemetry.listeners-udp-50001.cfg
 name=NXOS
 class-name=org.opennms.netmgt.telemetry.listeners.udp.UdpListener

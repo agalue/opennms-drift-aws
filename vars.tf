@@ -187,3 +187,16 @@ variable "versions" {
         onms_version    = "-latest-"
     }
 }
+
+variable "settings" {
+    description = "Common application settings"
+    type = "map"
+
+    default = {
+        cluster_name = "OpenNMS-Cluster"
+        kafka_num_partitions = 16
+        kafka_replication_factor  = 2
+        kafka_min_insync_replicas = 1
+        cassandra_replication_factor = 2
+    }
+}

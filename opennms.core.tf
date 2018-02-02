@@ -4,16 +4,17 @@ data "template_file" "opennms" {
     template = "${file("${path.module}/templates/opennms.core.tpl")}"
 
     vars {
-        vpc_cidr          = "${var.vpc_cidr}"
-        hostname          = "${element(keys(var.onms_ip_addresses),0)}"
-        domainname        = "${var.dns_zone}"
-        onms_repo         = "${lookup(var.versions, "onms_repo")}"
-        onms_version      = "${lookup(var.versions, "onms_version")}"
-        postgres_server   = "${element(keys(var.pg_ip_addresses),0)}"
-        activemq_url      = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
-        elastic_url       = "${join(",",formatlist("http://%v:9200", keys(var.es_ip_addresses)))}"
-        kafka_servers     = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
-        cassandra_servers = "${join(",", keys(var.cassandra_ip_addresses))}"
+        vpc_cidr            = "${var.vpc_cidr}"
+        hostname            = "${element(keys(var.onms_ip_addresses),0)}"
+        domainname          = "${var.dns_zone}"
+        onms_repo           = "${lookup(var.versions, "onms_repo")}"
+        onms_version        = "${lookup(var.versions, "onms_version")}"
+        postgres_server     = "${element(keys(var.pg_ip_addresses),0)}"
+        activemq_url        = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
+        elastic_url         = "${join(",",formatlist("http://%v:9200", keys(var.es_ip_addresses)))}"
+        kafka_servers       = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
+        cassandra_servers   = "${join(",", keys(var.cassandra_ip_addresses))}"
+        cassandra_repfactor = "${lookup(var.settings, "cassandra_replication_factor")}"
     }
 }
 

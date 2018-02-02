@@ -11,6 +11,7 @@
 # - postgres_server
 # - kafka_servers
 # - cassandra_servers
+# - cassandra_repfactor
 # - activemq_url
 # - elastic_url
 
@@ -287,7 +288,7 @@ echo "### Running OpenNMS install script..."
 
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 $opennms_home/bin/install -dis
-$opennms_home/bin/newts init -r 2
+$opennms_home/bin/newts init -r ${cassandra_repfactor}
 
 echo "### Enabling and starting OpenNMS Core..."
 

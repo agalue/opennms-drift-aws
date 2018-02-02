@@ -10,7 +10,7 @@ data "template_file" "elasticsearch" {
         hostname        = "${element(keys(var.es_ip_addresses), count.index)}"
         domainname      = "${var.dns_zone}"
         es_version      = "${lookup(var.versions, "elasticsearch")}"
-        es_cluster_name = "OpenNMS-Cluster"
+        es_cluster_name = "${lookup(var.settings, "cluster_name")}"
         es_seed_name    = "${element(keys(var.es_ip_addresses), 0)}"
     }
 }

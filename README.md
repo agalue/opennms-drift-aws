@@ -18,7 +18,7 @@ aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 * Install Vagrant from [vagrantup.com](https://www.vagrantup.com)
 
-* Tweak the common settings on `vars.tf`, specially `aws_key_name` and `aws_private_key`, to match the chosen region.
+* Tweak the common settings on `vars.tf`, specially `aws_key_name` and `aws_private_key`, to match the chosen region. All the customizable settings are defined on `vars.tf`. Please do not change the other `.tf` files.
 
 * Execute the following commands from the repository's root directory (at the same level as the .tf files):
 
