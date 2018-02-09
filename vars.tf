@@ -188,6 +188,21 @@ variable "versions" {
     }
 }
 
+# For the number of partitions in kafka, keep in mind OpenNMS defaults:
+# 2 times the amount of cores of the OpenNMS instance.
+#
+# To tune the number of threads, check:
+# - trapd-configuration.xml
+# - syslogd-configuration.xml
+# - telemetryd-configurtaion.xml
+#
+# The minimum in-sync replicas should be less than or equal to the
+# replication factor. If it is equal, keep in mind that the number
+# of nodes should be big enough to accomodate loosing nodes.
+#
+# The replication factor should be less than the number of nodes,
+# in Kafka and Cassandra
+
 variable "settings" {
     description = "Common application settings"
     type = "map"

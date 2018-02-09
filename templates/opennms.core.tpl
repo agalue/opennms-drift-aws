@@ -250,7 +250,9 @@ sed -r -i 's/pathOutageEnabled="false"/pathOutageEnabled="true"/' $opennms_etc/p
 # Fix PostgreSQL service
 sed -r -i 's/"Postgres"/"PostgreSQL"/g' $opennms_etc/poller-configuration.xml 
 
+# WARNING: For testing purposes only
 # Lab collection and polling interval (30 seconds)
+sed -r -i 's/step="300"/step="30"/g' $opennms_etc/telemetryd-configuration.xml 
 sed -r -i 's/interval="300000"/interval="30000"/g' $opennms_etc/collectd-configuration.xml 
 sed -r -i 's/interval="300000" user/interval="30000" user/g' $opennms_etc/poller-configuration.xml 
 sed -r -i 's/step="300"/step="30"/g' $opennms_etc/poller-configuration.xml 

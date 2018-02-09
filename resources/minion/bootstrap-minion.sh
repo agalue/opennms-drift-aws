@@ -127,10 +127,10 @@ EOF
 
   minion_id=`hostname`
   cat <<EOF > org.opennms.minion.controller.cfg
-location = $location
-id = $minion_id
-http-url = $opennms_url
-broker-url = $activemq_url
+location=$location
+id=$minion_id
+http-url=$opennms_url
+broker-url=$activemq_url
 EOF
 
   cat <<EOF > org.opennms.core.ipc.sink.kafka.cfg
@@ -141,11 +141,13 @@ EOF
   cat <<EOF > org.opennms.netmgt.trapd.cfg
 trapd.listen.interface=0.0.0.0
 trapd.listen.port=162
+trapd.queue.size=100000
 EOF
 
   cat <<EOF > org.opennms.netmgt.syslog.cfg
 syslog.listen.interface=0.0.0.0
-syslog.listen.port = 514
+syslog.listen.port=514
+syslog.queue.size=100000
 EOF
 
   cat <<EOF > org.opennms.features.telemetry.listeners-udp-50001.cfg

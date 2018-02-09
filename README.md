@@ -77,6 +77,8 @@ The architecture involves the following components:
 
 ## Limitations
 
+* By default, 20 is the limit of EC2 instances on a VPC at the same time, unless you or your organization is able to create more, as it is possible to request more to Amazon. For this reason, you have to be careful when increasing the number of instances on all the involved clusters, in case it is necessary to add more nodes. As a hint, the UI servers are not essential for testing this deployment, so they can be ommited.
+
 * The core OpenNMS server is sharing its own configuration directory through NFS. A better approach could be configure an external NFS server, copy the configuration there, and share it between the OpenNMS core server and the UI servers.
 
 * This is not a production ready deployment. This is just a proof of concept for all the components required to deploy Drift. Several changes are required not only on the EC2 instance types, but also on the configuration of the several components to make it production ready.

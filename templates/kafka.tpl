@@ -91,7 +91,6 @@ cat <<EOF > $kafka_cfg
 broker.id=${node_id}
 advertised.listeners=PLAINTEXT://$listener_name:9092
 listeners=PLAINTEXT://0.0.0.0:9092
-delete.topic.enable=true
 log.dirs=$kafka_data
 num.partitions=${num_partitions}
 default.replication.factor=${replication_factor}
@@ -102,6 +101,8 @@ log.retention.check.interval.ms=300000
 zookeeper.connect=${zookeeper_connect}
 zookeeper.connection.timeout.ms=6000
 auto.create.topics.enable=true
+delete.topic.enable=false
+controlled.shutdown.enable=true
 EOF
 
 password_file=/usr/java/latest/jre/lib/management/jmxremote.password
