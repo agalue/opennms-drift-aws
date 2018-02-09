@@ -50,8 +50,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Downloading and installing Oracle JDK..."
 
@@ -60,10 +60,6 @@ java_rpm=/tmp/jdk8-linux-x64.rpm
 wget -c --quiet --header "Cookie: oraclelicense=accept-securebackup-cookie" -O $java_rpm $java_url
 if [ ! -s $java_rpm ]; then
   echo "FATAL: Cannot download Java from $java_url. Using OpenNMS default ..."
-  yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel6.noarch.rpm
-  rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel6.gpg
-  yum install -y -q jdk1.8.0_144
-  yum erase -y -q opennms-repo-stable
 else
   yum install -y -q $java_rpm
   rm -f $java_rpm
@@ -71,16 +67,16 @@ fi
 
 echo "### Installing OpenNMS Dependencies from stable repository..."
 
-sed -r -i '/name=amzn-main-Base/a exclude=rrdtool-*' /etc/yum.repos.d/amzn-main.repo
-yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel6.noarch.rpm
-rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel6.gpg
+sed -r -i '/name=Amazon Linux 2/a exclude=rrdtool-*' /etc/yum.repos.d/amzn2-core.repo
+yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel7.noarch.rpm
+rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel7.gpg
 yum install -y -q jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Twig)'
 
 if [ "${onms_repo}" != "stable" ]; then
   echo "### Installing OpenNMS ${onms_repo} Repository..."
   yum remove -y -q opennms-repo-stable
-  yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-${onms_repo}-rhel6.noarch.rpm
-  rpm --import /etc/yum.repos.d/opennms-repo-${onms_repo}-rhel6.gpg
+  yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-${onms_repo}-rhel7.noarch.rpm
+  rpm --import /etc/yum.repos.d/opennms-repo-${onms_repo}-rhel7.gpg
 fi
 
 if [ "${onms_version}" == "-latest-" ]; then
@@ -283,8 +279,8 @@ echo "### Configuring NFS..."
 cat <<EOF > /etc/exports
 /opt/opennms/etc ${vpc_cidr}(rw,sync,no_root_squash)
 EOF
-chkconfig nfs on
-service nfs start
+systemctl enable nfs
+systemctl start nfs
 
 echo "### Running OpenNMS install script..."
 
@@ -294,5 +290,6 @@ $opennms_home/bin/newts init -r ${cassandra_repfactor}
 
 echo "### Enabling and starting OpenNMS Core..."
 
-chkconfig opennms on
-service opennms start
+systemctl daemon-reload
+systemctl enable opennms
+systemctl start opennms

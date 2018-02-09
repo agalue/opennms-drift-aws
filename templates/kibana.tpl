@@ -43,8 +43,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Installing Elasticsearch and Kibana..."
 
@@ -61,5 +61,5 @@ sed -i -r "s|[#]elasticsearch.url:.*|elasticsearch.url: ${es_url}|" $kb_yaml
 
 echo "### Enabling and starting Kibana..."
 
-chkconfig kibana on
-service kibana start
+systemctl enable kibana
+systemctl start kibana

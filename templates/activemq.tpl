@@ -44,8 +44,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Downloading and installing Oracle JDK..."
 
@@ -158,5 +158,5 @@ EOF
 
 echo "### Enabling and starting ActiveMQ..."
 
-chkconfig activemq on
-service activemq start
+systemctl enable activemq
+systemctl start activemq

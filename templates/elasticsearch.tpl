@@ -43,8 +43,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Downloading and installing Oracle JDK..."
 
@@ -95,5 +95,5 @@ start_delay=$((60*(${node_id}-1)))
 echo "### Waiting $start_delay seconds prior starting Elasticsearch..."
 sleep $start_delay
 
-chkconfig elasticsearch on
-service elasticsearch start
+systemctl enable elasticsearch
+systemctl start elasticsearch

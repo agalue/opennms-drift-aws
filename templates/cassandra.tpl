@@ -45,8 +45,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Downloading and installing Oracle JDK..."
 
@@ -129,5 +129,5 @@ fi
 
 echo "### Enabling and starting Cassandra..."
 
-chkconfig cassandra on
-service cassandra start
+systemctl enable cassandra
+systemctl start cassandra

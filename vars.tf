@@ -19,15 +19,15 @@ variable "aws_region" {
     default = "us-east-2" # For testing purposes only
 }
 
-variable "aws_amis" {  # Amazon Linux
+variable "aws_amis" {  # Amazon Linux 2 LT SCandidate AMI 2017.12.0
     description = "AMIs by region"
     type = "map"
 
     default = {
-        us-east-1 = "ami-4fffc834"
-        us-east-2 = "ami-ea87a78f"
-        us-west-1 = "ami-3a674d5a"
-        us-west-2 = "ami-aa5ebdd2"
+        us-east-1 = "ami-428aa838"
+        us-east-2 = "ami-710e2414"
+        us-west-1 = "ami-4a787a2a"
+        us-west-2 = "ami-7f43f307"
     }
 }
 
@@ -181,7 +181,7 @@ variable "versions" {
         kafka           = "1.0.0"
         scala           = "2.12"
         zookeeper       = "3.4.11"
-        postgresql_repo = "9.6-2"
+        postgresql_repo = "9.6-3"
         cassandra_repo  = "311x"
         onms_repo       = "branches-features-drift"
         onms_version    = "-latest-"

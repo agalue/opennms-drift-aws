@@ -42,26 +42,28 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Installing PostgreSQL..."
 
 pg_version=`echo ${pg_repo_version} | sed 's/-.//'`
 pg_family=`echo $pg_version | sed 's/\.//'`
 
-yum install -y -q https://download.postgresql.org/pub/repos/yum/$pg_version/redhat/rhel-6-x86_64/pgdg-ami201503-$pg_family-${pg_repo_version}.noarch.rpm
+yum install -y -q https://download.postgresql.org/pub/repos/yum/$pg_version/redhat/rhel-7-x86_64/pgdg-centos$pg_family-${pg_repo_version}.noarch.rpm
+sed -i -r 's/[$]releasever/7/g' /etc/yum.repos.d/pgdg-$pg_family-centos.repo
 yum install -y -q postgresql$pg_family postgresql$pg_family-server
 
 echo "### Configuring PostgreSQL..."
 
-service postgresql96 initdb
-data_dir=/var/lib/pgsql$pg_family/data
+/usr/pgsql-$pg_version/bin/postgresql$pg_family-setup initdb
+
+data_dir=/var/lib/pgsql/$pg_version/data
 sed -r -i 's/(peer|ident)/trust/g' $data_dir/pg_hba.conf
 sed -r -i 's|127.0.0.1/32|${vpc_cidr}|g' $data_dir/pg_hba.conf
 sed -r -i "s/[#]listen_addresses =.*/listen_addresses = '*'/" $data_dir/postgresql.conf
 
 echo "### Enabling and starting PostgreSQL..."
 
-chkconfig postgresql96 on
-service postgresql96 start
+systemctl enable postgresql-$pg_version
+systemctl start postgresql-$pg_version
