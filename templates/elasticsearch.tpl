@@ -81,7 +81,7 @@ echo "### Checking cluster prior start..."
 
 start_delay=$((60*(${node_id}-1)))
 if [[ $start_delay != 0 ]]; then
-  until nc -z ${es_seed_name} 9200; do
+  until echo -n > /dev/tcp/${es_seed_name}/9200; do
     echo "### ${es_seed_name} is unavailable - sleeping"
     sleep 5
   done
