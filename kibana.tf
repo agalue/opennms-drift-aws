@@ -7,7 +7,7 @@ data "template_file" "kibana" {
         vpc_cidr   = "${var.vpc_cidr}"
         hostname   = "${element(keys(var.kibana_ip_addresses),0)}"
         domainname = "${var.dns_zone}"
-        es_version = "${lookup(var.versions, "kibana")}"
+        es_version = "${lookup(var.versions, "elasticsearch")}"
         es_url     = "http://${aws_elb.elasticsearch.dns_name}:9200"
     }
 }

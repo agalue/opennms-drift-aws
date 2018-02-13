@@ -31,7 +31,7 @@ sed -i -r "s|ZONE=.*|ZONE=$timezone|" /etc/sysconfig/clock
 echo "### Installing common packages..."
 
 yum -y -q update
-yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat
+yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
 
 echo "### Configuring and enabling SNMP..."
 
@@ -127,7 +127,7 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
   <jdbc-data-source name="opennms"
                     database-name="opennms"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://${postgres_server}/opennms"
+                    url="jdbc:postgresql://${postgres_server}:5432/opennms"
                     user-name="opennms"
                     password="opennms">
     <param name="connectionTimeout" value="0"/>
@@ -136,7 +136,7 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
   <jdbc-data-source name="opennms-admin"
                     database-name="template1"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://${postgres_server}/template1"
+                    url="jdbc:postgresql://${postgres_server}:5432/template1"
                     user-name="postgres"
                     password="postgres" />
 </datasource-configuration>
@@ -259,11 +259,12 @@ for f in "$${files[@]}"; do
   fi
 done
 
-# Fix Karaf logging: NMS-9773
-sed -r -i '/log4j2.logger.opennms.additivity = false/d' $opennms_etc/org.ops4j.pax.logging.cfg
-
-# Disabling datachoices
-sed -r -i '/datachoices/d' $opennms_etc/org.apache.karaf.features.cfg
+# TODO: the following is due to some issues with the datachoices plugin
+cat <<EOF > $opennms_etc/org.opennms.features.datachoices.cfg
+enabled=false
+acknowledged-by=admin
+acknowledged-at=Mon Jan 01 00\:00\:00 EDT 2018
+EOF
 
 echo "### Configuring OpenNMS Jetty Server..."
 
