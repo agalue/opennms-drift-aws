@@ -24,7 +24,7 @@ sed -i -r "s|ZONE=.*|ZONE=$timezone|" /etc/sysconfig/clock
 echo "### Installing common packages..."
 
 yum -y -q update
-yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat
+yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
 
 echo "### Configuring and enabling SNMP..."
 
@@ -43,8 +43,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Installing Elasticsearch and Kibana..."
 
@@ -61,5 +61,5 @@ sed -i -r "s|[#]elasticsearch.url:.*|elasticsearch.url: ${es_url}|" $kb_yaml
 
 echo "### Enabling and starting Kibana..."
 
-chkconfig kibana on
-service kibana start
+systemctl enable kibana
+systemctl start kibana

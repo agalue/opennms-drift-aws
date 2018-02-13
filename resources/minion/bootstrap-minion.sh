@@ -156,6 +156,12 @@ class-name=org.opennms.netmgt.telemetry.listeners.udp.UdpListener
 listener.port=50001
 EOF
 
+  cat <<EOF > org.opennms.features.telemetry.listeners-udp-8877.cfg
+name=Netflow-5
+class-name=org.opennms.netmgt.telemetry.listeners.udp.UdpListener
+listener.port=8877
+EOF
+
   systemctl enable minion
   systemctl start minion
 fi

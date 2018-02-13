@@ -32,7 +32,7 @@ sed -i -r "s|ZONE=.*|ZONE=$timezone|" /etc/sysconfig/clock
 echo "### Installing common packages..."
 
 yum -y -q update
-yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat
+yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
 
 echo "### Configuring and enabling SNMP..."
 
@@ -51,8 +51,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Creating and configuring external mount point for OpenNMS configuration..."
 
@@ -69,14 +69,15 @@ echo "### Installing PostgreSQL tools..."
 pg_version=`echo ${pg_repo_version} | sed 's/-.//'`
 pg_family=`echo $pg_version | sed 's/\.//'`
 
-yum install -y -q https://download.postgresql.org/pub/repos/yum/$pg_version/redhat/rhel-6-x86_64/pgdg-ami201503-$pg_family-${pg_repo_version}.noarch.rpm
+yum install -y -q https://download.postgresql.org/pub/repos/yum/$pg_version/redhat/rhel-7-x86_64/pgdg-centos$pg_family-${pg_repo_version}.noarch.rpm
+sed -i -r 's/[$]releasever/7/g' /etc/yum.repos.d/pgdg-$pg_family-centos.repo
 yum install -y -q postgresql$pg_family
 
 echo "### Installing OpenNMS Dependencies from stable repository..."
 
-sed -r -i '/name=amzn-main-Base/a exclude=rrdtool-*' /etc/yum.repos.d/amzn-main.repo
-yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel6.noarch.rpm
-rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel6.gpg
+sed -r -i '/name=Amazon Linux 2/a exclude=rrdtool-*' /etc/yum.repos.d/amzn2-core.repo
+yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel7.noarch.rpm
+rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel7.gpg
 yum install -y -q jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Twig)'
 
 echo "### Downloading and installing Oracle JDK..."
@@ -86,7 +87,6 @@ java_rpm=/tmp/jdk8-linux-x64.rpm
 wget -c --quiet --header "Cookie: oraclelicense=accept-securebackup-cookie" -O $java_rpm $java_url
 if [ ! -s $java_rpm ]; then
   echo "FATAL: Cannot download Java from $java_url. Using OpenNMS default ..."
-  yum install -y -q jdk1.8.0_144
 else
   yum install -y -q $java_rpm
   rm -f $java_rpm
@@ -95,8 +95,8 @@ fi
 if [ "${onms_repo}" != "stable" ]; then
   echo "### Installing OpenNMS ${onms_repo} Repository..."
   yum remove -y -q opennms-repo-stable
-  yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-${onms_repo}-rhel6.noarch.rpm
-  rpm --import /etc/yum.repos.d/opennms-repo-${onms_repo}-rhel6.gpg
+  yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-${onms_repo}-rhel7.noarch.rpm
+  rpm --import /etc/yum.repos.d/opennms-repo-${onms_repo}-rhel7.gpg
 fi
 
 if [ "${onms_version}" == "-latest-" ]; then
@@ -317,8 +317,9 @@ touch $opennms_etc/configured
 
 echo "### Enabling and starting OpenNMS Core..."
 
-chkconfig opennms on
-service opennms start
+systemctl daemon-reload
+systemctl enable opennms
+systemctl start opennms
 
 echo "### Configurng Grafana..."
 
@@ -347,6 +348,5 @@ rm -f ~/.pgpass
 
 echo "### Starting and enabling Grafana server..."
 
-service grafana-server start
-chkconfig grafana-server on
-
+systemctl enable grafana-server
+systemctl start grafana-server

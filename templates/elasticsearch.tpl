@@ -24,7 +24,7 @@ sed -i -r "s|ZONE=.*|ZONE=$timezone|" /etc/sysconfig/clock
 echo "### Installing common packages..."
 
 yum -y -q update
-yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat
+yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
 
 echo "### Configuring and enabling SNMP..."
 
@@ -43,8 +43,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Downloading and installing Oracle JDK..."
 
@@ -81,7 +81,7 @@ echo "### Checking cluster prior start..."
 
 start_delay=$((60*(${node_id}-1)))
 if [[ $start_delay != 0 ]]; then
-  until nc -z ${es_seed_name} 9200; do
+  until echo -n > /dev/tcp/${es_seed_name}/9200; do
     echo "### ${es_seed_name} is unavailable - sleeping"
     sleep 5
   done
@@ -95,5 +95,5 @@ start_delay=$((60*(${node_id}-1)))
 echo "### Waiting $start_delay seconds prior starting Elasticsearch..."
 sleep $start_delay
 
-chkconfig elasticsearch on
-service elasticsearch start
+systemctl enable elasticsearch
+systemctl start elasticsearch

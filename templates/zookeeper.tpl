@@ -25,7 +25,7 @@ sed -i -r "s|ZONE=.*|ZONE=$timezone|" /etc/sysconfig/clock
 echo "### Installing common packages..."
 
 yum -y -q update
-yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat
+yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
 
 echo "### Configuring and enabling SNMP..."
 
@@ -44,8 +44,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Downloading and installing Oracle JDK..."
 
@@ -78,64 +78,25 @@ rm -f $zk_file
 
 echo "### Configuring Zookeeper..."
 
-zoo_init_d=/etc/init.d/zookeeper
-cat <<EOF > $zoo_init_d
-#!/bin/sh
-#
-# chkconfig: 345 99 01
-# description: Zookeeper Server
-#
-### BEGIN INIT INFO
-# Provides: zookeeper
-# Required-Start: $local_fs $network
-# Required-Stop: $local_fs $network
-# Default-Start: 3 5
-# Default-Stop: 0 1 2 6
-# Description: Zookeeper Server
-# Short-Description: Zookeeper Server
-### END INIT INFO
+systemd_zoo=/etc/systemd/system/zookeeper.service
+cat <<EOF > $systemd_zoo
+[Unit]
+Description=Apache Zookeeper server (Kafka)
+Documentation=http://zookeeper.apache.org
+Requires=network.target remote-fs.target
+After=network.target remote-fs.target
 
-USER=root
-PROG=zookeeper
-DAEMON_PATH=/opt/zookeeper/bin
-DAEMON_NAME=zkServer.sh
-PATH=\$PATH:\$DAEMON_PATH
+[Service]
+Type=forking
+User=root
+Group=root
+ExecStart=/opt/zookeeper/bin/zkServer.sh start
+ExecStop=/opt/zookeeper/bin/zkServer.sh stop
 
-pid=\`ps ax | grep -i 'zookeeper.server' | grep -v grep | awk '{print \$1}'\`
-
-case "\$1" in
-  start)
-    if [ -n "\$pid" ]; then
-      echo "\$PROG is already running"
-    else
-      echo -n "Starting \$PROG: ";echo
-      /bin/su \$USER \$DAEMON_PATH/\$DAEMON_NAME start
-    fi
-    ;;
-  stop)
-    echo -n "Stopping \$PROG: ";echo
-    /bin/su \$USER \$DAEMON_PATH/\$DAEMON_NAME stop
-    ;;
-  status)
-    if [ -n "\$pid" ]; then
-      echo "\$PROG is Running as PID: \$pid"
-    else
-      echo "\$PROG is not Running"
-    fi
-    /bin/su \$USER \$DAEMON_PATH/\$DAEMON_NAME status
-    ;;
-  restart)
-    \$0 stop
-    sleep 5
-    \$0 start
-    ;;
-  *)
-    echo "Usage: \$0 {start|stop|status|restart}"
-    exit 1
-esac
-exit 0
+[Install]
+WantedBy=multi-user.target
 EOF
-chmod +x $zoo_init_d
+chmod 0644 $systemd_zoo
 
 zoo_data=/data/zookeeper
 mkdir -p $zoo_data
@@ -180,5 +141,6 @@ start_delay=$((60*(${node_id}-1)))
 echo "### Waiting $start_delay seconds prior starting Zookeeper..."
 sleep $start_delay
 
-chkconfig zookeeper on
-service zookeeper start
+systemctl daemon-reload
+systemctl enable zookeeper
+systemctl start zookeeper

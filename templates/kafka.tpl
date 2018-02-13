@@ -29,7 +29,7 @@ sed -i -r "s|ZONE=.*|ZONE=$timezone|" /etc/sysconfig/clock
 echo "### Installing common packages..."
 
 yum -y -q update
-yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat
+yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
 
 echo "### Configuring and enabling SNMP..."
 
@@ -48,8 +48,8 @@ disk /
 EOF
 
 chmod 600 $snmp_cfg
-chkconfig snmpd on
-service snmpd start snmpd
+systemctl enable snmpd
+systemctl start snmpd
 
 echo "### Downloading and installing Oracle JDK..."
 
@@ -113,66 +113,31 @@ kafka kafka
 EOF
 chmod 400 $password_file
 
-kafka_init_d=/etc/init.d/kafka
-cat <<EOF > $kafka_init_d
-#!/bin/bash
-#
-# chkconfig: 345 99 01
-# description: Kafka Server
-#
-### BEGIN INIT INFO
-# Provides: kafka
-# Required-Start: $local_fs $network
-# Required-Stop: $local_fs $network
-# Default-Start: 3 5
-# Default-Stop: 0 1 2 6
-# Description: Kafka Server
-# Short-Description: Kafka Server
-### END INIT INFO
+systemd_kafka=/etc/systemd/system/kafka.service
+cat <<EOF > $systemd_kafka
+# Inspired by https://github.com/thmshmm/confluent-systemd
 
-PROG=kafka
-DAEMON_PATH=/opt/kafka/bin
-PATH=\$PATH:\$DAEMON_PATH
+[Unit]
+Description=Apache Kafka server (broker)
+Documentation=http://kafka.apache.org/documentation.html
+Requires=network.target remote-fs.target
+After=network.target remote-fs.target zookeeper.service
 
-HOSTNAME=\`hostname\`
-export JMX_PORT=9999
-export KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=\$JMX_PORT -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=\$HOSTNAME -Djava.net.preferIPv4Stack=true"
+[Service]
+Type=forking
+User=root
+Group=root
+Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
+Environment="JMX_PORT=9999"
+# Uncomment the following line to enable authentication for the broker
+# Environment="KAFKA_OPTS=-Djava.security.auth.login.config=/etc/kafka/kafka-jaas.conf"
+ExecStart=/opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
+ExecStop=/opt/kafka/bin/kafka-server-stop.sh
 
-pid=\`ps ax | grep -i 'kafka.Kafka' | grep -v grep | awk '{print \$1}'\`
-
-case "\$1" in
-  start)
-    if [ -n "\$pid" ]; then
-      echo "\$PROG is already running"
-    else
-      echo -n "Starting \$PROG: ";echo
-      \$DAEMON_PATH/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
-    fi
-    ;;
-  stop)
-    echo -n "Stopping \$PROG: ";echo
-    \$DAEMON_PATH/kafka-server-stop.sh
-    ;;
-  restart)
-    \$0 stop
-    sleep 5
-    \$0 start
-    ;;
-  status)
-    if [ -n "\$pid" ]; then
-      echo "\$PROG is Running as PID: \$pid"
-    else
-      echo "\$PROG is not Running"
-    fi
-    ;;
-  *)
-    echo "Usage: \$0 {start|stop|restart|status}"
-    exit 1
-esac
-
-exit 0
+[Install]
+WantedBy=multi-user.target
 EOF
-chmod +x $kafka_init_d
+chmod 0644 $systemd_kafka
 
 echo "### Configuring Kernel..."
 
@@ -188,5 +153,6 @@ start_delay=$((60*(${node_id})))
 echo "### Waiting $start_delay seconds prior starting Kafka..."
 sleep $start_delay
 
-chkconfig kafka on
-service kafka start
+systemctl daemon-reload
+systemctl enable kafka
+systemctl start kafka
