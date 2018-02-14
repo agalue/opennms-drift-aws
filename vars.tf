@@ -175,7 +175,7 @@ variable "versions" {
     type = "map"
 
     default = {
-        elasticsearch   = "6.2.1"
+        elasticsearch   = "6.1.1"
         activemq        = "5.13.5"
         kafka           = "1.0.0"
         scala           = "2.12"
