@@ -10,6 +10,7 @@
 # - es_version
 # - es_cluster_name
 # - es_seed_name
+# - es_password
 
 echo "### Configuring Hostname and Domain..."
 
@@ -83,17 +84,14 @@ sed -i -r "s/[#]?node.name:.*/node.name: ${hostname}/" $es_yaml
 sed -i -r "s/[#]?discovery.zen.minimum_master_nodes:.*/discovery.zen.minimum_master_nodes: 1/" $es_yaml
 sed -i -r "s/[#]?discovery.zen.ping.unicast.hosts:.*/discovery.zen.ping.unicast.hosts: [\"${es_seed_name}\"]/" $es_yaml
 
-echo >> $es_yaml
-echo "xpack.license.self_generated.type: basic" >> $es_yaml
-echo "xpack.security.enabled: false" >> $es_yaml
+echo ${es_password} | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x 'bootstrap.password'
 
 echo "### Checking cluster prior start..."
 
-
 start_delay=$((60*(${node_id}-1)))
 if [[ $start_delay != 0 ]]; then
-  es_url=http://{es_seed_name}:9200
-  until $$(curl --output /dev/null --silent --head --fail ${es_url}); do
+  es_url=http://${es_seed_name}:9200
+  until $$(curl --output /dev/null --silent --head --fail -u "elastic:${es_password}" $es_url); do
     printf '.'
     sleep 5
   done

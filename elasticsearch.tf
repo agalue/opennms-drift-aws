@@ -12,6 +12,7 @@ data "template_file" "elasticsearch" {
         es_version      = "${lookup(var.versions, "elasticsearch")}"
         es_cluster_name = "${lookup(var.settings, "cluster_name")}"
         es_seed_name    = "${element(keys(var.es_ip_addresses), 0)}"
+        es_password     = "${lookup(var.settings, "elastic_password")}"
     }
 }
 

@@ -14,6 +14,8 @@
 # - cassandra_repfactor
 # - activemq_url
 # - elastic_url
+# - elastic_user
+# - elastic_password
 
 echo "### Configuring Hostname and Domain..."
 
@@ -227,14 +229,18 @@ sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 # Configure Flow persistence
 cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
 elasticUrl=${elastic_url}
+elasticGlobalUser=${elastic_user}
+elasticGlobalPassword=${elastic_password}
 EOF
 
 # Configure Event Exporter
-sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n  alarm-change-notifier\n/' $opennms_etc/org.apache.karaf.features.cfg
+sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n/' $opennms_etc/org.apache.karaf.features.cfg
 cat <<EOF > $opennms_etc/org.opennms.plugin.elasticsearch.rest.forwarder.cfg
 elasticsearchUrl=${elastic_url}
+esusername=${elastic_user}
+espassword=${elastic_password}
 archiveRawEvents=true
-archiveAlarms=true
+archiveAlarms=false
 archiveAlarmChangeEvents=false
 retries=1
 timeout=3000

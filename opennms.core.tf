@@ -12,6 +12,8 @@ data "template_file" "opennms" {
         postgres_server     = "${element(keys(var.pg_ip_addresses),0)}"
         activemq_url        = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
         elastic_url         = "${join(",",formatlist("http://%v:9200", keys(var.es_ip_addresses)))}"
+        elastic_user        = "elastic"
+        elastic_password    = "${lookup(var.settings, "elastic_password")}"
         kafka_servers       = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
         cassandra_servers   = "${join(",", keys(var.cassandra_ip_addresses))}"
         cassandra_repfactor = "${lookup(var.settings, "cassandra_replication_factor")}"

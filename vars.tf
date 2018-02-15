@@ -31,6 +31,8 @@ variable "aws_amis" {  # Amazon Linux 2 LT SCandidate AMI 2017.12.0
     }
 }
 
+# Minimum requirements are: 2GB of RAM 2 CPUs.
+
 variable "instance_types" {
     description = "Instance types per server/application"
     type = "map"
@@ -212,5 +214,6 @@ variable "settings" {
         kafka_replication_factor  = 2
         kafka_min_insync_replicas = 1
         cassandra_replication_factor = 2
+        elastic_password = "opennms"
     }
 }

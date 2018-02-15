@@ -8,6 +8,7 @@
 # - domainname
 # - es_version
 # - es_url
+# - es_password
 
 echo "### Configuring Hostname and Domain..."
 
@@ -60,10 +61,12 @@ cp $kb_yaml $kb_yaml.bak
 sed -i -r "s/[#]server.host:.*/server.host: ${hostname}/" $kb_yaml
 sed -i -r "s/[#]server.name:.*/server.name: ${hostname}/"  $kb_yaml
 sed -i -r "s|[#]elasticsearch.url:.*|elasticsearch.url: ${es_url}|" $kb_yaml
+sed -i -r "s/[#]elasticsearch.username:.*/elasticsearch.username: elastic/" $kb_yaml
+sed -i -r "s/[#]elasticsearch.password:.*/elasticsearch.password: ${es_password}/" $kb_yaml
 
 echo "### Enabling and starting Kibana..."
 
-until $$(curl --output /dev/null --silent --head --fail ${es_url}); do
+until $$(curl --output /dev/null --silent --head --fail -u "elastic:${es_password}" ${es_url}); do
   printf '.'
   sleep 5
 done
