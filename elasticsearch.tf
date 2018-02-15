@@ -64,16 +64,16 @@ resource "aws_elb" "elasticsearch" {
 
     listener {
         instance_port     = 9200
-        instance_protocol = "http"
+        instance_protocol = "tcp"
         lb_port           = 9200
-        lb_protocol       = "http"
+        lb_protocol       = "tcp"
     }
 
     health_check {
       healthy_threshold   = 2
       unhealthy_threshold = 2
       timeout             = 3
-      target              = "HTTP:9200/"
+      target              = "TCP:9200"
       interval            = 30
     }
 
