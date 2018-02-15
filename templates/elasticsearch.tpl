@@ -9,7 +9,9 @@
 # - domainname
 # - es_version
 # - es_cluster_name
-# - nameho "### Configuring Hostname and Domain..."
+# - es_seed_name
+
+echo "### Configuring Hostname and Domain..."
 
 sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
 hostname ${hostname}.${domainname}
@@ -65,24 +67,34 @@ fi
 echo "### Downloading and installing Elasticsearch..."
 
 yum install -y -q https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${es_version}.rpm
+/usr/share/elasticsearch/bin/elasticsearch-plugin install --batch x-pack
 
 echo "### Configuring Elasticsearch..."
 
 es_dir=/etc/elasticsearch
 es_yaml=$es_dir/elasticsearch.yml
+cp $es_yaml $es_yaml.bak
+
 ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
 
 sed -i -r "s/[#]?cluster.name:.*/cluster.name: ${es_cluster_name}/" $es_yaml
 sed -i -r "s/[#]?network.host:.*/network.host: $ip_address/" $es_yaml
 sed -i -r "s/[#]?node.name:.*/node.name: ${hostname}/" $es_yaml
+sed -i -r "s/[#]?discovery.zen.minimum_master_nodes:.*/discovery.zen.minimum_master_nodes: 1/" $es_yaml
 sed -i -r "s/[#]?discovery.zen.ping.unicast.hosts:.*/discovery.zen.ping.unicast.hosts: [\"${es_seed_name}\"]/" $es_yaml
+
+echo >> $es_yaml
+echo "xpack.license.self_generated.type: basic" >> $es_yaml
+echo "xpack.security.enabled: false" >> $es_yaml
 
 echo "### Checking cluster prior start..."
 
+
 start_delay=$((60*(${node_id}-1)))
 if [[ $start_delay != 0 ]]; then
-  until echo -n > /dev/tcp/${es_seed_name}/9200; do
-    echo "### ${es_seed_name} is unavailable - sleeping"
+  es_url=http://{es_seed_name}:9200
+  until $$(curl --output /dev/null --silent --head --fail ${es_url}); do
+    printf '.'
     sleep 5
   done
   echo "### Waiting $start_delay seconds prior starting Elasticsearch..."
@@ -90,10 +102,6 @@ if [[ $start_delay != 0 ]]; then
 fi
 
 echo "### Enabling and starting Elasticsearch..."
-
-start_delay=$((60*(${node_id}-1)))
-echo "### Waiting $start_delay seconds prior starting Elasticsearch..."
-sleep $start_delay
 
 systemctl enable elasticsearch
 systemctl start elasticsearch
