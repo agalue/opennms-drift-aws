@@ -103,6 +103,7 @@ mkdir -p $zoo_data
 echo ${node_id} > $zoo_data/myid
 
 zoo_cfg=/opt/zookeeper/conf/zoo.cfg
+cp $zoo_cfg $zoo_cfg.bak
 cat <<EOF > $zoo_cfg
 dataDir=$zoo_data
 clientPort=2181

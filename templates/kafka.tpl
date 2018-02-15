@@ -87,6 +87,7 @@ mkdir -p $kafka_data
 
 listener_name=`curl http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null`
 kafka_cfg=/opt/kafka/config/server.properties
+cp $kafka_cfg $kafka_cfg.bak
 cat <<EOF > $kafka_cfg
 broker.id=${node_id}
 advertised.listeners=PLAINTEXT://$listener_name:9092
