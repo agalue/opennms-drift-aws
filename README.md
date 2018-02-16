@@ -88,3 +88,11 @@ The architecture involves the following components:
 ```SHELL
 curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 ```
+
+## Future enhancements
+
+* Improve the Elasticsearch cluster architecture to split the responbilities into: master nodes, client nodes, and data nodes.
+
+* Replace the WebUI servers solutions to a more independent ones where they won't rely on the core's config (even if some configuration settings will be the same), to have fully independent UI servers, at expenses of some features. In other words, independent UI servers won't be able to handle any admin operation: manipulate requisitions, acknowledge alarms/notifications, rescan nodes, etc.; as they will be considered read-only servers.
+
+* Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
