@@ -3,18 +3,17 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - node_id
-# - vpc_cidr
-# - hostname
-# - domainname
-# - onms_repo
-# - onms_version
-# - pg_repo_version
-# - postgres_server
-# - opennms_server
-# - nfs_server
-# - cassandra_servers
-# - webui_endpoint
+# - vpc_cidr = ${vpc_cidr}
+# - hostname = ${hostname}
+# - domainname = ${domainname}
+# - onms_repo = ${onms_repo}
+# - onms_version = ${onms_version}
+# - pg_repo_version = ${pg_repo_version}
+# - postgres_server = ${postgres_server}
+# - opennms_server = ${opennms_server}
+# - nfs_server = ${nfs_server}
+# - cassandra_servers = ${cassandra_servers}
+# - webui_endpoint = ${webui_endpoint}
 
 echo "### Configuring Hostname and Domain..."
 

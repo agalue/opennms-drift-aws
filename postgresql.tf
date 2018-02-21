@@ -4,10 +4,11 @@ data "template_file" "postgresql" {
     template = "${file("${path.module}/templates/postgresql.tpl")}"
 
     vars {
-        vpc_cidr        = "${var.vpc_cidr}"
-        hostname        = "${element(keys(var.pg_ip_addresses),0)}"
-        domainname      = "${var.dns_zone}"
-        pg_repo_version = "${lookup(var.versions, "postgresql_repo")}"
+        vpc_cidr           = "${var.vpc_cidr}"
+        hostname           = "${element(keys(var.pg_ip_addresses),0)}"
+        domainname         = "${var.dns_zone}"
+        pg_repo_version    = "${lookup(var.versions, "postgresql_repo")}"
+        pg_num_connections = "${lookup(var.settings, "postgresql_num_connections")}"
     }
 }
 

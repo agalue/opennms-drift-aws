@@ -11,7 +11,7 @@ data "template_file" "opennms" {
         onms_version        = "${lookup(var.versions, "onms_version")}"
         postgres_server     = "${element(keys(var.pg_ip_addresses),0)}"
         activemq_url        = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
-        elastic_url         = "${join(",",formatlist("http://%v:9200", keys(var.es_ip_addresses)))}"
+        elastic_url         = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
         elastic_user        = "elastic"
         elastic_password    = "${lookup(var.settings, "elastic_password")}"
         kafka_servers       = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
@@ -39,7 +39,7 @@ resource "aws_instance" "opennms" {
         "aws_instance.postgresql",
         "aws_instance.activemq",
         "aws_instance.kafka",
-        "aws_instance.elasticsearch"
+        "aws_instance.elasticsearch_data"
     ]
 
     connection {

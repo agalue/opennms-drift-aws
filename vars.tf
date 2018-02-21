@@ -38,14 +38,15 @@ variable "instance_types" {
     type = "map"
 
     default = {
-        opennms       = "t2.large"
-        postgresql    = "t2.medium"
-        elasticsearch = "t2.medium"
-        kibana        = "t2.medium"
-        activemq      = "t2.medium"
-        kafka         = "t2.medium"
-        zookeeper     = "t2.medium"
-        cassandra     = "t2.medium"
+        opennms    = "t2.large"
+        postgresql = "t2.medium"
+        es_master  = "t2.small"
+        es_data    = "t2.medium"
+        kibana     = "t2.medium"
+        activemq   = "t2.medium"
+        kafka      = "t2.medium"
+        zookeeper  = "t2.medium"
+        cassandra  = "t2.medium"
     }
 }
 
@@ -150,14 +151,25 @@ variable "cassandra_ip_addresses" {
     }
 }
 
-variable "es_ip_addresses" {
-    description = "Eslasticsearch Servers Private IPs"
+variable "es_master_ip_addresses" {
+    description = "Elasticsearch Master Servers Private IPs"
     type = "map"
 
     default = {
-        elasticsearch1 = "172.16.1.51"
-        elasticsearch2 = "172.16.1.52"
-        elasticsearch3 = "172.16.1.53"
+        esmaster1 = "172.16.1.51"
+        esmaster2 = "172.16.1.52"
+        esmaster3 = "172.16.1.53"
+    }
+}
+
+variable "es_data_ip_addresses" {
+    description = "Elasticsearch Data Servers Private IPs"
+    type = "map"
+
+    default = {
+        esdata1 = "172.16.1.54"
+        esdata2 = "172.16.1.55"
+        esdata3 = "172.16.1.56"
     }
 }
 
@@ -171,6 +183,9 @@ variable "kibana_ip_addresses" {
 }
 
 # Applications
+
+# The Elasticsearch version cannot be changed due to required dependencies:
+# https://github.com/OpenNMS/elasticsearch-drift-plugin
 
 variable "versions" {
     description = "Versions for the external dependencies"
@@ -214,6 +229,7 @@ variable "settings" {
         kafka_replication_factor  = 2
         kafka_min_insync_replicas = 1
         cassandra_replication_factor = 2
+        postgresql_num_connections = 200
         elastic_password = "opennms"
     }
 }

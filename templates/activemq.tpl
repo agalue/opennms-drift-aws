@@ -3,12 +3,12 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - node_id
-# - vpc_cidr
-# - hostname
-# - domainname
-# - amq_sibling
-# - amq_version
+# - node_id = ${node_id}
+# - vpc_cidr = ${vpc_cidr}
+# - hostname = ${hostname}
+# - domainname = ${domainname}
+# - amq_sibling = ${amq_sibling}
+# - amq_version = ${amq_version}
 
 echo "### Configuring Hostname and Domain..."
 

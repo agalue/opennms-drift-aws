@@ -29,7 +29,7 @@ resource "aws_instance" "kibana" {
     ]
 
     depends_on = [
-        "aws_instance.elasticsearch"
+        "aws_instance.elasticsearch_data"
     ]
 
     connection {

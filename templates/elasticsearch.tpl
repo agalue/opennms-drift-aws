@@ -1,16 +1,18 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
 # Warning: This is intended to be used through Terraform's template plugin only
+# TODO: use EC2 discovery plugin.
 
 # AWS Template Variables
-# - node_id
-# - vpc_cidr
-# - hostname
-# - domainname
-# - es_version
-# - es_cluster_name
-# - es_seed_name
-# - es_password
+# - node_id = ${node_id}
+# - vpc_cidr = ${vpc_cidr}
+# - hostname = ${hostname}
+# - domainname = ${domainname}
+# - es_version = ${es_version}
+# - es_cluster_name = ${es_cluster_name}
+# - es_seed_name = ${es_seed_name}
+# - es_password = ${es_password}
+# - es_is_master = ${es_is_master}
 
 echo "### Configuring Hostname and Domain..."
 
@@ -76,13 +78,28 @@ es_dir=/etc/elasticsearch
 es_yaml=$es_dir/elasticsearch.yml
 cp $es_yaml $es_yaml.bak
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
-
 sed -i -r "s/[#]?cluster.name:.*/cluster.name: ${es_cluster_name}/" $es_yaml
-sed -i -r "s/[#]?network.host:.*/network.host: $ip_address/" $es_yaml
+sed -i -r "s/[#]?network.host:.*/network.host: ${hostname}/" $es_yaml
 sed -i -r "s/[#]?node.name:.*/node.name: ${hostname}/" $es_yaml
-sed -i -r "s/[#]?discovery.zen.minimum_master_nodes:.*/discovery.zen.minimum_master_nodes: 1/" $es_yaml
-sed -i -r "s/[#]?discovery.zen.ping.unicast.hosts:.*/discovery.zen.ping.unicast.hosts: [\"${es_seed_name}\"]/" $es_yaml
+sed -i -r "s/[#]?discovery.zen.minimum_master_nodes:.*/discovery.zen.minimum_master_nodes: 2/" $es_yaml
+sed -i -r "s/[#]?discovery.zen.ping.unicast.hosts:.*/discovery.zen.ping.unicast.hosts: [${es_seed_name}]/" $es_yaml
+
+echo >> $es_yaml
+echo "# Roles" >> $es_yaml
+
+if [[ "${es_is_master}" == "true" ]]; then
+  echo "node.master: true" >> $es_yaml
+  echo "node.data: false" >> $es_yaml
+  echo "node.ingest: false" >> $es_yaml
+else
+  echo "node.master: false" >> $es_yaml
+  echo "node.data: true" >> $es_yaml
+  echo "node.ingest: true" >> $es_yaml
+fi
+
+echo >> $es_yaml
+echo "# X-Pack" >> $es_yaml
+echo "xpack.license.self_generated.type: basic" >> $es_yaml
 
 echo ${es_password} | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x 'bootstrap.password'
 
@@ -90,11 +107,6 @@ echo "### Checking cluster prior start..."
 
 start_delay=$((60*(${node_id}-1)))
 if [[ $start_delay != 0 ]]; then
-  es_url=http://${es_seed_name}:9200
-  until $$(curl --output /dev/null --silent --head --fail -u "elastic:${es_password}" $es_url); do
-    printf '.'
-    sleep 5
-  done
   echo "### Waiting $start_delay seconds prior starting Elasticsearch..."
   sleep $start_delay
 fi

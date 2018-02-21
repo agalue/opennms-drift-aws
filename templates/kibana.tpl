@@ -3,12 +3,12 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - vpc_cidr
-# - hostname
-# - domainname
-# - es_version
-# - es_url
-# - es_password
+# - vpc_cidr = ${vpc_cidr}
+# - hostname = ${hostname}
+# - domainname = ${domainname}
+# - es_version = ${es_version}
+# - es_url = ${es_url}
+# - es_password = ${es_password}
 
 echo "### Configuring Hostname and Domain..."
 
@@ -61,7 +61,7 @@ cp $kb_yaml $kb_yaml.bak
 sed -i -r "s/[#]server.host:.*/server.host: ${hostname}/" $kb_yaml
 sed -i -r "s/[#]server.name:.*/server.name: ${hostname}/"  $kb_yaml
 sed -i -r "s|[#]elasticsearch.url:.*|elasticsearch.url: ${es_url}|" $kb_yaml
-sed -i -r "s/[#]elasticsearch.username:.*/elasticsearch.username: elastic/" $kb_yaml
+sed -i -r "s/[#]elasticsearch.username:.*/elasticsearch.username: kibana/" $kb_yaml
 sed -i -r "s/[#]elasticsearch.password:.*/elasticsearch.password: ${es_password}/" $kb_yaml
 
 echo "### Enabling and starting Kibana..."

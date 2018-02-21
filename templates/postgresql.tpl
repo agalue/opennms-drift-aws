@@ -3,10 +3,11 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - vpc_cidr
-# - hostname
-# - domainname
-# - pg_repo_version
+# - vpc_cidr = ${vpc_cidr}
+# - hostname = ${hostname}
+# - domainname = ${domainname}
+# - pg_repo_version = ${pg_repo_version}
+# - pg_num_connections = ${pg_num_connections}
 
 echo "### Configuring Hostname and Domain..."
 
@@ -61,7 +62,8 @@ echo "### Configuring PostgreSQL..."
 data_dir=/var/lib/pgsql/$pg_version/data
 sed -r -i 's/(peer|ident)/trust/g' $data_dir/pg_hba.conf
 sed -r -i 's|127.0.0.1/32|${vpc_cidr}|g' $data_dir/pg_hba.conf
-sed -r -i "s/[#]listen_addresses =.*/listen_addresses = '*'/" $data_dir/postgresql.conf
+sed -r -i "s/[#]?listen_addresses =.*/listen_addresses = '*'/" $data_dir/postgresql.conf
+sed -r -i "s/[#]?max_connections =.*/max_connections = ${pg_num_connections}/" $data_dir/postgresql.conf
 
 echo "### Enabling and starting PostgreSQL..."
 

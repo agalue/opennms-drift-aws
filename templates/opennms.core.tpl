@@ -3,19 +3,19 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - vpc_cidr
-# - hostname
-# - domainname
-# - onms_repo
-# - onms_version
-# - postgres_server
-# - kafka_servers
-# - cassandra_servers
-# - cassandra_repfactor
-# - activemq_url
-# - elastic_url
-# - elastic_user
-# - elastic_password
+# - vpc_cidr = ${vpc_cidr}
+# - hostname = ${hostname}
+# - domainname = ${domainname}
+# - onms_repo = ${onms_repo}
+# - onms_version = ${onms_version}
+# - postgres_server = ${postgres_server}
+# - kafka_servers = ${kafka_servers}
+# - cassandra_servers = ${cassandra_servers}
+# - cassandra_repfactor = ${cassandra_repfactor}
+# - activemq_url = ${activemq_url}
+# - elastic_url = ${elastic_url}
+# - elastic_user = ${elastic_user}
+# - elastic_password = ${elastic_password}
 
 echo "### Configuring Hostname and Domain..."
 

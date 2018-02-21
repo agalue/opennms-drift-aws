@@ -3,16 +3,16 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - node_id
-# - vpc_cidr
-# - hostname
-# - domainname
-# - kafka_version
-# - scala_version
-# - zookeeper_connect
-# - num_partitions
-# - replication_factor
-# - min_insync_replicas
+# - node_id = ${node_id}
+# - vpc_cidr = ${vpc_cidr}
+# - hostname = ${hostname}
+# - domainname = ${domainname}
+# - kafka_version = ${kafka_version}
+# - scala_version = ${scala_version}
+# - zookeeper_connect = ${zookeeper_connect}
+# - num_partitions = ${num_partitions}
+# - replication_factor = ${replication_factor}
+# - min_insync_replicas = ${min_insync_replicas}
 
 echo "### Configuring Hostname and Domain..."
 

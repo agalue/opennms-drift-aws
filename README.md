@@ -59,7 +59,7 @@ The architecture involves the following components:
 
 * A cluster of 3 EC2 instances for Kafka.
 
-* A cluster of 3 EC2 instances for Elasticsearch.
+* A cluster of 6 EC2 instances for Elasticsearch (3 dedicated master nodes, and 3 dedicated data/ingest nodes).
 
 * A cluster of 2 EC2 instances for OpenNMS UI and Grafana.
 
@@ -77,7 +77,7 @@ The architecture involves the following components:
 
 ## Limitations
 
-* By default, 20 is the limit of EC2 instances on a VPC at the same time, unless you or your organization is able to create more, as it is possible to request more to Amazon. For this reason, you have to be careful when increasing the number of instances on all the involved clusters, in case it is necessary to add more nodes. As a hint, the UI servers are not essential for testing this deployment, so they can be ommited.
+* By default, 20 is the limit of EC2 instances on a VPC at the same time, unless you or your organization is able to create more, as it is possible to request more to Amazon. It is important to verify these limits prior using this POC.
 
 * The core OpenNMS server is sharing its own configuration directory through NFS. A better approach could be configure an external NFS server, copy the configuration there, and share it between the OpenNMS core server and the UI servers.
 
@@ -91,8 +91,10 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 ## Future enhancements
 
-* Improve the Elasticsearch cluster architecture to split the responbilities into: master nodes, client nodes, and data nodes.
+* Improve the Elasticsearch cluster architecture to have a dedicated monitoring cluster (assuming X-Pack will be used).
 
 * Replace the WebUI servers solutions to a more independent ones where they won't rely on the core's config (even if some configuration settings will be the same), to have fully independent UI servers, at expenses of some features. In other words, independent UI servers won't be able to handle any admin operation: manipulate requisitions, acknowledge alarms/notifications, rescan nodes, etc.; as they will be considered read-only servers.
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
+
+* Use Packer to pre-create the AMIs, to let be clear what should be installed on the instances, and what should be customized during the first bootstrap. This will make the EC2 instance initialization a lot faster, as the install procedure is usually fixed.

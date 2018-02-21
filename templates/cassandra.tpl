@@ -3,13 +3,13 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - node_id
-# - vpc_cidr
-# - hostname
-# - domainname
-# - repo_version
-# - cluster_name
-# - seed_name
+# - node_id = ${node_id}
+# - vpc_cidr = ${vpc_cidr}
+# - hostname = ${hostname}
+# - domainname = ${domainname}
+# - repo_version = ${repo_version}
+# - cluster_name = ${cluster_name}
+# - seed_name = ${seed_name}
 
 echo "### Configuring Hostname and Domain..."
 
