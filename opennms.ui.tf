@@ -23,7 +23,7 @@ data "template_file" "opennms_ui" {
 resource "aws_instance" "opennms_ui" {
     count         = "${length(var.onms_ui_ip_addresses)}"
     ami           = "${lookup(var.aws_amis, var.aws_region)}"
-    instance_type = "${lookup(var.instance_types, "opennms")}"
+    instance_type = "${lookup(var.instance_types, "onms_ui")}"
     subnet_id     = "${aws_subnet.public.id}"
     key_name      = "${var.aws_key_name}"
     private_ip    = "${element(values(var.onms_ui_ip_addresses), count.index)}"
@@ -103,6 +103,6 @@ resource "aws_elb_attachment" "opennms_ui" {
     instance = "${element(aws_instance.opennms_ui.*.id, count.index)}"
 }
 
-output "opennms_ui" {
+output "onmsui" {
     value = "${join(",",aws_instance.opennms_ui.*.public_ip)}"
 }

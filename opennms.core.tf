@@ -22,7 +22,7 @@ data "template_file" "opennms" {
 
 resource "aws_instance" "opennms" {
     ami           = "${lookup(var.aws_amis, var.aws_region)}"
-    instance_type = "${lookup(var.instance_types, "opennms")}"
+    instance_type = "${lookup(var.instance_types, "onms_core")}"
     subnet_id     = "${aws_subnet.public.id}"
     key_name      = "${var.aws_key_name}"
     private_ip    = "${element(values(var.onms_ip_addresses),0)}"

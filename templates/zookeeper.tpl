@@ -126,8 +126,13 @@ zookeeper zookeeper
 EOF
 chmod 400 $password_file
 
+zoo_logs=/opt/zookeeper/logs
+mkdir -p $zoo_logs
+
 jmxport=9998
+
 cat <<EOF > /opt/zookeeper/conf/zookeeper-env.sh
+ZOO_LOG_DIR=$zoo_logs
 JMXLOCALONLY=false
 JMXDISABLE=false
 JMXPORT=$jmxport
@@ -138,7 +143,7 @@ EOF
 
 echo "### Enabling and starting Zookeeper..."
 
-start_delay=$((60*(${node_id}-1)))
+start_delay=$((30*(${node_id}-1)))
 echo "### Waiting $start_delay seconds prior starting Zookeeper..."
 sleep $start_delay
 

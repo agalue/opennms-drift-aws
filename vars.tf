@@ -38,7 +38,8 @@ variable "instance_types" {
     type = "map"
 
     default = {
-        opennms    = "t2.large"
+        onms_core  = "t2.large"
+        onms_ui    = "t2.medium"
         postgresql = "t2.medium"
         es_master  = "t2.small"
         es_data    = "t2.medium"

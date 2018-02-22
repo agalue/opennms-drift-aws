@@ -24,18 +24,33 @@
   <node building="AWS" foreign-id="kibana" node-label="kibana-01-server">
     <interface descr="eth0" ip-addr="172.16.1.50" status="1" snmp-primary="P"/>
   </node>
-  <node building="AWS" foreign-id="es01" node-label="elastic-01-server">
+  <node building="AWS" foreign-id="esmaster01" node-label="elastic-master-01-server">
     <interface descr="eth0" ip-addr="172.16.1.51" status="1" snmp-primary="P">
       <monitored-service service-name="Elasticsearch"/>
     </interface>
   </node>
-  <node building="AWS" foreign-id="es02" node-label="elastic-02-server">
+  <node building="AWS" foreign-id="esmaster02" node-label="elastic-master-02-server">
     <interface descr="eth0" ip-addr="172.16.1.52" status="1" snmp-primary="P">
       <monitored-service service-name="Elasticsearch"/>
     </interface>
   </node>
-  <node building="AWS" foreign-id="es03" node-label="elastic-03-server">
+  <node building="AWS" foreign-id="esmaster03" node-label="elastic-master-03-server">
     <interface descr="eth0" ip-addr="172.16.1.53" status="1" snmp-primary="P">
+      <monitored-service service-name="Elasticsearch"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="esdata01" node-label="elastic-data-01-server">
+    <interface descr="eth0" ip-addr="172.16.1.54" status="1" snmp-primary="P">
+      <monitored-service service-name="Elasticsearch"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="esdata02" node-label="elastic-data-02-server">
+    <interface descr="eth0" ip-addr="172.16.1.55" status="1" snmp-primary="P">
+      <monitored-service service-name="Elasticsearch"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="esdata03" node-label="elastic-data-03-server">
+    <interface descr="eth0" ip-addr="172.16.1.56" status="1" snmp-primary="P">
       <monitored-service service-name="Elasticsearch"/>
     </interface>
   </node>

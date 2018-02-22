@@ -75,9 +75,13 @@ The architecture involves the following components:
 
 * Private DNS through Route 53 for all the instances.
 
+For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3. Increasing the brokers on the AMQ cluster requires a lot more work, as the current design works on a active-passive fashion, as AMQ doesn't scale horizontally.
+
 ## Limitations
 
-* By default, 20 is the limit of EC2 instances on a VPC at the same time, unless you or your organization is able to create more, as it is possible to request more to Amazon. It is important to verify these limits prior using this POC.
+* Due to the asynchronous way on which Terraform initialize AWS resources, and how the EC2 instances initialize themselves, it is possible that manual intervension is rqeuired in order to make sure that all the applications are up and running. Errors can acoour even with the defensive code has been added to the initialization scripts.
+
+* Be aware of EC2 instance limits on your AWS account for the chosen region, as it might be possible that you won't be able to use this POC unless you increase the limits. The default limit is 20, and this POC will be creating more than that.
 
 * The core OpenNMS server is sharing its own configuration directory through NFS. A better approach could be configure an external NFS server, copy the configuration there, and share it between the OpenNMS core server and the UI servers.
 
