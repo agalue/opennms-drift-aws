@@ -10,6 +10,7 @@ data "template_file" "kibana" {
         es_version  = "${lookup(var.versions, "elasticsearch")}"
         es_url      = "http://${aws_elb.elasticsearch.dns_name}:9200"
         es_password = "${lookup(var.settings, "elastic_password")}"
+        es_monsrv   = ""
     }
 }
 

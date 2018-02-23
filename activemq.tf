@@ -30,6 +30,11 @@ resource "aws_instance" "activemq" {
         "${aws_security_group.activemq.id}"
     ]
 
+    root_block_device {
+        volume_type = "gp2"
+        volume_size = "${lookup(var.disk_space, "activemq")}"
+    }
+
     connection {
         user        = "ec2-user"
         private_key = "${file("${var.aws_private_key}")}"

@@ -38,6 +38,11 @@ resource "aws_instance" "kafka" {
         "aws_instance.zookeeper"
     ]
 
+    root_block_device {
+        volume_type = "gp2"
+        volume_size = "${lookup(var.disk_space, "kafka")}"
+    }
+
     connection {
         user        = "ec2-user"
         private_key = "${file("${var.aws_private_key}")}"

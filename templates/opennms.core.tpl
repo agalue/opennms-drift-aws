@@ -222,6 +222,7 @@ EOF
 
 # Enable NetFlow
 sed -r -i '/"Netflow-5"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
+sed -r -i '/"Netflow-9"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
 # Enable NX-OS
 sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml

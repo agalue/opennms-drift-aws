@@ -27,6 +27,11 @@ resource "aws_instance" "postgresql" {
         "${aws_security_group.postgresql.id}"
     ]
 
+    root_block_device {
+        volume_type = "gp2"
+        volume_size = "${lookup(var.disk_space, "postgresql")}"
+    }
+
     connection {
         user        = "ec2-user"
         private_key = "${file("${var.aws_private_key}")}"

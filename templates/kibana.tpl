@@ -9,6 +9,7 @@
 # - es_version = ${es_version}
 # - es_url = ${es_url}
 # - es_password = ${es_password}
+# - es_monsrv = ${es_monsrv}
 
 echo "### Configuring Hostname and Domain..."
 
@@ -63,6 +64,11 @@ sed -i -r "s/[#]server.name:.*/server.name: ${hostname}/"  $kb_yaml
 sed -i -r "s|[#]elasticsearch.url:.*|elasticsearch.url: ${es_url}|" $kb_yaml
 sed -i -r "s/[#]elasticsearch.username:.*/elasticsearch.username: kibana/" $kb_yaml
 sed -i -r "s/[#]elasticsearch.password:.*/elasticsearch.password: ${es_password}/" $kb_yaml
+
+if [[ "${es_monsrv}" != "" ]]; then
+  echo >> $kb_yaml
+  echo xpack.monitoring.elasticsearch.url: "http://${es_monsrv}:9200" >> $kb_yaml
+fi
 
 echo "### Enabling and starting Kibana..."
 

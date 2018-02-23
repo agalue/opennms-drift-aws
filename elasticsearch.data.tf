@@ -13,7 +13,9 @@ data "template_file" "elasticsearch_data" {
         es_cluster_name = "${lookup(var.settings, "cluster_name")}"
         es_seed_name    = "${join(",",keys(var.es_master_ip_addresses))}"
         es_password     = "${lookup(var.settings, "elastic_password")}"
-        es_is_master    = "false"
+        es_role         = "data"
+        es_xpack        = "true"
+        es_monsrv       = ""
     }
 }
 
@@ -36,6 +38,11 @@ resource "aws_instance" "elasticsearch_data" {
     depends_on = [
         "aws_instance.elasticsearch_master"
     ]
+
+    root_block_device {
+        volume_type = "gp2"
+        volume_size = "${lookup(var.disk_space, "elasticsearch")}"
+    }
 
     connection {
         user        = "ec2-user"

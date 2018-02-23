@@ -234,3 +234,17 @@ variable "settings" {
         elastic_password = "opennms"
     }
 }
+
+variable "disk_space" {
+    description = "Disk space per node (per application) in GB"
+    type = "map"
+
+    default = {
+        elasticsearch = "60"
+        activemq      = "20"
+        kafka         = "50"
+        zookeeper     = "8"
+        postgresql    = "20"
+        cassandra     = "60"
+    }
+}
