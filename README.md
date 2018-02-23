@@ -12,13 +12,31 @@ aws_access_key_id = XXXXXXXXXXXXXXXXX
 aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-* Install the terraform binary from [terraform.io](https://www.terraform.io)
+* Install the Terraform binary from [terraform.io](https://www.terraform.io)
+
+* Install the Packer binary from [packer.io](https://www.packer.io)
 
 * Install VirtualBox from [virtualbox.org](https://www.virtualbox.org)
 
 * Install Vagrant from [vagrantup.com](https://www.vagrantup.com)
 
+* Tweak the versions on the packer initialization scripts located at `packer/scripts`.
+
 * Tweak the common settings on `vars.tf`, specially `aws_key_name` and `aws_private_key`, to match the chosen region. All the customizable settings are defined on `vars.tf`. Please do not change the other `.tf` files.
+
+* Build the custom AMIs using Packer:
+
+```SHELL
+cd packer
+. build.sh
+```
+
+Of, in order to build a specific image:
+
+```SHELL
+cd packer
+packer build opennms.json
+```
 
 * Execute the following commands from the repository's root directory (at the same level as the .tf files):
 
@@ -100,5 +118,3 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 * Replace the WebUI servers solutions to a more independent ones where they won't rely on the core's config (even if some configuration settings will be the same), to have fully independent UI servers, at expenses of some features. In other words, independent UI servers won't be able to handle any admin operation: manipulate requisitions, acknowledge alarms/notifications, rescan nodes, etc.; as they will be considered read-only servers.
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
-
-* Use Packer to pre-create the AMIs, to let be clear what should be installed on the instances, and what should be customized during the first bootstrap. This will make the EC2 instance initialization a lot faster, as the install procedure is usually fixed.
