@@ -6,10 +6,8 @@ data "template_file" "cassandra" {
 
     vars {
         node_id      = "${count.index + 1}"
-        vpc_cidr     = "${var.vpc_cidr}"
         hostname     = "${element(keys(var.cassandra_ip_addresses), count.index)}"
         domainname   = "${var.dns_zone}"
-        repo_version = "${lookup(var.versions, "cassandra_repo")}"
         cluster_name = "${lookup(var.settings, "cluster_name")}"
         seed_name    = "${element(keys(var.cassandra_ip_addresses), 0)}"
     }
@@ -17,7 +15,7 @@ data "template_file" "cassandra" {
 
 resource "aws_instance" "cassandra" {
     count         = "${length(var.cassandra_ip_addresses)}"
-    ami           = "${lookup(var.aws_amis, var.aws_region)}"
+    ami           = "${data.aws_ami.cassandra.image_id}"
     instance_type = "${lookup(var.instance_types, "cassandra")}"
     subnet_id     = "${aws_subnet.public.id}"
     key_name      = "${var.aws_key_name}"

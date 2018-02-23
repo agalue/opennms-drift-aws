@@ -5,10 +5,8 @@
 
 # AWS Template Variables
 # - node_id = ${node_id}
-# - vpc_cidr = ${vpc_cidr}
 # - hostname = ${hostname}
 # - domainname = ${domainname}
-# - es_version = ${es_version}
 # - es_cluster_name = ${es_cluster_name}
 # - es_seed_name = ${es_seed_name}
 # - es_password = ${es_password}
@@ -26,56 +24,6 @@ echo "### Configuring Timezone..."
 
 timezone=America/New_York
 ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-sed -i -r "s|ZONE=.*|ZONE=$timezone|" /etc/sysconfig/clock
-
-echo "### Installing common packages..."
-
-yum -y -q update
-yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
-
-echo "### Configuring and enabling SNMP..."
-
-snmp_cfg=/etc/snmp/snmpd.conf
-cp $snmp_cfg $snmp_cfg.original
-cat <<EOF > $snmp_cfg
-com2sec localUser ${vpc_cidr} public
-group localGroup v1 localUser
-group localGroup v2c localUser
-view all included .1 80
-access localGroup "" any noauth 0 all none none
-syslocation AWS
-syscontact Account Manager
-dontLogTCPWrappersConnects yes
-disk /
-EOF
-
-chmod 600 $snmp_cfg
-systemctl enable snmpd
-systemctl start snmpd
-
-echo "### Downloading and installing Oracle JDK..."
-
-java_url="http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.rpm"
-java_rpm=/tmp/jdk8-linux-x64.rpm
-wget -c --quiet --header "Cookie: oraclelicense=accept-securebackup-cookie" -O $java_rpm $java_url
-if [ ! -s $java_rpm ]; then
-  echo "FATAL: Cannot download Java from $java_url. Using OpenNMS default ..."
-  yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel7.noarch.rpm
-  rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel7.gpg
-  yum install -y -q jdk1.8.0_144
-  yum erase -y -q opennms-repo-stable
-else
-  yum install -y -q $java_rpm
-  rm -f $java_rpm
-fi
-
-echo "### Downloading and installing Elasticsearch..."
-
-yum install -y -q https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${es_version}.rpm
-
-if [[ "${es_xpack}" == "true "]]; then
-  /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch x-pack
-fi
 
 echo "### Configuring Elasticsearch..."
 
@@ -112,11 +60,11 @@ if [[ "${es_role}" == "coordinator" ]]; then
   echo "node.ingest: false" >> $es_yaml
 fi
 
+echo >> $es_yaml
+echo "xpack.license.self_generated.type: basic" >> $es_yaml
+
 if [[ "${es_xpack}" == "true" ]]; then
   echo ${es_password} | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x 'bootstrap.password'
-
-  echo >> $es_yaml
-  echo "xpack.license.self_generated.type: basic" >> $es_yaml
 
   if [[ "${es_monsrv}" != "" ]]; then
     echo "xpack.monitoring.exporters:" >> $es_yaml
@@ -127,11 +75,14 @@ if [[ "${es_xpack}" == "true" ]]; then
     echo "      timeout: 6s" >> $es_yaml
     echo "      read_timeout: 60s" >> $es_yaml
   fi
+else
+  echo "xpack.security.enabled=false" >> $es_yaml
+  echo "xpack.monitoring.enabled=false" >> $es_yaml
 fi
 
 echo "### Checking cluster prior start..."
 
-start_delay=$((60*(${node_id}-1)))
+start_delay=$((30*(${node_id}-1)))
 if [[ $start_delay != 0 ]]; then
   echo "### Waiting $start_delay seconds prior starting Elasticsearch..."
   sleep $start_delay
@@ -141,3 +92,6 @@ echo "### Enabling and starting Elasticsearch..."
 
 systemctl enable elasticsearch
 systemctl start elasticsearch
+
+systemctl enable snmpd
+systemctl start snmpd

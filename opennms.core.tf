@@ -7,8 +7,6 @@ data "template_file" "opennms" {
         vpc_cidr            = "${var.vpc_cidr}"
         hostname            = "${element(keys(var.onms_ip_addresses),0)}"
         domainname          = "${var.dns_zone}"
-        onms_repo           = "${lookup(var.versions, "onms_repo")}"
-        onms_version        = "${lookup(var.versions, "onms_version")}"
         postgres_server     = "${element(keys(var.pg_ip_addresses),0)}"
         activemq_url        = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
         elastic_url         = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
@@ -21,7 +19,7 @@ data "template_file" "opennms" {
 }
 
 resource "aws_instance" "opennms" {
-    ami           = "${lookup(var.aws_amis, var.aws_region)}"
+    ami           = "${data.aws_ami.opennms.image_id}"
     instance_type = "${lookup(var.instance_types, "onms_core")}"
     subnet_id     = "${aws_subnet.public.id}"
     key_name      = "${var.aws_key_name}"

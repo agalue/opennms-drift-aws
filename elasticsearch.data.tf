@@ -5,11 +5,9 @@ data "template_file" "elasticsearch_data" {
     template = "${file("${path.module}/templates/elasticsearch.tpl")}"
 
     vars {
-        node_id         = "${count.index + 1}"
-        vpc_cidr        = "${var.vpc_cidr}"
+        node_id         = "${count.index + length(var.es_master_ip_addresses)}"
         hostname        = "${element(keys(var.es_data_ip_addresses), count.index)}"
         domainname      = "${var.dns_zone}"
-        es_version      = "${lookup(var.versions, "elasticsearch")}"
         es_cluster_name = "${lookup(var.settings, "cluster_name")}"
         es_seed_name    = "${join(",",keys(var.es_master_ip_addresses))}"
         es_password     = "${lookup(var.settings, "elastic_password")}"
@@ -21,7 +19,7 @@ data "template_file" "elasticsearch_data" {
 
 resource "aws_instance" "elasticsearch_data" {
     count         = "${length(var.es_data_ip_addresses)}"
-    ami           = "${lookup(var.aws_amis, var.aws_region)}"
+    ami           = "${data.aws_ami.elasticsearch.image_id}"
     instance_type = "${lookup(var.instance_types, "es_data")}"
     subnet_id     = "${aws_subnet.public.id}"
     key_name      = "${var.aws_key_name}"

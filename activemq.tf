@@ -6,17 +6,15 @@ data "template_file" "activemq" {
 
     vars {
         node_id     = "${count.index + 1}"
-        vpc_cidr    = "${var.vpc_cidr}"
         hostname    = "${element(keys(var.amq_ip_addresses), count.index)}"
         domainname  = "${var.dns_zone}"
-        amq_version = "${lookup(var.versions, "activemq")}"
         amq_sibling = "${element(var.amq_siblings, count.index)}"
     }
 }
 
 resource "aws_instance" "activemq" {
     count         = "${length(var.amq_ip_addresses)}"
-    ami           = "${lookup(var.aws_amis, var.aws_region)}"
+    ami           = "${data.aws_ami.activemq.image_id}"
     instance_type = "${lookup(var.instance_types, "activemq")}"
     subnet_id     = "${aws_subnet.public.id}"
     key_name      = "${var.aws_key_name}"
