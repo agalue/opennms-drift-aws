@@ -98,6 +98,20 @@ resource "aws_elb_attachment" "opennms_ui" {
     instance = "${element(aws_instance.opennms_ui.*.id, count.index)}"
 }
 
+resource "aws_lb_cookie_stickiness_policy" "opennms_ui" {
+    name                     = "opennms-ui-policy"
+    load_balancer            = "${aws_elb.opennms_ui.id}"
+    lb_port                  = 8980
+    cookie_expiration_period = 86400
+}
+
+resource "aws_lb_cookie_stickiness_policy" "grafana" {
+    name                     = "grafana-policy"
+    load_balancer            = "${aws_elb.opennms_ui.id}"
+    lb_port                  = 3000
+    cookie_expiration_period = 86400
+}
+
 output "onmsui" {
     value = "${join(",",aws_instance.opennms_ui.*.public_ip)}"
 }
