@@ -201,12 +201,14 @@ systemctl start nfs
 
 echo "### Running OpenNMS install script..."
 
+sleep 60
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 $opennms_home/bin/install -dis
 $opennms_home/bin/newts init -r ${cassandra_repfactor}
 
 echo "### Enabling and starting OpenNMS Core..."
 
+sleep 120
 systemctl daemon-reload
 systemctl enable opennms
 systemctl start opennms

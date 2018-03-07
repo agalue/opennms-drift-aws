@@ -3,8 +3,8 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-scala_version="2.12"
-kafka_version="1.0.0"
+scala_version="2.11"
+kafka_version="1.0.1"
 
 ########################################
 
