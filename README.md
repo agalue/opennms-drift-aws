@@ -101,7 +101,9 @@ For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be i
 
 * Be aware of EC2 instance limits on your AWS account for the chosen region, as it might be possible that you won't be able to use this POC unless you increase the limits. The default limit is 20, and this POC will be creating more than that.
 
-* The core OpenNMS server is sharing its own configuration directory through NFS. A better approach could be configure an external NFS server, copy the configuration there, and share it between the OpenNMS core server and the UI servers.
+* The core OpenNMS server is sharing its own configuration directory and share directory through NFS. A better approach could be configure an external NFS server, and share it between the OpenNMS core server and the UI servers.
+
+* The OpenNMS UI servers have been configured to be read-only in terms of admintration tasks. So, even admin users won't be able to perform administration tasks.
 
 * This is not a production ready deployment. This is just a proof of concept for all the components required to deploy Drift. Several changes are required not only on the EC2 instance types, but also on the configuration of the several components to make it production ready.
 

@@ -22,11 +22,6 @@ hostname ${hostname}.${domainname}
 domainname ${domainname}
 sed -i -r "s/#Domain =.*/Domain = ${domainname}/" /etc/idmapd.conf
 
-echo "### Configuring Timezone..."
-
-timezone=America/New_York
-ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-
 echo "### Configuring OpenNMS..."
 
 opennms_home=/opt/opennms
@@ -199,6 +194,7 @@ echo "### Configuring NFS..."
 # TODO Using the server itself as NFS server
 cat <<EOF > /etc/exports
 /opt/opennms/etc ${vpc_cidr}(rw,sync,no_root_squash)
+/var/opennms ${vpc_cidr}(rw,sync,no_root_squash)
 EOF
 systemctl enable nfs
 systemctl start nfs
@@ -214,6 +210,8 @@ echo "### Enabling and starting OpenNMS Core..."
 systemctl daemon-reload
 systemctl enable opennms
 systemctl start opennms
+
+echo "### Enabling and starting SNMP..."
 
 systemctl enable snmpd
 systemctl start snmpd

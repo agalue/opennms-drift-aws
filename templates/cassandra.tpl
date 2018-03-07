@@ -15,11 +15,6 @@ sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/net
 hostname ${hostname}.${domainname}
 domainname ${domainname}
 
-echo "### Configuring Timezone..."
-
-timezone=America/New_York
-ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-
 echo "### Configuring Cassandra..."
 
 ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
@@ -83,6 +78,8 @@ echo "### Enabling and starting Cassandra..."
 
 systemctl enable cassandra
 systemctl start cassandra
+
+echo "### Enabling and starting SNMP..."
 
 systemctl enable snmpd
 systemctl start snmpd

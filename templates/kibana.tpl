@@ -15,11 +15,6 @@ sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/net
 hostname ${hostname}.${domainname}
 domainname ${domainname}
 
-echo "### Configuring Timezone..."
-
-timezone=America/New_York
-ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-
 echo "### Configuring Kibana..."
 
 kb_dir=/etc/kibana
@@ -46,6 +41,8 @@ done
 
 systemctl enable kibana
 systemctl start kibana
+
+echo "### Enabling and starting SNMP..."
 
 systemctl enable snmpd
 systemctl start snmpd

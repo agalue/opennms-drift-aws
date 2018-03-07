@@ -15,11 +15,6 @@ sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/net
 hostname ${hostname}.${domainname}
 domainname ${domainname}
 
-echo "### Configuring Timezone..."
-
-timezone=America/New_York
-ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-
 echo "### Configuring PostgreSQL..."
 
 pg_repo_version="9.6-3"
@@ -38,6 +33,8 @@ echo "### Enabling and starting PostgreSQL..."
 
 systemctl enable postgresql-$pg_version
 systemctl start postgresql-$pg_version
+
+echo "### Enabling and starting SNMP..."
 
 systemctl enable snmpd
 systemctl start snmpd

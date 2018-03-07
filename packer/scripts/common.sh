@@ -1,6 +1,11 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
 
+echo "### Configuring Timezone..."
+
+timezone=America/New_York
+sudo ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+
 echo "### Installing common packages..."
 
 sudo yum -y -q update

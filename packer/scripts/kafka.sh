@@ -26,8 +26,6 @@ sudo rm -f $kafka_file
 systemd_kafka=/etc/systemd/system/kafka.service
 systemd_tmp=/tmp/kafka.service
 cat <<EOF > $systemd_tmp
-# Inspired by https://github.com/thmshmm/confluent-systemd
-
 [Unit]
 Description=Apache Kafka server (broker)
 Documentation=http://kafka.apache.org/documentation.html
@@ -35,14 +33,14 @@ Requires=network.target remote-fs.target
 After=network.target remote-fs.target zookeeper.service
 
 [Service]
-Type=forking
+Type=simple
 User=root
 Group=root
 Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
 Environment="JMX_PORT=9999"
 # Uncomment the following line to enable authentication for the broker
-# Environment="KAFKA_OPTS=-Djava.security.auth.login.config=/etc/kafka/kafka-jaas.conf"
-ExecStart=/opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
+# Environment="KAFKA_OPTS=-Djava.security.auth.login.config=/opt/kafka/config/kafka-jaas.conf"
+ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
 ExecStop=/opt/kafka/bin/kafka-server-stop.sh
 
 [Install]

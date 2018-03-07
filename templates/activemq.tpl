@@ -14,11 +14,6 @@ sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/net
 hostname ${hostname}.${domainname}
 domainname ${domainname}
 
-echo "### Configuring Timezone..."
-
-timezone=America/New_York
-ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-
 echo "### Configuring ActiveMQ..."
 
 ln -s /opt/activemq/bin/activemq /etc/init.d/activemq
@@ -103,6 +98,8 @@ echo "### Enabling and starting ActiveMQ..."
 
 systemctl enable activemq
 systemctl start activemq
+
+echo "### Enabling and starting SNMP..."
 
 systemctl enable snmpd
 systemctl start snmpd

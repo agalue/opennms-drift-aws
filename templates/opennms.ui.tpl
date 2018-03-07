@@ -8,7 +8,6 @@
 # - postgres_server = ${postgres_server}
 # - opennms_server = ${opennms_server}
 # - nfs_server = ${nfs_server}
-# - cassandra_servers = ${cassandra_servers}
 # - webui_endpoint = ${webui_endpoint}
 
 echo "### Configuring Hostname and Domain..."
@@ -18,49 +17,38 @@ hostname ${hostname}.${domainname}
 domainname ${domainname}
 sed -i -r "s/#Domain =.*/Domain = ${domainname}/" /etc/idmapd.conf
 
-echo "### Configuring Timezone..."
-
-timezone=America/New_York
-ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-
-echo "### Creating and configuring external mount point for OpenNMS configuration..."
-
-opennms_home=/opt/opennms
-opennms_etc=$opennms_home/etc
-nfs_dir=/data/onms-etc
-nfs_options="nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2"
-mkdir -p $nfs_dir
-echo "${nfs_server}:$opennms_etc $nfs_dir nfs4 $nfs_options 0 0" >> /etc/fstab
-mount $nfs_dir
-
 echo "### Installing Helm..."
 
 yum install -y -q opennms-helm
 
-echo "### Building OpenNMS configuration files on $opennms_etc..."
+echo "### Configuring NFS Mount Points..."
 
-mv $opennms_etc $opennms_etc.bak
-mkdir $opennms_etc
-ln -s $nfs_dir/* $opennms_etc/
-rm -f $opennms_etc/events
-mkdir $opennms_etc/events
-rsync -ar $nfs_dir/events/ $opennms_etc/events/
-rm -f $opennms_etc/opennms.properties.d
-mkdir $opennms_etc/opennms.properties.d
-rm -f $opennms_etc/opennms.conf
-rm -f $opennms_etc/java.conf
-rm -f $opennms_etc/configured
-rm -f $opennms_etc/opennms-upgrade-status.properties
-rm -f $opennms_etc/org.apache.karaf.features.cfg
-rm -f $opennms_etc/eventconf.xml
-rm -f $opennms_etc/scriptd-configuration.xml
-rm -f $opennms_etc/service-configuration.xml
+opennms_home=/opt/opennms
+opennms_etc=$opennms_home/etc
+opennms_var=/var/opennms
 
-cp /var/opennms/etc-pristine/org.apache.karaf.features.cfg $opennms_etc/
-cp $nfs_dir/opennms.properties.d/newts.properties $opennms_etc/opennms.properties.d/
-cp $nfs_dir/opennms.properties.d/rrd.properties $opennms_etc/opennms.properties.d/
+nfs_etc_dir=/data/onms-etc
+nfs_var_dir=/data/onms-var
+nfs_options="nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2"
+
+mkdir -p $nfs_etc_dir
+echo "${nfs_server}:$opennms_etc $nfs_etc_dir nfs4 $nfs_options 0 0" >> /etc/fstab
+mount $nfs_etc_dir
+
+mkdir -p $nfs_var_dir
+echo "${nfs_server}:$opennms_var $nfs_var_dir nfs4 $nfs_options 0 0" >> /etc/fstab
+mount $nfs_var_dir
+
+echo "### Copying configuration files from the main OpenNMS server..."
+
+cp -f $nfs_etc_dir/opennms-datasources.xml $opennms_etc/
+cp -f $nfs_etc_dir/opennms.properties.d/* $opennms_etc/opennms.properties.d/
 
 echo "### Configuring OpenNMS..."
+
+share_dir=/opt/opennms/share
+rm -f $share_dir
+ln -s $nfs_var_dir $share_dir
 
 cat <<EOF > $opennms_etc/event-forwarder.sh
 import java.net.InetAddress;
@@ -193,6 +181,7 @@ done
 
 cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
 org.opennms.web.console.centerUrl=/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
+org.opennms.web.graphs.engine=backshift
 EOF
 
 mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
@@ -222,7 +211,24 @@ ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=${hostname}"
 EOF
 
-sed -r -i '/datachoices/d' $opennms_etc/org.apache.karaf.features.cfg
+cat <<EOF > $opennms_etc/jmxremote.access
+admin readwrite
+jmx   readonly
+EOF
+
+# TODO: the following is due to some issues with the datachoices plugin
+cat <<EOF > $opennms_etc/org.opennms.features.datachoices.cfg
+enabled=false
+acknowledged-by=admin
+acknowledged-at=Mon Jan 01 00\:00\:00 EDT 2018
+EOF
+
+echo "### Forcing OpenNMS to be read-only in terms of administrative changes..."
+
+security_cfg=$opennms_home/jetty-webapps/opennms/WEB-INF/applicationContext-spring-security.xml
+cp $security_cfg $security_cfg.bak
+sed -r -i 's/ROLE_ADMIN/ROLE_DISABLED/' $security_cfg
+sed -r -i 's/ROLE_PROVISION/ROLE_DISABLED/' $security_cfg
 
 echo "### Running OpenNMS install script..."
 
@@ -260,10 +266,12 @@ if ! psql -U postgres -h ${postgres_server} -lqt | cut -d \| -f 1 | grep -qw gra
 fi
 rm -f ~/.pgpass
 
-echo "### Starting and enabling Grafana server..."
+echo "### Enabling and starting Grafana server..."
 
 systemctl enable grafana-server
 systemctl start grafana-server
+
+echo "### Enabling and starting SNMP..."
 
 systemctl enable snmpd
 systemctl start snmpd
