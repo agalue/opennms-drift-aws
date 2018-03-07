@@ -12,13 +12,31 @@ aws_access_key_id = XXXXXXXXXXXXXXXXX
 aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-* Install the terraform binary from [terraform.io](https://www.terraform.io)
+* Install the Terraform binary from [terraform.io](https://www.terraform.io)
+
+* Install the Packer binary from [packer.io](https://www.packer.io)
 
 * Install VirtualBox from [virtualbox.org](https://www.virtualbox.org)
 
 * Install Vagrant from [vagrantup.com](https://www.vagrantup.com)
 
+* Tweak the versions on the packer initialization scripts located at `packer/scripts`.
+
 * Tweak the common settings on `vars.tf`, specially `aws_key_name` and `aws_private_key`, to match the chosen region. All the customizable settings are defined on `vars.tf`. Please do not change the other `.tf` files.
+
+* Build the custom AMIs using Packer:
+
+```SHELL
+cd packer
+. build.sh
+```
+
+Of, in order to build a specific image:
+
+```SHELL
+cd packer
+packer build opennms.json
+```
 
 * Execute the following commands from the repository's root directory (at the same level as the .tf files):
 
@@ -41,13 +59,15 @@ vagrant up
 
 ## Requirements
 
-* OpenNMS version 22 or newer is required. For now, the script will use the RPMs from the `features/drift` branch.
+* OpenNMS version 22 or newer is required. For now, the script will use the RPMs from the `features/drift` branch. To change it, make sure to update the Packer initialization script for OpenNMS.
 
 ## Design
 
 The purpose here is understand the drift architecture, not using AWS resources like RDS, SQS, etc. to deploy OpenNMS on the cloud.
 
 For this reason, everything will live on the same subnet (a.k.a. one availability zone) with direct Internet access through an Internet Gateway. All the EC2 instances are going to have a specific private IP address, registered against a local DNS through Route 53 and a dynamic public IP, which is how the operator can connect to each instance, and the way Minion will reach the solution.
+
+Thanks to packer, all the required software will be part of the respective custom AMIs. Those AMIs should be re-created only when the installed software should be changed. Otherwise, they can be re-used, drastically reducing the time to have the EC2 instances ready, as they will just make configuration changes.
 
 The architecture involves the following components:
 
@@ -83,7 +103,9 @@ For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be i
 
 * Be aware of EC2 instance limits on your AWS account for the chosen region, as it might be possible that you won't be able to use this POC unless you increase the limits. The default limit is 20, and this POC will be creating more than that.
 
-* The core OpenNMS server is sharing its own configuration directory through NFS. A better approach could be configure an external NFS server, copy the configuration there, and share it between the OpenNMS core server and the UI servers.
+* The core OpenNMS server is sharing its own configuration directory and share directory through NFS. A better approach could be configure an external NFS server, and share it between the OpenNMS core server and the UI servers.
+
+* The OpenNMS UI servers have been configured to be read-only in terms of admintration tasks. So, even admin users won't be able to perform administration tasks.
 
 * This is not a production ready deployment. This is just a proof of concept for all the components required to deploy Drift. Several changes are required not only on the EC2 instance types, but also on the configuration of the several components to make it production ready.
 
@@ -100,5 +122,3 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 * Replace the WebUI servers solutions to a more independent ones where they won't rely on the core's config (even if some configuration settings will be the same), to have fully independent UI servers, at expenses of some features. In other words, independent UI servers won't be able to handle any admin operation: manipulate requisitions, acknowledge alarms/notifications, rescan nodes, etc.; as they will be considered read-only servers.
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
-
-* Use Packer to pre-create the AMIs, to let be clear what should be installed on the instances, and what should be customized during the first bootstrap. This will make the EC2 instance initialization a lot faster, as the install procedure is usually fixed.

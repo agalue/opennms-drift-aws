@@ -4,10 +4,8 @@ data "template_file" "kibana" {
     template = "${file("${path.module}/templates/kibana.tpl")}"
 
     vars {
-        vpc_cidr    = "${var.vpc_cidr}"
         hostname    = "${element(keys(var.kibana_ip_addresses),0)}"
         domainname  = "${var.dns_zone}"
-        es_version  = "${lookup(var.versions, "elasticsearch")}"
         es_url      = "http://${aws_elb.elasticsearch.dns_name}:9200"
         es_password = "${lookup(var.settings, "elastic_password")}"
         es_monsrv   = ""
@@ -15,7 +13,7 @@ data "template_file" "kibana" {
 }
 
 resource "aws_instance" "kibana" {
-    ami           = "${lookup(var.aws_amis, var.aws_region)}"
+    ami           = "${data.aws_ami.kibana.image_id}"
     instance_type = "${lookup(var.instance_types, "kibana")}"
     subnet_id     = "${aws_subnet.public.id}"
     key_name      = "${var.aws_key_name}"
@@ -30,7 +28,8 @@ resource "aws_instance" "kibana" {
     ]
 
     depends_on = [
-        "aws_instance.elasticsearch_data"
+        "aws_instance.elasticsearch_data",
+        "aws_route53_record.kibana"
     ]
 
     connection {

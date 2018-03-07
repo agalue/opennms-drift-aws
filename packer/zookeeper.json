@@ -1,0 +1,30 @@
+{
+  "variables": {
+    "region": "us-east-2",
+    "source_ami": "ami-710e2414"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "{{ user `region` }}",
+      "source_ami": "{{ user `source_ami` }}",
+      "instance_type": "t2.medium",
+      "ssh_username": "ec2-user",
+      "ami_name": "zookeeper-{{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "./scripts/common.sh"
+    },
+    {
+      "type": "shell",
+      "script": "./scripts/java.sh"
+    },    
+    {
+      "type": "shell",
+      "script": "./scripts/zookeeper.sh"
+    }
+  ]
+}

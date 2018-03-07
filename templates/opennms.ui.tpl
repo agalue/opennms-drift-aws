@@ -3,16 +3,11 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - vpc_cidr = ${vpc_cidr}
 # - hostname = ${hostname}
 # - domainname = ${domainname}
-# - onms_repo = ${onms_repo}
-# - onms_version = ${onms_version}
-# - pg_repo_version = ${pg_repo_version}
 # - postgres_server = ${postgres_server}
 # - opennms_server = ${opennms_server}
 # - nfs_server = ${nfs_server}
-# - cassandra_servers = ${cassandra_servers}
 # - webui_endpoint = ${webui_endpoint}
 
 echo "### Configuring Hostname and Domain..."
@@ -22,123 +17,39 @@ hostname ${hostname}.${domainname}
 domainname ${domainname}
 sed -i -r "s/#Domain =.*/Domain = ${domainname}/" /etc/idmapd.conf
 
-echo "### Configuring Timezone..."
+echo "### Installing Helm..."
 
-timezone=America/New_York
-ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-sed -i -r "s|ZONE=.*|ZONE=$timezone|" /etc/sysconfig/clock
+yum install -y -q opennms-helm
 
-echo "### Installing common packages..."
-
-yum -y -q update
-yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
-
-echo "### Configuring and enabling SNMP..."
-
-snmp_cfg=/etc/snmp/snmpd.conf
-cp $snmp_cfg $snmp_cfg.original
-cat <<EOF > $snmp_cfg
-com2sec localUser ${vpc_cidr} public
-group localGroup v1 localUser
-group localGroup v2c localUser
-view all included .1 80
-access localGroup "" any noauth 0 all none none
-syslocation AWS
-syscontact Account Manager
-dontLogTCPWrappersConnects yes
-disk /
-EOF
-
-chmod 600 $snmp_cfg
-systemctl enable snmpd
-systemctl start snmpd
-
-echo "### Creating and configuring external mount point for OpenNMS configuration..."
+echo "### Configuring NFS Mount Points..."
 
 opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
-nfs_dir=/data/onms-etc
+opennms_var=/var/opennms
+
+nfs_etc_dir=/data/onms-etc
+nfs_var_dir=/data/onms-var
 nfs_options="nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2"
-mkdir -p $nfs_dir
-echo "${nfs_server}:$opennms_etc $nfs_dir nfs4 $nfs_options 0 0" >> /etc/fstab
-mount $nfs_dir
 
-echo "### Installing PostgreSQL tools..."
+mkdir -p $nfs_etc_dir
+echo "${nfs_server}:$opennms_etc $nfs_etc_dir nfs4 $nfs_options 0 0" >> /etc/fstab
+mount $nfs_etc_dir
 
-pg_version=`echo ${pg_repo_version} | sed 's/-.//'`
-pg_family=`echo $pg_version | sed 's/\.//'`
+mkdir -p $nfs_var_dir
+echo "${nfs_server}:$opennms_var $nfs_var_dir nfs4 $nfs_options 0 0" >> /etc/fstab
+mount $nfs_var_dir
 
-yum install -y -q https://download.postgresql.org/pub/repos/yum/$pg_version/redhat/rhel-7-x86_64/pgdg-centos$pg_family-${pg_repo_version}.noarch.rpm
-sed -i -r 's/[$]releasever/7/g' /etc/yum.repos.d/pgdg-$pg_family-centos.repo
-yum install -y -q postgresql$pg_family
+echo "### Copying configuration files from the main OpenNMS server..."
 
-echo "### Installing OpenNMS Dependencies from stable repository..."
-
-sed -r -i '/name=Amazon Linux 2/a exclude=rrdtool-*' /etc/yum.repos.d/amzn2-core.repo
-yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel7.noarch.rpm
-rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel7.gpg
-yum install -y -q jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Twig)'
-
-echo "### Downloading and installing Oracle JDK..."
-
-java_url="http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.rpm"
-java_rpm=/tmp/jdk8-linux-x64.rpm
-wget -c --quiet --header "Cookie: oraclelicense=accept-securebackup-cookie" -O $java_rpm $java_url
-if [ ! -s $java_rpm ]; then
-  echo "FATAL: Cannot download Java from $java_url. Using OpenNMS default ..."
-else
-  yum install -y -q $java_rpm
-  rm -f $java_rpm
-fi
-
-if [ "${onms_repo}" != "stable" ]; then
-  echo "### Installing OpenNMS ${onms_repo} Repository..."
-  yum remove -y -q opennms-repo-stable
-  yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-${onms_repo}-rhel7.noarch.rpm
-  rpm --import /etc/yum.repos.d/opennms-repo-${onms_repo}-rhel7.gpg
-fi
-
-if [ "${onms_version}" == "-latest-" ]; then
-  echo "### Installing latest OpenNMS from ${onms_repo} Repository..."
-  yum install -y -q opennms-core opennms-webapp-jetty
-else
-  echo "### Installing OpenNMS version ${onms_version} from ${onms_repo} Repository..."
-  yum install -y -q opennms-core-${onms_version} opennms-webapp-jetty-${onms_version}
-fi
-
-yum install -y -q opennms-helm R
-
-echo "### Installing Hawtio..."
-
-hawtio_url=https://oss.sonatype.org/content/repositories/public/io/hawt/hawtio-default/1.4.63/hawtio-default-1.4.63.war
-wget -qO $opennms_home/jetty-webapps/hawtio.war $hawtio_url && \
-  unzip -qq $opennms_home/jetty-webapps/hawtio.war -d $opennms_home/jetty-webapps/hawtio && \
-  rm -f $opennms_home/jetty-webapps/hawtio.war
-
-echo "### Building OpenNMS configuration files on $opennms_etc..."
-
-mv $opennms_etc $opennms_etc.bak
-mkdir $opennms_etc
-ln -s $nfs_dir/* $opennms_etc/
-rm -f $opennms_etc/events
-mkdir $opennms_etc/events
-rsync -ar $nfs_dir/events/ $opennms_etc/events/
-rm -f $opennms_etc/opennms.properties.d
-mkdir $opennms_etc/opennms.properties.d
-rm -f $opennms_etc/opennms.conf
-rm -f $opennms_etc/java.conf
-rm -f $opennms_etc/configured
-rm -f $opennms_etc/opennms-upgrade-status.properties
-rm -f $opennms_etc/org.apache.karaf.features.cfg
-rm -f $opennms_etc/eventconf.xml
-rm -f $opennms_etc/scriptd-configuration.xml
-rm -f $opennms_etc/service-configuration.xml
-
-cp /var/opennms/etc-pristine/org.apache.karaf.features.cfg $opennms_etc/
-cp $nfs_dir/opennms.properties.d/newts.properties $opennms_etc/opennms.properties.d/
-cp $nfs_dir/opennms.properties.d/rrd.properties $opennms_etc/opennms.properties.d/
+cp -f $nfs_etc_dir/opennms-datasources.xml $opennms_etc/
+cp -f $nfs_etc_dir/opennms.properties.d/newts.properties $opennms_etc/opennms.properties.d/
+cp -f $nfs_etc_dir/opennms.properties.d/rrd.properties $opennms_etc/opennms.properties.d/
 
 echo "### Configuring OpenNMS..."
+
+share_dir=/opt/opennms/share
+rm -f $share_dir
+ln -s $nfs_var_dir $share_dir
 
 cat <<EOF > $opennms_etc/event-forwarder.sh
 import java.net.InetAddress;
@@ -271,6 +182,7 @@ done
 
 cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
 org.opennms.web.console.centerUrl=/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
+org.opennms.web.graphs.engine=backshift
 EOF
 
 mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
@@ -300,14 +212,24 @@ ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=${hostname}"
 EOF
 
-sed -r -i '/datachoices/d' $opennms_etc/org.apache.karaf.features.cfg
+cat <<EOF > $opennms_etc/jmxremote.access
+admin readwrite
+jmx   readonly
+EOF
 
-echo "### Configuring OpenNMS Jetty Server..."
+# TODO: the following is due to some issues with the datachoices plugin
+cat <<EOF > $opennms_etc/org.opennms.features.datachoices.cfg
+enabled=false
+acknowledged-by=admin
+acknowledged-at=Mon Jan 01 00\:00\:00 EDT 2018
+EOF
 
-webxml=$opennms_home/jetty-webapps/opennms/WEB-INF/web.xml
-cp $webxml $webxml.bak
-sed -r -i '/[<][!]--/{$!{N;s/[<][!]--\n  ([<]filter-mapping)/\1/}}' $webxml
-sed -r -i '/nrt/{$!{N;N;s/(nrt.*\n  [<]\/filter-mapping[>])\n  --[>]/\1/}}' $webxml
+echo "### Forcing OpenNMS to be read-only in terms of administrative changes..."
+
+security_cfg=$opennms_home/jetty-webapps/opennms/WEB-INF/applicationContext-spring-security.xml
+cp $security_cfg $security_cfg.bak
+sed -r -i 's/ROLE_ADMIN/ROLE_DISABLED/' $security_cfg
+sed -r -i 's/ROLE_PROVISION/ROLE_DISABLED/' $security_cfg
 
 echo "### Running OpenNMS install script..."
 
@@ -345,7 +267,12 @@ if ! psql -U postgres -h ${postgres_server} -lqt | cut -d \| -f 1 | grep -qw gra
 fi
 rm -f ~/.pgpass
 
-echo "### Starting and enabling Grafana server..."
+echo "### Enabling and starting Grafana server..."
 
 systemctl enable grafana-server
 systemctl start grafana-server
+
+echo "### Enabling and starting SNMP..."
+
+systemctl enable snmpd
+systemctl start snmpd

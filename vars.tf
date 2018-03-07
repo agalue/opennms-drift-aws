@@ -13,21 +13,74 @@ variable "aws_private_key" {
 }
 
 # Region and AMIs
+# Make sure to run Packer on the same region
 
 variable "aws_region" {
     description = "EC2 Region for the VPC"
     default = "us-east-2" # For testing purposes only
 }
 
-variable "aws_amis" {  # Amazon Linux 2 LT SCandidate AMI 2017.12.0
-    description = "AMIs by region"
-    type = "map"
+data "aws_ami" "activemq" {
+    most_recent = true
+    filter {
+        name   = "name"
+        values = ["activemq-*"]
+    }
+}
 
-    default = {
-        us-east-1 = "ami-428aa838"
-        us-east-2 = "ami-710e2414"
-        us-west-1 = "ami-4a787a2a"
-        us-west-2 = "ami-7f43f307"
+data "aws_ami" "cassandra" {
+    most_recent = true
+    filter {
+        name   = "name"
+        values = ["cassandra-*"]
+    }
+}
+
+data "aws_ami" "elasticsearch" {
+    most_recent = true
+    filter {
+        name   = "name"
+        values = ["elasticsearch-*"]
+    }
+}
+
+data "aws_ami" "kafka" {
+    most_recent = true
+    filter {
+        name   = "name"
+        values = ["kafka-*"]
+    }
+}
+
+data "aws_ami" "kibana" {
+    most_recent = true
+    filter {
+        name   = "name"
+        values = ["kibana-*"]
+    }
+}
+
+data "aws_ami" "opennms" {
+    most_recent = true
+    filter {
+        name   = "name"
+        values = ["opennms-*"]
+    }
+}
+
+data "aws_ami" "postgresql" {
+    most_recent = true
+    filter {
+        name   = "name"
+        values = ["postgresql-*"]
+    }
+}
+
+data "aws_ami" "zookeeper" {
+    most_recent = true
+    filter {
+        name   = "name"
+        values = ["zookeeper-*"]
     }
 }
 
@@ -180,28 +233,6 @@ variable "kibana_ip_addresses" {
 
     default = {
         kibana = "172.16.1.60"
-    }
-}
-
-# Applications
-
-# The Elasticsearch version cannot be changed due to required dependencies:
-# https://github.com/OpenNMS/elasticsearch-drift-plugin
-
-variable "versions" {
-    description = "Versions for the external dependencies"
-    type = "map"
-
-    default = {
-        elasticsearch   = "6.1.1"
-        activemq        = "5.13.5"
-        kafka           = "1.0.0"
-        scala           = "2.12"
-        zookeeper       = "3.4.11"
-        postgresql_repo = "9.6-3"
-        cassandra_repo  = "311x"
-        onms_repo       = "branches-features-drift"
-        onms_version    = "-latest-"
     }
 }
 

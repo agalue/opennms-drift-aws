@@ -7,13 +7,12 @@ data "template_file" "postgresql" {
         vpc_cidr           = "${var.vpc_cidr}"
         hostname           = "${element(keys(var.pg_ip_addresses),0)}"
         domainname         = "${var.dns_zone}"
-        pg_repo_version    = "${lookup(var.versions, "postgresql_repo")}"
         pg_num_connections = "${lookup(var.settings, "postgresql_num_connections")}"
     }
 }
 
 resource "aws_instance" "postgresql" {
-    ami           = "${lookup(var.aws_amis, var.aws_region)}"
+    ami           = "${data.aws_ami.postgresql.image_id}"
     instance_type = "${lookup(var.instance_types, "postgresql")}"
     subnet_id     = "${aws_subnet.public.id}"
     key_name      = "${var.aws_key_name}"
@@ -31,6 +30,10 @@ resource "aws_instance" "postgresql" {
         volume_type = "gp2"
         volume_size = "${lookup(var.disk_space, "postgresql")}"
     }
+
+    depends_on = [
+        "aws_route53_record.postgresql"
+    ]
 
     connection {
         user        = "ec2-user"

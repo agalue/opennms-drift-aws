@@ -3,10 +3,8 @@
 # Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - vpc_cidr = ${vpc_cidr}
 # - hostname = ${hostname}
 # - domainname = ${domainname}
-# - es_version = ${es_version}
 # - es_url = ${es_url}
 # - es_password = ${es_password}
 # - es_monsrv = ${es_monsrv}
@@ -16,42 +14,6 @@ echo "### Configuring Hostname and Domain..."
 sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
 hostname ${hostname}.${domainname}
 domainname ${domainname}
-
-echo "### Configuring Timezone..."
-
-timezone=America/New_York
-ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-sed -i -r "s|ZONE=.*|ZONE=$timezone|" /etc/sysconfig/clock
-
-echo "### Installing common packages..."
-
-yum -y -q update
-yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
-
-echo "### Configuring and enabling SNMP..."
-
-snmp_cfg=/etc/snmp/snmpd.conf
-cp $snmp_cfg $snmp_cfg.original
-cat <<EOF > $snmp_cfg
-com2sec localUser ${vpc_cidr} public
-group localGroup v1 localUser
-group localGroup v2c localUser
-view all included .1 80
-access localGroup "" any noauth 0 all none none
-syslocation AWS
-syscontact Account Manager
-dontLogTCPWrappersConnects yes
-disk /
-EOF
-
-chmod 600 $snmp_cfg
-systemctl enable snmpd
-systemctl start snmpd
-
-echo "### Downloading and installing Kibana..."
-
-yum install -y -q https://artifacts.elastic.co/downloads/kibana/kibana-${es_version}-x86_64.rpm
-sudo -u kibana /usr/share/kibana/bin/kibana-plugin install x-pack
 
 echo "### Configuring Kibana..."
 
@@ -79,3 +41,8 @@ done
 
 systemctl enable kibana
 systemctl start kibana
+
+echo "### Enabling and starting SNMP..."
+
+systemctl enable snmpd
+systemctl start snmpd
