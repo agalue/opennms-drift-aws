@@ -59,13 +59,15 @@ vagrant up
 
 ## Requirements
 
-* OpenNMS version 22 or newer is required. For now, the script will use the RPMs from the `features/drift` branch.
+* OpenNMS version 22 or newer is required. For now, the script will use the RPMs from the `features/drift` branch. To change it, make sure to update the Packer initialization script for OpenNMS.
 
 ## Design
 
 The purpose here is understand the drift architecture, not using AWS resources like RDS, SQS, etc. to deploy OpenNMS on the cloud.
 
 For this reason, everything will live on the same subnet (a.k.a. one availability zone) with direct Internet access through an Internet Gateway. All the EC2 instances are going to have a specific private IP address, registered against a local DNS through Route 53 and a dynamic public IP, which is how the operator can connect to each instance, and the way Minion will reach the solution.
+
+Thanks to packer, all the required software will be part of the respective custom AMIs. Those AMIs should be re-created only when the installed software should be changed. Otherwise, they can be re-used, drastically reducing the time to have the EC2 instances ready, as they will just make configuration changes.
 
 The architecture involves the following components:
 
