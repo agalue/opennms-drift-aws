@@ -34,7 +34,8 @@ resource "aws_instance" "elasticsearch_data" {
     ]
 
     depends_on = [
-        "aws_instance.elasticsearch_master"
+        "aws_instance.elasticsearch_master",
+        "aws_route53_record.elasticsearch_data"
     ]
 
     root_block_device {

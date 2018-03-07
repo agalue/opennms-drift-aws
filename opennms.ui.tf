@@ -31,7 +31,8 @@ resource "aws_instance" "opennms_ui" {
     ]
 
     depends_on = [
-        "aws_instance.opennms"
+        "aws_instance.opennms",
+        "aws_route53_record.opennms_ui"
     ]
 
     connection {

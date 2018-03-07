@@ -34,6 +34,10 @@ resource "aws_instance" "zookeeper" {
         volume_size = "${lookup(var.disk_space, "zookeeper")}"
     }
 
+    depends_on = [
+        "aws_route53_record.zookeeper"
+    ]
+
     connection {
         user        = "ec2-user"
         private_key = "${file("${var.aws_private_key}")}"

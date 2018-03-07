@@ -31,6 +31,10 @@ resource "aws_instance" "postgresql" {
         volume_size = "${lookup(var.disk_space, "postgresql")}"
     }
 
+    depends_on = [
+        "aws_route53_record.postgresql"
+    ]
+
     connection {
         user        = "ec2-user"
         private_key = "${file("${var.aws_private_key}")}"

@@ -37,7 +37,8 @@ resource "aws_instance" "opennms" {
         "aws_instance.postgresql",
         "aws_instance.activemq",
         "aws_instance.kafka",
-        "aws_instance.elasticsearch_data"
+        "aws_instance.elasticsearch_data",
+        "aws_route53_record.opennms"
     ]
 
     connection {

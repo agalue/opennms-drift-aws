@@ -32,7 +32,8 @@ resource "aws_instance" "kafka" {
     ]
 
     depends_on = [
-        "aws_instance.zookeeper"
+        "aws_instance.zookeeper",
+        "aws_route53_record.kafka"
     ]
 
     root_block_device {

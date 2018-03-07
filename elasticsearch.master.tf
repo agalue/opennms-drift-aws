@@ -33,6 +33,10 @@ resource "aws_instance" "elasticsearch_master" {
         "${aws_security_group.elasticsearch.id}"
     ]
 
+    depends_on = [
+        "aws_route53_record.elasticsearch_master"
+    ]
+
     connection {
         user        = "ec2-user"
         private_key = "${file("${var.aws_private_key}")}"
