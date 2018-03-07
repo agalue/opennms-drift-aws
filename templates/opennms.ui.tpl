@@ -42,7 +42,8 @@ mount $nfs_var_dir
 echo "### Copying configuration files from the main OpenNMS server..."
 
 cp -f $nfs_etc_dir/opennms-datasources.xml $opennms_etc/
-cp -f $nfs_etc_dir/opennms.properties.d/* $opennms_etc/opennms.properties.d/
+cp -f $nfs_etc_dir/opennms.properties.d/newts.properties $opennms_etc/opennms.properties.d/
+cp -f $nfs_etc_dir/opennms.properties.d/rrd.properties $opennms_etc/opennms.properties.d/
 
 echo "### Configuring OpenNMS..."
 
