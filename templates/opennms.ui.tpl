@@ -34,6 +34,9 @@ cd
 
 echo "### Configuring OpenNMS..."
 
+opennms_home=/opt/opennms
+opennms_etc=$opennms_home/etc
+
 # Database connections
 cat <<EOF > $opennms_etc/opennms-datasources.xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -256,7 +259,7 @@ done
 
 # WebUI Settings
 cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
-org.opennms.web.console.centerUrl=/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
+org.opennms.web.console.centerUrl=/status/status-box.jsp,/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
 org.opennms.web.graphs.engine=backshift
 EOF
 

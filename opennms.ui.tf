@@ -31,7 +31,7 @@ resource "aws_instance" "opennms_ui" {
     ]
 
     depends_on = [
-        "aws_instance.opennms",
+        "aws_instance.opennms", # As it is the main OpenNMS the responsible for initialize the database and Cassandra.
         "aws_route53_record.opennms_ui"
     ]
 
