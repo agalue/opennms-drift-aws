@@ -189,16 +189,6 @@ acknowledged-by=admin
 acknowledged-at=Mon Jan 01 00\:00\:00 EDT 2018
 EOF
 
-echo "### Configuring NFS..."
-
-# TODO Using the server itself as NFS server
-cat <<EOF > /etc/exports
-/opt/opennms/etc ${vpc_cidr}(rw,sync,no_root_squash)
-/var/opennms ${vpc_cidr}(rw,sync,no_root_squash)
-EOF
-systemctl enable nfs
-systemctl start nfs
-
 echo "### Running OpenNMS install script..."
 
 sleep 60

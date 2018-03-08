@@ -7,7 +7,7 @@
 # - domainname = ${domainname}
 # - postgres_server = ${postgres_server}
 # - opennms_server = ${opennms_server}
-# - nfs_server = ${nfs_server}
+# - cassandra_servers = ${cassandra_servers}
 # - webui_endpoint = ${webui_endpoint}
 
 echo "### Configuring Hostname and Domain..."
@@ -32,36 +32,95 @@ yarn build
 rsync -avr --delete ~/development/opennms-helm/ /var/lib/grafana/plugins/opennms-helm-app/
 cd
 
-echo "### Configuring NFS Mount Points..."
-
-opennms_home=/opt/opennms
-opennms_etc=$opennms_home/etc
-opennms_var=/var/opennms
-
-nfs_etc_dir=/data/onms-etc
-nfs_var_dir=/data/onms-var
-nfs_options="nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2"
-
-mkdir -p $nfs_etc_dir
-echo "${nfs_server}:$opennms_etc $nfs_etc_dir nfs4 $nfs_options 0 0" >> /etc/fstab
-mount $nfs_etc_dir
-
-mkdir -p $nfs_var_dir
-echo "${nfs_server}:$opennms_var $nfs_var_dir nfs4 $nfs_options 0 0" >> /etc/fstab
-mount $nfs_var_dir
-
-echo "### Copying configuration files from the main OpenNMS server..."
-
-cp -f $nfs_etc_dir/opennms-datasources.xml $opennms_etc/
-cp -f $nfs_etc_dir/opennms.properties.d/newts.properties $opennms_etc/opennms.properties.d/
-cp -f $nfs_etc_dir/opennms.properties.d/rrd.properties $opennms_etc/opennms.properties.d/
-
 echo "### Configuring OpenNMS..."
 
-share_dir=/opt/opennms/share
-rm -f $share_dir
-ln -s $nfs_var_dir $share_dir
+# Database connections
+cat <<EOF > $opennms_etc/opennms-datasources.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<datasource-configuration xmlns:this="http://xmlns.opennms.org/xsd/config/opennms-datasources"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.opennms.org/xsd/config/opennms-datasources
+  http://www.opennms.org/xsd/config/opennms-datasources.xsd ">
 
+  <connection-pool factory="org.opennms.core.db.HikariCPConnectionFactory"
+    idleTimeout="600"
+    loginTimeout="3"
+    minPool="50"
+    maxPool="50"
+    maxSize="50" />
+
+  <jdbc-data-source name="opennms"
+                    database-name="opennms"
+                    class-name="org.postgresql.Driver"
+                    url="jdbc:postgresql://${postgres_server}:5432/opennms"
+                    user-name="opennms"
+                    password="opennms">
+    <param name="connectionTimeout" value="0"/>
+  </jdbc-data-source>
+
+  <jdbc-data-source name="opennms-admin"
+                    database-name="template1"
+                    class-name="org.postgresql.Driver"
+                    url="jdbc:postgresql://${postgres_server}:5432/template1"
+                    user-name="postgres"
+                    password="postgres" />
+</datasource-configuration>
+EOF
+
+# Eventd settings
+sed -r -i 's/127.0.0.1/0.0.0.0/g' $opennms_etc/eventd-configuration.xml
+
+# JVM Settings
+mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+half_mem_in_mb=`expr $mem_in_mb / 2`
+jmxport=18980
+cat <<EOF > $opennms_etc/opennms.conf
+START_TIMEOUT=0
+JAVA_HEAP_SIZE=$half_mem_in_mb
+MAXIMUM_FILE_DESCRIPTORS=204800
+
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC -XX:+UseStringDeduplication"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -d64 -XX:+PrintGCTimeStamps -XX:+PrintGCDetails"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Xloggc:$opennms_home/logs/gc.log"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
+
+# Configure Remote JMX
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.port=$jmxport"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.rmi.port=$jmxport"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.local.only=false"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.ssl=false"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.authenticate=true"
+
+# Listen on all interfaces
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server.serverHost=0.0.0.0"
+
+# Accept remote RMI connections on this interface
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=${hostname}"
+EOF
+
+# JMX Groups
+cat <<EOF > $opennms_etc/jmxremote.access
+admin readwrite
+jmx   readonly
+EOF
+
+# External Cassandra
+cat <<EOF > $opennms_etc/opennms.properties.d/newts.properties
+org.opennms.timeseries.strategy=newts
+org.opennms.newts.config.hostname=${cassandra_servers}
+org.opennms.newts.config.keyspace=newts
+org.opennms.newts.config.port=9042
+org.opennms.newts.query.minimum_step=30000
+org.opennms.newts.query.heartbeat=45000
+EOF
+
+# RRD Settings
+cat <<EOF > $opennms_etc/opennms.properties.d/rrd.properties
+org.opennms.rrd.storeByGroup=true
+org.opennms.rrd.storeByForeignSource=true
+EOF
+
+# Event Forwarding Logic
 cat <<EOF > $opennms_etc/event-forwarder.sh
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -93,6 +152,7 @@ void forwardEvent(Event event) {
 }
 EOF
 
+# Event Forwarding Configuration
 cat <<EOF > $opennms_etc/scriptd-configuration.xml
 <?xml version="1.0"?>
 <scriptd-configuration>
@@ -108,6 +168,7 @@ cat <<EOF > $opennms_etc/scriptd-configuration.xml
 </scriptd-configuration>
 EOF
 
+# Event Forwarding Configuration to avoid duplicates
 cat <<EOF > $opennms_etc/eventconf.xml
 <?xml version="1.0"?>
 <events xmlns="http://xmlns.opennms.org/xsd/eventconf">
@@ -145,6 +206,7 @@ cat <<EOF > $opennms_etc/eventconf.xml
 </events>
 EOF
 
+# WebUI Services
 cat <<EOF > $opennms_etc/service-configuration.xml
 <?xml version="1.0"?>
 <service-configuration xmlns="http://xmlns.opennms.org/xsd/config/vmmgr">
@@ -185,47 +247,17 @@ cat <<EOF > $opennms_etc/service-configuration.xml
 </service-configuration>
 EOF
 
+# Force donotpersist on all internal events
 files=(`ls -l $opennms_etc/events/opennms.*.xml | awk '{print $9}'`)
 for f in "$${files[@]}"; do
   sed -r -i '/logmsg/s/logndisplay/donotpersist/' $f
   sed -r -i '/logmsg/s/logonly/donotpersist/' $f
 done
 
+# WebUI Settings
 cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
 org.opennms.web.console.centerUrl=/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
 org.opennms.web.graphs.engine=backshift
-EOF
-
-mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-half_mem_in_mb=`expr $mem_in_mb / 2`
-jmxport=18980
-cat <<EOF > $opennms_etc/opennms.conf
-START_TIMEOUT=0
-JAVA_HEAP_SIZE=$half_mem_in_mb
-MAXIMUM_FILE_DESCRIPTORS=204800
-
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC -XX:+UseStringDeduplication"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -d64 -XX:+PrintGCTimeStamps -XX:+PrintGCDetails"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Xloggc:$opennms_home/logs/gc.log"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
-
-# Configure Remote JMX
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.port=$jmxport"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.rmi.port=$jmxport"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.local.only=false"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.ssl=false"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.authenticate=true"
-
-# Listen on all interfaces
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server.serverHost=0.0.0.0"
-
-# Accept remote RMI connections on this interface
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=${hostname}"
-EOF
-
-cat <<EOF > $opennms_etc/jmxremote.access
-admin readwrite
-jmx   readonly
 EOF
 
 # TODO: the following is due to some issues with the datachoices plugin

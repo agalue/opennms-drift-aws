@@ -5,12 +5,12 @@ data "template_file" "opennms_ui" {
     template = "${file("${path.module}/templates/opennms.ui.tpl")}"
 
     vars {
-        hostname        = "${element(keys(var.onms_ui_ip_addresses), count.index)}"
-        domainname      = "${var.dns_zone}"
-        opennms_server  = "${element(keys(var.onms_ip_addresses),0)}"
-        postgres_server = "${element(keys(var.pg_ip_addresses),0)}"
-        nfs_server      = "${element(keys(var.onms_ip_addresses),0)}" # TODO Using the Core OpenNMS
-        webui_endpoint  = "${aws_elb.opennms_ui.dns_name}"
+        hostname          = "${element(keys(var.onms_ui_ip_addresses), count.index)}"
+        domainname        = "${var.dns_zone}"
+        opennms_server    = "${element(keys(var.onms_ip_addresses),0)}"
+        postgres_server   = "${element(keys(var.pg_ip_addresses),0)}"
+        cassandra_servers = "${join(",", keys(var.cassandra_ip_addresses))}"
+        webui_endpoint    = "${aws_elb.opennms_ui.dns_name}"
     }
 }
 

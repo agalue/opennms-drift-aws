@@ -84,7 +84,7 @@ data "aws_ami" "zookeeper" {
     }
 }
 
-# Minimum requirements are: 2GB of RAM 2 CPUs.
+# Minimum requirements are: 2GB of RAM and 2 CPUs.
 
 variable "instance_types" {
     description = "Instance types per server/application"
@@ -106,7 +106,7 @@ variable "instance_types" {
 
 # Networks
 
-# This is a proof of concept, so everything will be on a sincle availability zone
+# This is a proof of concept, so everything will be on a single availability zone,
 # with direct internet access, so instances might have public IP addresses.
 
 variable "dns_zone" {
@@ -123,6 +123,8 @@ variable "public_subnet_cidr" {
     description = "CIDR for the public subnet"
     default = "172.16.1.0/24"
 }
+
+# Application IP Addresses
 
 variable "pg_ip_addresses" {
     description = "PostgreSQL Servers Private IPs"
@@ -237,7 +239,7 @@ variable "kibana_ip_addresses" {
 }
 
 # For the number of partitions in kafka, keep in mind OpenNMS defaults:
-# 2 times the amount of cores of the OpenNMS instance.
+# - 2 times the amount of cores of the OpenNMS instance.
 #
 # To tune the number of threads, check:
 # - trapd-configuration.xml
@@ -249,7 +251,7 @@ variable "kibana_ip_addresses" {
 # of nodes should be big enough to accomodate loosing nodes.
 #
 # The replication factor should be less than the number of nodes,
-# in Kafka and Cassandra
+# in Kafka and Cassandra.
 
 variable "settings" {
     description = "Common application settings"
