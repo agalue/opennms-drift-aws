@@ -28,6 +28,7 @@ cd ~/development
 git clone https://github.com/OpenNMS/opennms-helm.git
 cd opennms-helm
 git checkout -b jw/drift origin/jw/drift
+yarn
 yarn build
 rsync -avr --delete ~/development/opennms-helm/ /var/lib/grafana/plugins/opennms-helm-app/
 cd
