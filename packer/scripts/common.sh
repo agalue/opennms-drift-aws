@@ -19,7 +19,7 @@ echo "### Installing common packages..."
 sudo yum -y -q update
 sudo yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
 
-echo "### Configuring and enabling SNMP..."
+echo "### Configuring Net-SNMP..."
 
 snmp_cfg=/etc/snmp/snmpd.conf
 sudo cp $snmp_cfg $snmp_cfg.original
