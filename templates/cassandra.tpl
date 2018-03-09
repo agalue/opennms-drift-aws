@@ -38,10 +38,17 @@ jvm_file=$conf_dir/jvm.options
 jmx_passwd=/etc/cassandra/jmxremote.password
 jmx_access=/etc/cassandra/jmxremote.access
 
+total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+mem_in_mb=`expr $total_mem_in_mb / 2`
+if [ "$mem_in_mb" -gt "30720" ]; then
+  mem_in_mb="30720"
+fi
+
 sed -r -i "/rmi.server.hostname/s/^\#//" $env_file
 sed -r -i "/rmi.server.hostname/s/.public name./$ip_address/" $env_file
 sed -r -i "/jmxremote.access/s/#//" $env_file
 sed -r -i "/LOCAL_JMX=/s/yes/no/" $env_file
+sed -i -r 's/[#]?MAX_HEAP_SIZE=".*"/MAX_HEAP_SIZE="$${mem_in_mb}m"/' $env_file
 
 cat <<EOF > $jmx_passwd
 monitorRole QED
@@ -60,14 +67,6 @@ controlRole   readwrite \
 EOF
 chmod 0400 $jmx_access
 chown cassandra:cassandra $jmx_access
-
-total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-mem_in_mb=`expr $total_mem_in_mb / 2`
-if [ "$mem_in_mb" -gt "30720" ]; then
-  mem_in_mb="30720"
-fi
-sed -i -r "s/[#]?-Xms.*/-Xms$${mem_in_mb}m/" $jvm_file
-sed -i -r "s/[#]?-Xmx.*/-Xmx$${mem_in_mb}m/" $jvm_file
 
 chown cassandra:cassandra $conf_dir/*
 

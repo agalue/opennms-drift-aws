@@ -24,8 +24,8 @@ mkdir -p $kafka_data
 
 total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
 mem_in_mb=`expr $total_mem_in_mb / 2`
-if [ "$mem_in_mb" -gt "30720" ]; then
-  mem_in_mb="30720"
+if [ "$mem_in_mb" -gt "8192" ]; then
+  mem_in_mb="8192"
 fi
 sed -i -r "/KAFKA_HEAP_OPTS/s/1g/$${mem_in_mb}m/g" /etc/systemd/system/kafka.service
 

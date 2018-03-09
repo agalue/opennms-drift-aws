@@ -1,9 +1,15 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
 
+######### CUSTOMIZED VARIABLES #########
+
+timezone="America/New_York"
+max_files="100000"
+
+########################################
+
 echo "### Configuring Timezone..."
 
-timezone=America/New_York
 sudo ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 
 echo "### Installing common packages..."
@@ -30,3 +36,30 @@ EOF
 sudo cp $snmp_tmp $snmp_cfg
 sudo chmod 600 $snmp_cfg
 
+echo "### Configuring Kernel..."
+
+sed -i 's/^\(.*swap\)/#\1/' /etc/fstab
+
+cat <<EOF > /etc/sysctl.d/application.conf
+net.ipv4.tcp_keepalive_time=60
+net.ipv4.tcp_keepalive_probes=3
+net.ipv4.tcp_keepalive_intvl=10
+net.core.rmem_max=16777216
+net.core.wmem_max=16777216
+net.core.rmem_default=16777216
+net.core.wmem_default=16777216
+net.core.optmem_max=40960
+net.ipv4.tcp_rmem=4096 87380 16777216
+net.ipv4.tcp_wmem=4096 65536 16777216
+
+net.ipv4.tcp_window_scaling=1
+net.core.netdev_max_backlog=2500
+net.core.somaxconn=65000
+
+vm.swappiness=1
+EOF
+
+cat <<EOF > /etc/security/limits.d/application.conf
+* soft nofile $max_files
+* hard nofile $max_files
+EOF

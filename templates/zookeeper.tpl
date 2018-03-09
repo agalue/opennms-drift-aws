@@ -51,8 +51,8 @@ jmxport=9998
 
 total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
 mem_in_mb=`expr $total_mem_in_mb / 2`
-if [ "$mem_in_mb" -gt "8192" ]; then
-  mem_in_mb="8192"
+if [ "$mem_in_mb" -gt "4096" ]; then
+  mem_in_mb="4096"
 fi
 
 cat <<EOF > /opt/zookeeper/conf/zookeeper-env.sh
