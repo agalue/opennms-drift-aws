@@ -24,7 +24,17 @@ echo "### Configuring Elasticsearch..."
 
 es_dir=/etc/elasticsearch
 es_yaml=$es_dir/elasticsearch.yml
+es_jvm=$es_dir/jvm.options
 cp $es_yaml $es_yaml.bak
+cp $es_jvm $es_jvm.bak
+
+total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+mem_in_mb=`expr $total_mem_in_mb / 2`
+if [ "$mem_in_mb" -gt "30720" ]; then
+  mem_in_mb="30720"
+fi
+sed -i -r "s/^-Xms1g/-Xms$${mem_in_mb}m/" $es_jvm
+sed -i -r "s/^-Xmx1g/-Xmx$${mem_in_mb}m/" $es_jvm
 
 sed -i -r "s/[#]?cluster.name:.*/cluster.name: ${es_cluster_name}/" $es_yaml
 sed -i -r "s/[#]?network.host:.*/network.host: ${hostname}/" $es_yaml

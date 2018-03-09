@@ -49,6 +49,12 @@ mkdir -p $zoo_logs
 
 jmxport=9998
 
+total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+mem_in_mb=`expr $total_mem_in_mb / 2`
+if [ "$mem_in_mb" -gt "8192" ]; then
+  mem_in_mb="8192"
+fi
+
 cat <<EOF > /opt/zookeeper/conf/zookeeper-env.sh
 ZOO_LOG_DIR=$zoo_logs
 JMXLOCALONLY=false
@@ -56,7 +62,7 @@ JMXDISABLE=false
 JMXPORT=$jmxport
 JMXAUTH=false
 JMXSSL=false
-JVMFLAGS="-Djava.rmi.server.hostname=${hostname} -Dcom.sun.management.jmxremote.rmi.port=$jmxport"
+JVMFLAGS="-Xmx$${mem_in_mb}m -Xms$${mem_in_mb}m -Djava.rmi.server.hostname=${hostname} -Dcom.sun.management.jmxremote.rmi.port=$jmxport"
 EOF
 
 echo "### Enabling and starting Zookeeper..."

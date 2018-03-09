@@ -16,6 +16,13 @@ domainname ${domainname}
 
 echo "### Configuring ActiveMQ..."
 
+total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+mem_in_mb=`expr $total_mem_in_mb / 2`
+if [ "$mem_in_mb" -gt "8192" ]; then
+  mem_in_mb="8192"
+fi
+sed -i -r '/^ACTIVEMQ_OPTS_MEMORY/s/"-Xm.*"/"-Xms$${mem_in_mb}m -Xmx$${mem_in_mb}m"/' /opt/activemq/bin/env
+
 ln -s /opt/activemq/bin/activemq /etc/init.d/activemq
 
 cat <<EOF > /opt/activemq/conf/activemq.xml

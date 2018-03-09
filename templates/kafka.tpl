@@ -22,6 +22,13 @@ echo "### Configuring Kafka..."
 kafka_data=/data/kafka
 mkdir -p $kafka_data
 
+total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+mem_in_mb=`expr $total_mem_in_mb / 2`
+if [ "$mem_in_mb" -gt "30720" ]; then
+  mem_in_mb="30720"
+fi
+sed -i -r "/KAFKA_HEAP_OPTS/s/1g/$${mem_in_mb}m/g" /etc/systemd/system/kafka.service
+
 listener_name=`curl http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null`
 kafka_cfg=/opt/kafka/config/server.properties
 cp $kafka_cfg $kafka_cfg.bak

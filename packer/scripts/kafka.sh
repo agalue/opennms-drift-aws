@@ -36,6 +36,7 @@ After=network.target remote-fs.target zookeeper.service
 Type=simple
 User=root
 Group=root
+Environment="KAFKA_HEAP_OPTS=-Xmx1g -Xms1g"
 Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
 Environment="JMX_PORT=9999"
 # Uncomment the following line to enable authentication for the broker

@@ -34,6 +34,7 @@ ulimit -n $nofile
 echo "### Configuring JMX..."
 
 env_file=$conf_dir/cassandra-env.sh
+jvm_file=$conf_dir/jvm.options
 jmx_passwd=/etc/cassandra/jmxremote.password
 jmx_access=/etc/cassandra/jmxremote.access
 
@@ -59,6 +60,14 @@ controlRole   readwrite \
 EOF
 chmod 0400 $jmx_access
 chown cassandra:cassandra $jmx_access
+
+total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+mem_in_mb=`expr $total_mem_in_mb / 2`
+if [ "$mem_in_mb" -gt "30720" ]; then
+  mem_in_mb="30720"
+fi
+sed -i -r "s/[#]?-Xms.*/-Xms$${mem_in_mb}m/" $jvm_file
+sed -i -r "s/[#]?-Xmx.*/-Xmx$${mem_in_mb}m/" $jvm_file
 
 chown cassandra:cassandra $conf_dir/*
 

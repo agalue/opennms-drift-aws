@@ -64,12 +64,15 @@ EOF
 sed -r -i 's/127.0.0.1/0.0.0.0/g' $opennms_etc/eventd-configuration.xml
 
 # JVM Settings
-mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-half_mem_in_mb=`expr $mem_in_mb / 2`
+total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
+mem_in_mb=`expr $total_mem_in_mb / 2`
+if [ "$mem_in_mb" -gt "30720" ]; then
+  mem_in_mb="30720"
+fi
 jmxport=18980
 cat <<EOF > $opennms_etc/opennms.conf
 START_TIMEOUT=0
-JAVA_HEAP_SIZE=$half_mem_in_mb
+JAVA_HEAP_SIZE=$mem_in_mb
 MAXIMUM_FILE_DESCRIPTORS=204800
 
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC -XX:+UseStringDeduplication"
