@@ -17,22 +17,6 @@ hostname ${hostname}.${domainname}
 domainname ${domainname}
 sed -i -r "s/#Domain =.*/Domain = ${domainname}/" /etc/idmapd.conf
 
-echo "### Installing Helm for Drift..."
-
-yum install -y -q grafana
-curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-yum -y -q install gcc-c++ nodejs
-npm install -g yarn
-mkdir ~/development
-cd ~/development
-git clone https://github.com/OpenNMS/opennms-helm.git
-cd opennms-helm
-git checkout -b jw/drift origin/jw/drift
-yarn
-yarn build
-rsync -avr --delete ~/development/opennms-helm/ /var/lib/grafana/plugins/opennms-helm-app/
-cd
-
 echo "### Configuring OpenNMS..."
 
 opennms_home=/opt/opennms
@@ -270,6 +254,9 @@ enabled=false
 acknowledged-by=admin
 acknowledged-at=Mon Jan 01 00\:00\:00 EDT 2018
 EOF
+
+# Logging
+sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
 
 echo "### Forcing OpenNMS to be read-only in terms of administrative changes..."
 
