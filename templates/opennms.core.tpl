@@ -151,6 +151,9 @@ cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
 elasticUrl=${elastic_url}
 elasticGlobalUser=${elastic_user}
 elasticGlobalPassword=${elastic_password}
+elasticIndexStrategy=hourly
+settings.index.number_of_shards=6
+settings.index.number_of_replicas=1
 EOF
 
 # Configure Event Exporter

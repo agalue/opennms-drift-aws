@@ -48,7 +48,8 @@ sed -r -i "/rmi.server.hostname/s/^\#//" $env_file
 sed -r -i "/rmi.server.hostname/s/.public name./$ip_address/" $env_file
 sed -r -i "/jmxremote.access/s/#//" $env_file
 sed -r -i "/LOCAL_JMX=/s/yes/no/" $env_file
-sed -i -r 's/[#]?MAX_HEAP_SIZE=".*"/MAX_HEAP_SIZE="$${mem_in_mb}m"/' $env_file
+sed -r -i "s/[#]?MAX_HEAP_SIZE=\".*\"/MAX_HEAP_SIZE=\"$${mem_in_mb}m\"/" $env_file
+sed -r -i "s/[#]?HEAP_NEWSIZE=\".*\"/HEAP_NEWSIZE=\"$${mem_in_mb}m\"/" $env_file
 
 cat <<EOF > $jmx_passwd
 monitorRole QED

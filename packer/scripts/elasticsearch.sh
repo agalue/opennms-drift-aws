@@ -19,6 +19,10 @@ sudo yum install -y -q https://artifacts.elastic.co/downloads/elasticsearch/elas
 
 sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch x-pack
 
+echo "### Downloading and installing Curator..."
+
+yum install -y -q https://packages.elastic.co/curator/5/centos/7/Packages/elasticsearch-curator-5.4.1-1.x86_64.rpm
+
 echo "### Installing Maven..."
 
 maven_name=apache-maven-$maven_version
