@@ -14,8 +14,7 @@ if hash packer 2>/dev/null; then
   packer build -var "region=$region" -var "source_ami=$source_ami" kafka.json  && \
   packer build -var "region=$region" -var "source_ami=$source_ami" kibana.json && \
   packer build -var "region=$region" -var "source_ami=$source_ami" opennms.json  && \
-  packer build -var "region=$region" -var "source_ami=$source_ami" postgresql.json && \
-  packer build -var "region=$region" -var "source_ami=$source_ami" zookeeper.json 
+  packer build -var "region=$region" -var "source_ami=$source_ami" postgresql.json
 else
   echo "ERROR: Packer is not installed."
   echo "       Please go to https://packer.io/ and follow the instructions."

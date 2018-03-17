@@ -83,15 +83,6 @@ data "aws_ami" "postgresql" {
   }
 }
 
-data "aws_ami" "zookeeper" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["zookeeper-*"]
-  }
-}
-
 # Minimum requirements are: 2GB of RAM and 2 CPUs.
 
 variable "instance_types" {
