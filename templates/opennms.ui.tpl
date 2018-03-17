@@ -9,6 +9,9 @@
 # - opennms_server = ${opennms_server}
 # - cassandra_servers = ${cassandra_servers}
 # - webui_endpoint = ${webui_endpoint}
+# - elastic_url = ${elastic_url}
+# - elastic_user = ${elastic_user}
+# - elastic_password = ${elastic_password}
 
 echo "### Configuring Hostname and Domain..."
 
@@ -103,6 +106,13 @@ org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
 org.opennms.newts.query.minimum_step=30000
 org.opennms.newts.query.heartbeat=45000
+EOF
+
+# External Elasticsearch for Flows
+cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
+elasticUrl=${elastic_url}
+elasticGlobalUser=${elastic_user}
+elasticGlobalPassword=${elastic_password}
 EOF
 
 # RRD Settings
@@ -260,6 +270,7 @@ EOF
 
 # Logging
 sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
+sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
 
 echo "### Forcing OpenNMS to be read-only in terms of administrative changes..."
 

@@ -177,6 +177,7 @@ sed -r -i 's/"Postgres"/"PostgreSQL"/g' $opennms_etc/poller-configuration.xml
 
 # Logging
 sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
+sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
 
 # WARNING: For testing purposes only
 # Lab collection and polling interval (30 seconds)
