@@ -70,7 +70,7 @@ resource "aws_route53_record" "elasticsearch_data" {
 resource "aws_elb" "elasticsearch" {
   name            = "elasticsearch"
   internal        = false
-  subnets         = ["${aws_subnet.public.id}"]
+  subnets         = ["${aws_subnet.elb.id}"]
   security_groups = ["${aws_security_group.elasticsearch.id}"]
 
   listener {

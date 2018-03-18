@@ -22,7 +22,7 @@ resource "aws_internet_gateway" "default" {
   }
 }
 
-# Public Subnet
+# Subnets
 
 resource "aws_subnet" "public" {
   vpc_id            = "${aws_vpc.default.id}"
@@ -30,7 +30,17 @@ resource "aws_subnet" "public" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
 
   tags {
-    Name = "Terraform Public Subnet (Zone ${count.index + 1})"
+    Name = "Terraform Public Subnet"
+  }
+}
+
+resource "aws_subnet" "elb" {
+  vpc_id            = "${aws_vpc.default.id}"
+  cidr_block        = "${var.elb_subnet_cidr}"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+
+  tags {
+    Name = "Terraform ELB Subnet"
   }
 }
 
@@ -49,6 +59,11 @@ resource "aws_route_table" "gw" {
 
 resource "aws_route_table_association" "public" {
   subnet_id      = "${aws_subnet.public.id}"
+  route_table_id = "${aws_route_table.gw.id}"
+}
+
+resource "aws_route_table_association" "elb" {
+  subnet_id      = "${aws_subnet.elb.id}"
   route_table_id = "${aws_route_table.gw.id}"
 }
 

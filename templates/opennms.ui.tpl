@@ -6,7 +6,6 @@
 # - hostname = ${hostname}
 # - domainname = ${domainname}
 # - postgres_server = ${postgres_server}
-# - opennms_server = ${opennms_server}
 # - cassandra_servers = ${cassandra_servers}
 # - webui_endpoint = ${webui_endpoint}
 # - elastic_url = ${elastic_url}
@@ -121,55 +120,7 @@ org.opennms.rrd.storeByGroup=true
 org.opennms.rrd.storeByForeignSource=true
 EOF
 
-# Event Forwarding Logic
-cat <<EOF > $opennms_etc/event-forwarder.sh
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import org.opennms.netmgt.events.api.support.EventProxyException;
-import org.opennms.netmgt.events.api.support.TcpEventProxy;
-import org.opennms.netmgt.xml.event.Event;
-
-targetIpaddr = "${opennms_server}";
-eventSource = "WebUI-Server";
-
-void forwardEvent(Event event) {
-  // Skip unwanted events:
-  switch (event.uei) {
-    case "uei.opennms.org/internal/rtc/subscribe":
-    case "uei.opennms.org/internal/authentication/successfulLogin":
-      return;
-      break;
-  }
-  // Set event source
-  event.setSource(eventSource);
-  proxy  = new TcpEventProxy(new InetSocketAddress(targetIpaddr,5817),6000);
-  // Forward event
-  try {
-    log.info("Sending event " + event.uei + "(" + event.dbid + ") to " + targetIpaddr);
-    proxy.send(event);
-  } catch(Exception e) {
-    log.error("Unable to send event to remote eventd on " + targetIpaddr, e);
-  }
-}
-EOF
-
-# Event Forwarding Configuration
-cat <<EOF > $opennms_etc/scriptd-configuration.xml
-<?xml version="1.0"?>
-<scriptd-configuration>
-  <engine language="beanshell" className="bsh.util.BeanShellBSFEngine" extensions="bsh"/>
-  <start-script language="beanshell">
-    log = bsf.lookupBean("log");
-    source("/opt/opennms/etc/event-forwarder.bsh");
-  </start-script>
-  <event-script language="beanshell">
-    event = bsf.lookupBean("event");
-    forwardEvent(event);
-  </event-script>
-</scriptd-configuration>
-EOF
-
-# Event Forwarding Configuration to avoid duplicates
+# Simplify Eventd
 cat <<EOF > $opennms_etc/eventconf.xml
 <?xml version="1.0"?>
 <events xmlns="http://xmlns.opennms.org/xsd/eventconf">
@@ -230,14 +181,6 @@ cat <<EOF > $opennms_etc/service-configuration.xml
     <invoke at="stop" pass="0" method="stop"/>
   </service>
   <service>
-    <name>OpenNMS:Name=Scriptd</name>
-    <class-name>org.opennms.netmgt.scriptd.jmx.Scriptd</class-name>
-    <invoke at="start" pass="0" method="init"/>
-    <invoke at="start" pass="1" method="start"/>
-    <invoke at="status" pass="0" method="status"/>
-    <invoke at="stop" pass="0" method="stop"/>
-  </service>
-  <service>
     <name>OpenNMS:Name=JettyServer</name>
     <class-name>org.opennms.netmgt.jetty.jmx.JettyServer</class-name>
     <invoke at="start" pass="0" method="init"/>
@@ -247,13 +190,6 @@ cat <<EOF > $opennms_etc/service-configuration.xml
   </service>
 </service-configuration>
 EOF
-
-# Force donotpersist on all internal events
-files=(`ls -l $opennms_etc/events/opennms.*.xml | awk '{print $9}'`)
-for f in "$${files[@]}"; do
-  sed -r -i '/logmsg/s/logndisplay/donotpersist/' $f
-  sed -r -i '/logmsg/s/logonly/donotpersist/' $f
-done
 
 # WebUI Settings
 cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
@@ -284,7 +220,7 @@ echo "### Running OpenNMS install script..."
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 touch $opennms_etc/configured
 
-echo "### Enabling and starting OpenNMS Core..."
+echo "### Enabling and starting OpenNMS..."
 
 sleep 180
 systemctl daemon-reload

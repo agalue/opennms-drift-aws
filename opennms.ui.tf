@@ -7,7 +7,6 @@ data "template_file" "opennms_ui" {
   vars {
     hostname          = "${element(keys(var.onms_ui_ip_addresses), count.index)}"
     domainname        = "${var.dns_zone}"
-    opennms_server    = "${element(keys(var.onms_ip_addresses),0)}"
     postgres_server   = "${element(keys(var.pg_ip_addresses),0)}"
     cassandra_servers = "${join(",", keys(var.cassandra_ip_addresses))}"
     elastic_url       = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
@@ -65,7 +64,7 @@ resource "aws_route53_record" "opennms_ui" {
 resource "aws_elb" "opennms_ui" {
   name            = "opennms"
   internal        = false
-  subnets         = ["${aws_subnet.public.id}"]
+  subnets         = ["${aws_subnet.elb.id}"]
   security_groups = ["${aws_security_group.opennms_ui.id}"]
 
   listener {

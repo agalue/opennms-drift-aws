@@ -123,6 +123,11 @@ variable "public_subnet_cidr" {
   default     = "172.16.1.0/24"
 }
 
+variable "elb_subnet_cidr" {
+  description = "CIDR for the ELB subnet"
+  default     = "172.16.2.0/24"
+}
+
 # Application IP Addresses
 
 variable "pg_ip_addresses" {
