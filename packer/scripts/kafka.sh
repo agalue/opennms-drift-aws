@@ -27,10 +27,10 @@ systemd_kafka=/etc/systemd/system/kafka.service
 systemd_tmp=/tmp/kafka.service
 cat <<EOF > $systemd_tmp
 [Unit]
-Description=Apache Kafka server (broker)
-Documentation=http://kafka.apache.org/documentation.html
-Requires=network.target remote-fs.target
-After=network.target remote-fs.target zookeeper.service
+Description=Apache Kafka server
+Documentation=http://kafka.apache.org
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=simple
@@ -39,8 +39,6 @@ Group=root
 Environment="KAFKA_HEAP_OPTS=-Xmx1g -Xms1g"
 Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
 Environment="JMX_PORT=9999"
-# Uncomment the following line to enable authentication for the broker
-# Environment="KAFKA_OPTS=-Djava.security.auth.login.config=/opt/kafka/config/kafka-jaas.conf"
 ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
 ExecStop=/opt/kafka/bin/kafka-server-stop.sh
 
@@ -49,6 +47,31 @@ WantedBy=multi-user.target
 EOF
 sudo cp $systemd_tmp $systemd_kafka
 sudo chmod 0644 $systemd_kafka
+
+systemd_zoo=/etc/systemd/system/zookeeper.service
+systemd_tmp=/tmp/zookeeper.service
+cat <<EOF > $systemd_tmp
+[Unit]
+Description=Apache Zookeeper server
+Documentation=http://zookeeper.apache.org
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+Environment="KAFKA_HEAP_OPTS=-Xmx1g -Xms1g"
+Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9998 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
+Environment="JMX_PORT=9998"
+ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
+ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo mv $systemd_tmp $systemd_zoo
+sudo chmod 0644 $systemd_zoo
 
 echo "### Configuring Kernel..."
 

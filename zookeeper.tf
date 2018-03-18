@@ -15,7 +15,7 @@ data "template_file" "zookeeper" {
 
 resource "aws_instance" "zookeeper" {
   count         = "${length(var.zookeeper_ip_addresses)}"
-  ami           = "${data.aws_ami.zookeeper.image_id}"
+  ami           = "${data.aws_ami.kafka.image_id}"
   instance_type = "${lookup(var.instance_types, "zookeeper")}"
   subnet_id     = "${aws_subnet.public.id}"
   key_name      = "${var.aws_key_name}"
