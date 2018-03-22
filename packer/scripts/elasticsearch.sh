@@ -1,6 +1,5 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
-# TODO: use EC2 discovery plugin.
 # The Elasticsearch version cannot be changed due to required dependencies:
 # https://github.com/OpenNMS/elasticsearch-drift-plugin
 

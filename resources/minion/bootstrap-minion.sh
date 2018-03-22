@@ -19,7 +19,7 @@ nmcli connection reload
 systemctl restart network
 
 # Update /etc/hosts
-cp /vagrant/hosts /etc/hosts
+cp -f /vagrant/hosts /etc/hosts
 
 # Install basic packages and dependencies
 if ! rpm -qa | grep -q wget; then
@@ -164,7 +164,7 @@ EOF
 
   cat <<EOF > org.opennms.features.telemetry.listeners-udp-4729.cfg
 name=Netflow-9
-class-name=org.opennms.netmgt.telemetry.listeners.udp.UdpListener
+class-name=org.opennms.netmgt.telemetry.listeners.flow.netflow9.UdpListener
 listener.port=4729
 EOF
 

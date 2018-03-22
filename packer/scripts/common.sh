@@ -59,6 +59,8 @@ net.core.netdev_max_backlog=2500
 net.core.somaxconn=65000
 
 vm.swappiness=1
+
+vm.max_map_count = 1048575
 EOF
 sudo mv $tmp_file $sysctl_cfg
 
