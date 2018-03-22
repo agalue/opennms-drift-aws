@@ -52,10 +52,6 @@ sed -r -i "/LOCAL_JMX=/s/yes/no/" $env_file
 sed -r -i "s/^[#]?MAX_HEAP_SIZE=\".*\"/MAX_HEAP_SIZE=\"$${mem_in_mb}m\"/" $env_file
 sed -r -i "s/^[#]?HEAP_NEWSIZE=\".*\"/HEAP_NEWSIZE=\"$${mem_in_mb}m\"/" $env_file
 
-# Cassandra Tuning
-sed -r -i "s|^[# ]*?concurrent_compactors: .*|concurrent_compactors: 8|" $conf_file
-sed -r -i "s|^[# ]*?commitlog_total_space_in_mb: .*|commitlog_total_space_in_mb: 1024|" $conf_file
-
 # Disable CMSGC
 sed -r -i "/UseParNewGC/s/-XX/#-XX/" $jvm_file
 sed -r -i "/UseConcMarkSweepGC/s/-XX/#-XX/" $jvm_file
