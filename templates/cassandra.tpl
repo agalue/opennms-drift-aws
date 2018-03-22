@@ -24,7 +24,6 @@ sed -r -i "/cluster_name/s/Test Cluster/${cluster_name}/" $conf_file
 sed -r -i "/seeds/s/127.0.0.1/${seed_name}/" $conf_file
 sed -r -i "/listen_address/s/localhost/$ip_address/" $conf_file
 sed -r -i "/rpc_address/s/localhost/$ip_address/" $conf_file
-sed -r -i "/endpoint_snitch/s/SimpleSnitch/Ec2Snitch/" $conf_file
 
 echo "### Configuring Kernel..."
 
@@ -35,6 +34,7 @@ echo "### Configuring JMX..."
 
 env_file=$conf_dir/cassandra-env.sh
 jvm_file=$conf_dir/jvm.options
+
 jmx_passwd=/etc/cassandra/jmxremote.password
 jmx_access=/etc/cassandra/jmxremote.access
 
@@ -44,12 +44,37 @@ if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
 
+# Cassandra Configuration
 sed -r -i "/rmi.server.hostname/s/^\#//" $env_file
 sed -r -i "/rmi.server.hostname/s/.public name./$ip_address/" $env_file
 sed -r -i "/jmxremote.access/s/#//" $env_file
 sed -r -i "/LOCAL_JMX=/s/yes/no/" $env_file
-sed -r -i "s/[#]?MAX_HEAP_SIZE=\".*\"/MAX_HEAP_SIZE=\"$${mem_in_mb}m\"/" $env_file
-sed -r -i "s/[#]?HEAP_NEWSIZE=\".*\"/HEAP_NEWSIZE=\"$${mem_in_mb}m\"/" $env_file
+sed -r -i "s/^[#]?MAX_HEAP_SIZE=\".*\"/MAX_HEAP_SIZE=\"$${mem_in_mb}m\"/" $env_file
+sed -r -i "s/^[#]?HEAP_NEWSIZE=\".*\"/HEAP_NEWSIZE=\"$${mem_in_mb}m\"/" $env_file
+
+# Cassandra Tuning
+sed -r -i "s|^[# ]*?concurrent_compactors: .*|concurrent_compactors: 8|" $conf_file
+sed -r -i "s|^[# ]*?commitlog_total_space_in_mb: .*|commitlog_total_space_in_mb: 1024|" $conf_file
+
+# Disable CMSGC
+sed -r -i "/UseParNewGC/s/-XX/#-XX/" $jvm_file
+sed -r -i "/UseConcMarkSweepGC/s/-XX/#-XX/" $jvm_file
+sed -r -i "/CMSParallelRemarkEnabled/s/-XX/#-XX/" $jvm_file
+sed -r -i "/SurvivorRatio/s/-XX/#-XX/" $jvm_file
+sed -r -i "/MaxTenuringThreshold/s/-XX/#-XX/" $jvm_file
+sed -r -i "/CMSInitiatingOccupancyFraction/s/-XX/#-XX/" $jvm_file
+sed -r -i "/UseCMSInitiatingOccupancyOnly/s/-XX/#-XX/" $jvm_file
+sed -r -i "/CMSWaitDuration/s/-XX/#-XX/" $jvm_file
+sed -r -i "/CMSParallelInitialMarkEnabled/s/-XX/#-XX/" $jvm_file
+sed -r -i "/CMSEdenChunksRecordAlways/s/-XX/#-XX/" $jvm_file
+sed -r -i "/CMSClassUnloadingEnabled/s/-XX/#-XX/" $jvm_file
+
+# Enable G1GC
+sed -r -i "/UseG1GC/s/#-XX/-XX/" $jvm_file
+sed -r -i "/G1RSetUpdatingPauseTimePercent/s/#-XX/-XX/" $jvm_file
+sed -r -i "/MaxGCPauseMillis/s/#-XX/-XX/" $jvm_file
+sed -r -i "/InitiatingHeapOccupancyPercent/s/#-XX/-XX/" $jvm_file
+sed -r -i "/ParallelGCThreads/s/#-XX/-XX/" $jvm_file
 
 cat <<EOF > $jmx_passwd
 monitorRole QED
