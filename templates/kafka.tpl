@@ -1,21 +1,22 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
-# Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - node_id = ${node_id}
-# - hostname = ${hostname}
-# - domainname = ${domainname}
-# - zookeeper_connect = ${zookeeper_connect}
-# - num_partitions = ${num_partitions}
-# - replication_factor = ${replication_factor}
-# - min_insync_replicas = ${min_insync_replicas}
+
+node_id="${node_id}"
+hostname="${hostname}"
+domainname="${domainname}"
+zookeeper_connect="${zookeeper_connect}"
+num_partitions="${num_partitions}"
+replication_factor="${replication_factor}"
+min_insync_replicas="${min_insync_replicas}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
-hostname ${hostname}.${domainname}
-domainname ${domainname}
+sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
+hostname $hostname.$domainname
+domainname $domainname
+sed -i -r "s/#Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Kafka..."
 
@@ -37,13 +38,13 @@ broker.id=${node_id}
 advertised.listeners=PLAINTEXT://$listener_name:9092
 listeners=PLAINTEXT://0.0.0.0:9092
 log.dirs=$kafka_data
-num.partitions=${num_partitions}
-default.replication.factor=${replication_factor}
-min.insync.replicas=${min_insync_replicas}
+num.partitions=$num_partitions
+default.replication.factor=$replication_factor
+min.insync.replicas=$min_insync_replicas
 log.retention.hours=168
 log.segment.bytes=1073741824
 log.retention.check.interval.ms=300000
-zookeeper.connect=${zookeeper_connect}
+zookeeper.connect=$zookeeper_connect
 zookeeper.connection.timeout.ms=6000
 auto.create.topics.enable=true
 delete.topic.enable=false

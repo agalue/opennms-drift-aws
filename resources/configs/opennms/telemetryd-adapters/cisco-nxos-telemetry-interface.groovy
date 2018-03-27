@@ -65,7 +65,7 @@ class CollectionSetGenerator {
                 NxosGpbParserUtil.getValueAsDouble(telemetryMsg, "memory_usage_used"), AttributeType.GAUGE)
         
             NxosGpbParserUtil.getRowsFromTable(telemetryMsg, "cpu_usage").each { row ->
-                def cpuId = Integer.toString(NxosGpbParserUtil.getValueFromRowAsDouble(row, "cpuid").intValue())
+                def cpuId = NxosGpbParserUtil.getValueFromRowAsString(row, "cpuid")
                 def genericTypeResource = new DeferredGenericTypeResource(nodeLevelResource, "nxosCpu", cpuId)
                 ["idle", "kernel", "user"].each { metric ->
                     builder.withNumericAttribute(genericTypeResource, "nxos-cpu-stats", metric,
@@ -97,7 +97,7 @@ class CollectionSetGenerator {
             def genericTypeResource = new DeferredGenericTypeResource(nodeLevelResource, "nxosIntf", intfId)
             ["ucastPkts", "multicastPkts", "broadcastPkts", "octets"].each { metric ->
                 builder.withNumericAttribute(genericTypeResource, "nxos-intfHC$statsType", "$metric$statsType",
-                    NxosGpbParserUtil.getValueAsDouble(telemetryMsg, metric), AttributeType.GAUGE)
+                    NxosGpbParserUtil.getValueAsDouble(telemetryMsg, metric), AttributeType.COUNTER)
             }
         }
     }

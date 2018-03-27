@@ -1,23 +1,23 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
-# Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - hostname = ${hostname}
-# - domainname = ${domainname}
-# - postgres_server = ${postgres_server}
-# - cassandra_servers = ${cassandra_servers}
-# - webui_endpoint = ${webui_endpoint}
-# - elastic_url = ${elastic_url}
-# - elastic_user = ${elastic_user}
-# - elastic_password = ${elastic_password}
+
+hostname="${hostname}"
+domainname="${domainname}"
+postgres_server="${postgres_server}"
+cassandra_servers="${cassandra_servers}"
+webui_endpoint="${webui_endpoint}"
+elastic_url="${elastic_url}"
+elastic_user="${elastic_user}"
+elastic_password="${elastic_password}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
-hostname ${hostname}.${domainname}
-domainname ${domainname}
-sed -i -r "s/#Domain =.*/Domain = ${domainname}/" /etc/idmapd.conf
+sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
+hostname $hostname.$domainname
+domainname $domainname
+sed -i -r "s/#Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring OpenNMS..."
 
@@ -42,7 +42,7 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
   <jdbc-data-source name="opennms"
                     database-name="opennms"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://${postgres_server}:5432/opennms"
+                    url="jdbc:postgresql://$postgres_server:5432/opennms"
                     user-name="opennms"
                     password="opennms">
     <param name="connectionTimeout" value="0"/>
@@ -51,7 +51,7 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
   <jdbc-data-source name="opennms-admin"
                     database-name="template1"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://${postgres_server}:5432/template1"
+                    url="jdbc:postgresql://$postgres_server:5432/template1"
                     user-name="postgres"
                     password="postgres" />
 </datasource-configuration>
@@ -88,7 +88,7 @@ ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jm
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server.serverHost=0.0.0.0"
 
 # Accept remote RMI connections on this interface
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=${hostname}"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=$hostname"
 EOF
 
 # JMX Groups
@@ -100,7 +100,7 @@ EOF
 # External Cassandra
 cat <<EOF > $opennms_etc/opennms.properties.d/newts.properties
 org.opennms.timeseries.strategy=newts
-org.opennms.newts.config.hostname=${cassandra_servers}
+org.opennms.newts.config.hostname=$cassandra_servers
 org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
 org.opennms.newts.query.minimum_step=30000
@@ -109,9 +109,9 @@ EOF
 
 # External Elasticsearch for Flows
 cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
-elasticUrl=${elastic_url}
-elasticGlobalUser=${elastic_user}
-elasticGlobalPassword=${elastic_password}
+elasticUrl=$elastic_url
+elasticGlobalUser=$elastic_user
+elasticGlobalPassword=$elastic_password
 EOF
 
 # RRD Settings
@@ -194,7 +194,7 @@ EOF
 # WebUI Settings
 cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
 org.opennms.web.console.centerUrl=/status/status-box.jsp,/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
-org.opennms.web.graphs.engine=backshift
+org.opennms.security.disableLoginSuccessEvent=true
 EOF
 
 # TODO: the following is due to some issues with the datachoices plugin
@@ -231,24 +231,24 @@ echo "### Configurng Grafana..."
 
 grafana_cfg=/etc/grafana/grafana.ini
 cp $grafana_cfg $grafana_cfg.bak
-sed -r -i 's/;domain = localhost/domain = ${webui_endpoint}/' $grafana_cfg
+sed -r -i 's/;domain = localhost/domain = $webui_endpoint/' $grafana_cfg
 sed -r -i 's/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s' $grafana_cfg
 sed -r -i 's/;type = sqlite3/type = postgres/' $grafana_cfg
-sed -r -i 's/;host = 127.0.0.1:3306/host = ${postgres_server}:5432/' $grafana_cfg
+sed -r -i 's/;host = 127.0.0.1:3306/host = $postgres_server:5432/' $grafana_cfg
 sed -r -i '/;name = grafana/s/;//' $grafana_cfg
 sed -r -i 's/;user = root/user = grafana/' $grafana_cfg
 sed -r -i 's/;password =/password = grafana/' $grafana_cfg
 sed -r -i "s/;provider = file/provider = postgres/" $grafana_cfg
-sed -r -i "s/;provider_config = sessions/provider_config = user=grafana password=grafana host=${postgres_server} port=5432 dbname=grafana sslmode=disable/" $grafana_cfg
+sed -r -i "s/;provider_config = sessions/provider_config = user=grafana password=grafana host=$postgres_server port=5432 dbname=grafana sslmode=disable/" $grafana_cfg
 
 echo "*:*:*:postgres:postgres" > ~/.pgpass
 chmod 0600 ~/.pgpass
-if ! psql -U postgres -h ${postgres_server} -lqt | cut -d \| -f 1 | grep -qw grafana; then
+if ! psql -U postgres -h $postgres_server -lqt | cut -d \| -f 1 | grep -qw grafana; then
   echo "Creating grafana user and database in PostgreSQL..."
-  createdb -U postgres -h ${postgres_server} -E UTF-8 grafana
-  createuser -U postgres -h ${postgres_server} grafana
-  psql -U postgres -h ${postgres_server} -c "alter role grafana with password 'grafana';"
-  psql -U postgres -h ${postgres_server} -c "grant all on database grafana to grafana;"
+  createdb -U postgres -h $postgres_server -E UTF-8 grafana
+  createuser -U postgres -h $postgres_server grafana
+  psql -U postgres -h $postgres_server -c "alter role grafana with password 'grafana';"
+  psql -U postgres -h $postgres_server -c "grant all on database grafana to grafana;"
 fi
 rm -f ~/.pgpass
 

@@ -5,7 +5,6 @@ data "template_file" "activemq" {
   template = "${file("${path.module}/templates/activemq.tpl")}"
 
   vars {
-    node_id     = "${count.index + 1}"
     hostname    = "${element(keys(var.amq_ip_addresses), count.index)}"
     domainname  = "${var.dns_zone}"
     amq_sibling = "${element(var.amq_siblings, count.index)}"

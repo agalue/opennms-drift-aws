@@ -1,23 +1,27 @@
 # @author: Alejandro Galue <agalue@opennms.org>
 
 data "template_file" "postgresql" {
+  count    = "${length(var.pg_ip_addresses)}"
   template = "${file("${path.module}/templates/postgresql.tpl")}"
 
   vars {
     vpc_cidr           = "${var.vpc_cidr}"
-    hostname           = "${element(keys(var.pg_ip_addresses),0)}"
+    hostname           = "${element(keys(var.pg_ip_addresses), count.index)}"
     domainname         = "${var.dns_zone}"
-    pg_num_connections = "${lookup(var.settings, "postgresql_num_connections")}"
+    pg_max_connections = "${lookup(var.settings, "postgresql_max_connections")}"
+    pg_version_family  = "${lookup(var.settings, "postgresql_version_family")}"
+    pg_role            = "${element(var.pg_roles, count.index)}"
   }
 }
 
 resource "aws_instance" "postgresql" {
+  count         = "${length(var.pg_ip_addresses)}"
   ami           = "${data.aws_ami.postgresql.image_id}"
   instance_type = "${lookup(var.instance_types, "postgresql")}"
   subnet_id     = "${aws_subnet.public.id}"
   key_name      = "${var.aws_key_name}"
-  private_ip    = "${element(values(var.pg_ip_addresses),0)}"
-  user_data     = "${data.template_file.postgresql.rendered}"
+  private_ip    = "${element(values(var.pg_ip_addresses), count.index)}"
+  user_data     = "${element(data.template_file.postgresql.*.rendered, count.index)}"
 
   associate_public_ip_address = true
 
@@ -46,7 +50,7 @@ resource "aws_instance" "postgresql" {
   }
 
   tags {
-    Name = "Terraform PostgreSQL Server"
+    Name = "Terraform PostgreSQL Server ${count.index + 1}"
   }
 }
 
@@ -59,5 +63,5 @@ resource "aws_route53_record" "postgresql" {
 }
 
 output "postgresql" {
-  value = "${aws_instance.postgresql.public_ip}"
+  value = "${join(",",aws_instance.postgresql.*.public_ip)}"
 }

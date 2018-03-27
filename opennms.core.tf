@@ -4,7 +4,6 @@ data "template_file" "opennms" {
   template = "${file("${path.module}/templates/opennms.core.tpl")}"
 
   vars {
-    vpc_cidr            = "${var.vpc_cidr}"
     hostname            = "${element(keys(var.onms_ip_addresses),0)}"
     domainname          = "${var.dns_zone}"
     postgres_server     = "${element(keys(var.pg_ip_addresses),0)}"

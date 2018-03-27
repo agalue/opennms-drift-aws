@@ -1,27 +1,28 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
-# Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - node_id = ${node_id}
-# - hostname = ${hostname}
-# - domainname = ${domainname}
-# - cluster_name = ${cluster_name}
-# - seed_name = ${seed_name}
+
+node_id="${node_id}"
+hostname="${hostname}"
+domainname="${domainname}"
+cluster_name="${cluster_name}"
+seed_name="${seed_name}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
-hostname ${hostname}.${domainname}
-domainname ${domainname}
+sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
+hostname $hostname.$domainname
+domainname $domainname
+sed -i -r "s/#Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Cassandra..."
 
 ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
 conf_dir=/etc/cassandra/conf
 conf_file=$conf_dir/cassandra.yaml
-sed -r -i "/cluster_name/s/Test Cluster/${cluster_name}/" $conf_file
-sed -r -i "/seeds/s/127.0.0.1/${seed_name}/" $conf_file
+sed -r -i "/cluster_name/s/Test Cluster/$cluster_name/" $conf_file
+sed -r -i "/seeds/s/127.0.0.1/$seed_name/" $conf_file
 sed -r -i "/listen_address/s/localhost/$ip_address/" $conf_file
 sed -r -i "/rpc_address/s/localhost/$ip_address/" $conf_file
 
@@ -94,10 +95,10 @@ chown cassandra:cassandra $conf_dir/*
 
 echo "### Checking cluster prior start..."
 
-start_delay=$((60*(${node_id}-1)))
+start_delay=$((60*($node_id-1)))
 if [[ $start_delay != 0 ]]; then
-  until echo -n > /dev/tcp/${seed_name}/9042; do
-    echo "### ${seed_name} is unavailable - sleeping"
+  until echo -n > /dev/tcp/$seed_name/9042; do
+    echo "### $seed_name is unavailable - sleeping"
     sleep 5
   done
   echo "### Waiting $start_delay seconds prior starting Cassandra..."

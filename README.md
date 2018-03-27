@@ -122,3 +122,5 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
 
 * Provide a sample Curator implementation (on the ES master servers).
+
+* Configure PostgreSQL as master/slave with streaming replication.

@@ -135,8 +135,21 @@ variable "pg_ip_addresses" {
   type        = "map"
 
   default = {
-    postgresql = "172.16.1.101"
+    postgresql1 = "172.16.1.101"
+
+    #postgresql2 = "172.16.1.102"
   }
+}
+
+variable "pg_roles" {
+  description = "PostgreSQL server roles: master or slave"
+  type        = "list"
+
+  # Declare the sibling based on the key order defined for pg_ip_addresses
+  default = [
+    "master",
+    "slave",
+  ]
 }
 
 variable "onms_ip_addresses" {
@@ -172,6 +185,7 @@ variable "amq_siblings" {
   description = "ActiveMQ IP Sibling Pair: the inverse of amq_ip_addresses"
   type        = "list"
 
+  # Declare the sibling based on the key order defined for amq_ip_addresses
   default = [
     "activemq2",
     "activemq1",
@@ -267,7 +281,8 @@ variable "settings" {
     kafka_replication_factor     = 2
     kafka_min_insync_replicas    = 1
     cassandra_replication_factor = 2
-    postgresql_num_connections   = 200
+    postgresql_version_family    = "9.6-3"
+    postgresql_max_connections   = 200
     elastic_password             = "opennms"
   }
 }

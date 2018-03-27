@@ -1,24 +1,25 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
-# Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - node_id = ${node_id}
-# - hostname = ${hostname}
-# - domainname = ${domainname}
-# - total_servers = ${total_servers}
+
+node_id="${node_id}"
+hostname="${hostname}"
+domainname="${domainname}"
+total_servers="${total_servers}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
-hostname ${hostname}.${domainname}
-domainname ${domainname}
+sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
+hostname $hostname.$domainname
+domainname $domainname
+sed -i -r "s/#Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Zookeeper..."
 
 zoo_data=/data/zookeeper
 mkdir -p $zoo_data
-echo ${node_id} > $zoo_data/myid
+echo $node_id > $zoo_data/myid
 
 zoo_cfg=/opt/kafka/config/zookeeper.properties
 cp $zoo_cfg $zoo_cfg.bak
@@ -31,7 +32,7 @@ initLimit=10
 syncLimit=5
 EOF
 # TODO Assuming hostname prefix. Make sure it is consistent with zookeeper_ip_addresses in vars.tf
-for i in `seq 1 ${total_servers}`;
+for i in `seq 1 $total_servers`;
 do
   echo "server.$i=zookeeper$i:2888:3888" >> $zoo_cfg
 done
@@ -53,7 +54,7 @@ sed -i -r "/KAFKA_HEAP_OPTS/s/1g/$${mem_in_mb}m/g" /etc/systemd/system/zookeeper
 
 echo "### Enabling and starting Zookeeper..."
 
-start_delay=$((30*(${node_id}-1)))
+start_delay=$((30*($node_id-1)))
 echo "### Waiting $start_delay seconds prior starting Zookeeper..."
 sleep $start_delay
 

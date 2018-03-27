@@ -1,26 +1,24 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
-# Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - vpc_cidr = ${vpc_cidr}
-# - hostname = ${hostname}
-# - domainname = ${domainname}
-# - postgres_server = ${postgres_server}
-# - kafka_servers = ${kafka_servers}
-# - cassandra_servers = ${cassandra_servers}
-# - cassandra_repfactor = ${cassandra_repfactor}
-# - activemq_url = ${activemq_url}
-# - elastic_url = ${elastic_url}
-# - elastic_user = ${elastic_user}
-# - elastic_password = ${elastic_password}
+
+hostname="${hostname}"
+domainname="${domainname}"
+postgres_server="${postgres_server}"
+kafka_servers="${kafka_servers}"
+cassandra_servers="${cassandra_servers}"
+activemq_url="${activemq_url}"
+elastic_url="${elastic_url}"
+elastic_user="${elastic_user}"
+elastic_password="${elastic_password}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
-hostname ${hostname}.${domainname}
-domainname ${domainname}
-sed -i -r "s/#Domain =.*/Domain = ${domainname}/" /etc/idmapd.conf
+sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
+hostname $hostname.$domainname
+domainname $domainname
+sed -i -r "s/#Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring OpenNMS..."
 
@@ -45,7 +43,7 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
   <jdbc-data-source name="opennms"
                     database-name="opennms"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://${postgres_server}:5432/opennms"
+                    url="jdbc:postgresql://$postgres_server:5432/opennms"
                     user-name="opennms"
                     password="opennms">
     <param name="connectionTimeout" value="0"/>
@@ -54,7 +52,7 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
   <jdbc-data-source name="opennms-admin"
                     database-name="template1"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://${postgres_server}:5432/template1"
+                    url="jdbc:postgresql://$postgres_server:5432/template1"
                     user-name="postgres"
                     password="postgres" />
 </datasource-configuration>
@@ -91,7 +89,7 @@ ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jm
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server.serverHost=0.0.0.0"
 
 # Accept remote RMI connections on this interface
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=${hostname}"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=$hostname"
 
 # If you enable Flight Recorder, be aware of the implications since it is a commercial feature of the Oracle JVM.
 #ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:StartFlightRecording=duration=600s,filename=opennms.jfr,delay=1h"
@@ -106,7 +104,7 @@ EOF
 # External ActiveMQ
 cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
 org.opennms.activemq.broker.disable=true
-org.opennms.activemq.broker.url=${activemq_url}
+org.opennms.activemq.broker.url=$activemq_url
 org.opennms.activemq.broker.username=admin
 org.opennms.activemq.broker.password=admin
 EOF
@@ -115,14 +113,14 @@ EOF
 cat <<EOF > $opennms_etc/opennms.properties.d/kafka.properties
 org.opennms.core.ipc.sink.initialSleepTime=60000
 org.opennms.core.ipc.sink.strategy=kafka
-org.opennms.core.ipc.sink.kafka.bootstrap.servers=${kafka_servers}
+org.opennms.core.ipc.sink.kafka.bootstrap.servers=$kafka_servers
 org.opennms.core.ipc.sink.kafka.group.id=OpenNMS
 EOF
 
 # External Cassandra
 cat <<EOF > $opennms_etc/opennms.properties.d/newts.properties
 org.opennms.timeseries.strategy=newts
-org.opennms.newts.config.hostname=${cassandra_servers}
+org.opennms.newts.config.hostname=$cassandra_servers
 org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
 org.opennms.newts.query.minimum_step=30000
@@ -139,6 +137,11 @@ org.opennms.rrd.storeByGroup=true
 org.opennms.rrd.storeByForeignSource=true
 EOF
 
+# WebUI Settings
+cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
+org.opennms.security.disableLoginSuccessEvent=true
+EOF
+
 # Enable NetFlow
 sed -r -i '/"Netflow-5"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 sed -r -i '/"Netflow-9"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
@@ -151,9 +154,9 @@ sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
 # Configure Flow persistence
 cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
-elasticUrl=${elastic_url}
-elasticGlobalUser=${elastic_user}
-elasticGlobalPassword=${elastic_password}
+elasticUrl=$elastic_url
+elasticGlobalUser=$elastic_user
+elasticGlobalPassword=$elastic_password
 elasticIndexStrategy=hourly
 settings.index.number_of_shards=6
 settings.index.number_of_replicas=1
@@ -162,12 +165,13 @@ EOF
 # Configure Event Exporter
 sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n/' $opennms_etc/org.apache.karaf.features.cfg
 cat <<EOF > $opennms_etc/org.opennms.plugin.elasticsearch.rest.forwarder.cfg
-elasticsearchUrl=${elastic_url}
-esusername=${elastic_user}
-espassword=${elastic_password}
+elasticsearchUrl=$elastic_url
+esusername=$elastic_user
+espassword=$elastic_password
 archiveRawEvents=true
 archiveAlarms=false
 archiveAlarmChangeEvents=false
+logAllEvents=true
 retries=1
 timeout=3000
 EOF

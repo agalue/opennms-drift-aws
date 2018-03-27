@@ -1,18 +1,18 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
-# Warning: This is intended to be used through Terraform's template plugin only
 
 # AWS Template Variables
-# - node_id = ${node_id}
-# - hostname = ${hostname}
-# - domainname = ${domainname}
-# - amq_sibling = ${amq_sibling}
+
+hostname="${hostname}"
+domainname="${domainname}"
+amq_sibling="${amq_sibling}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=${hostname}.${domainname}/" /etc/sysconfig/network
-hostname ${hostname}.${domainname}
-domainname ${domainname}
+sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
+hostname $hostname.$domainname
+domainname $domainname
+sed -i -r "s/#Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring ActiveMQ..."
 
@@ -43,7 +43,7 @@ cat <<EOF > /opt/activemq/conf/activemq.xml
           init-method="start" destroy-method="stop">
     </bean>
 
-    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="${hostname}" brokerId="${hostname}" dataDirectory="\$${activemq.data}">
+    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="$hostname" brokerId="$hostname" dataDirectory="\$${activemq.data}">
 
         <destinationPolicy>
             <policyMap>
@@ -80,8 +80,8 @@ cat <<EOF > /opt/activemq/conf/activemq.xml
         </systemUsage>
 
         <networkConnectors>
-            <networkConnector name="LinkTo -> ${amq_sibling}"
-                uri="static:(tcp://${amq_sibling}:61616)"
+            <networkConnector name="LinkTo -> $amq_sibling"
+                uri="static:(tcp://$amq_sibling:61616)"
                 networkTTL="3"
             />            
         </networkConnectors>
