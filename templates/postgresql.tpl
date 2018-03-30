@@ -141,7 +141,6 @@ else
 
     echo "### Starting PostgreSQL..."
 
-    systemctl enable postgresql-$pg_version
     systemctl start postgresql-$pg_version
     sleep 10
 
@@ -157,7 +156,6 @@ fi
 
 echo "### Starting repmgrd..."
 
-systemctl enable repmgr$pg_family
 systemctl start repmgr$pg_family
 
 echo "### Enabling and starting SNMP..."
