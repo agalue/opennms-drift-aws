@@ -40,22 +40,32 @@ sed -i -r "s/#Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring repmgr..."
 
+cat <<EOF > /etc/sudoers.d/postgres
+Defaults:postgres !requiretty
+postgres ALL = NOPASSWD: /bin/systemctl status postgresql-$pg_version, \
+/bin/systemctl start postgresql-$pg_version, \
+/bin/systemctl stop postgresql-$pg_version, \
+/bin/systemctl reload postgresql-$pg_version, \
+/bin/systemctl restart postgresql-$pg_version
+EOF
+chmod 440 /etc/sudoers.d/postgresql
+
 cp $repmgr_cfg $repmgr_cfg.bak
 cat <<EOF > $repmgr_cfg
 node_id=$node_id
 node_name=$hostname
 conninfo='host=$hostname user=repmgr password=repmgr dbname=repmgr'
 data_directory=$data_dir
-use_replication_slots=1
+use_replication_slots=true
 log_level=INFO
 failover=automatic
 pg_bindir='/usr/pgsql-$pg_version/bin'
 promote_command='$repmgr_bin standby promote -f $repmgr_cfg --log-to-file'
 follow_command='$repmgr_bin standby follow -f $repmgr_cfg --log-to-file --upstream-node-id=%n'
-service_start_command='systemctl start postgresql-$pg_version'
-service_stop_command='systemctl stop postgresql-$pg_version'
-service_reload_command='systemctl reload postgresql-$pg_version'
-service_restart_command='systemctl restart postgresql-$pg_version'
+service_start_command='sudo systemctl start postgresql-$pg_version'
+service_stop_command='sudo systemctl stop postgresql-$pg_version'
+service_reload_command='sudo systemctl reload postgresql-$pg_version'
+service_restart_command='sudo systemctl restart postgresql-$pg_version'
 EOF
 chown postgres:postgres $repmgr_cfg
 
@@ -100,11 +110,13 @@ EOF
   systemctl start postgresql-$pg_version
   sleep 10
 
-  echo "### Configuring repmgr for master node..."
+  echo "### Configuring repmgr..."
 
   sudo -u postgres psql -c "CREATE USER repmgr SUPERUSER REPLICATION LOGIN ENCRYPTED PASSWORD 'repmgr';"
   sudo -u postgres psql -c "CREATE DATABASE repmgr OWNER repmgr;"
   sudo -u postgres psql -c "ALTER USER postgres WITH ENCRYPTED PASSWORD 'postgres';"
+
+  echo "### Registering master node through repmgr..."
 
   sudo -u postgres $repmgr_bin -f $repmgr_cfg -v master register
   sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
@@ -112,21 +124,21 @@ EOF
 else
 
   echo "### Configuring Slave Server..."
+  sleep 30
 
-  sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg standby clone --dry-run
+  sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W --dry-run standby clone
   if [ $? -eq 0 ]; then
     echo "### Cloning data from master node..."
 
-    sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg standby clone
+    sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W standby clone
 
     echo "### Starting PostgreSQL..."
 
-    sleep 60
     systemctl enable postgresql-$pg_version
     systemctl start postgresql-$pg_version
     sleep 10
 
-    echo "### Configuring repmgr for slave node..."
+    echo "### Registering slave node through repmgr..."
 
     sudo -u postgres $repmgr_bin -f $repmgr_cfg -v standby register
     sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
