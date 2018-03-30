@@ -16,8 +16,13 @@
       <monitored-service service-name="OpenNMS-JVM"/>
     </interface>
   </node>
-  <node building="AWS" foreign-id="postgresql" node-label="postgresql-server">
+  <node building="AWS" foreign-id="postgresql1" node-label="postgresql1-server">
     <interface descr="eth0" ip-addr="172.16.1.101" status="1" snmp-primary="P">
+      <monitored-service service-name="PostgreSQL"/>
+    </interface>
+  </node>
+  <node building="AWS" foreign-id="postgresql2" node-label="postgresql2-server">
+    <interface descr="eth0" ip-addr="172.16.1.102" status="1" snmp-primary="P">
       <monitored-service service-name="PostgreSQL"/>
     </interface>
   </node>

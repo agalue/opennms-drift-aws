@@ -44,8 +44,8 @@ use_replication_slots=1
 log_level=INFO
 failover=automatic
 pg_bindir='/usr/pgsql-$pg_version/bin'
-promote_command='repmgr standby promote -f $repmgr_cfg'
-follow_command='repmgr standby follow -f $repmgr_cfg'
+promote_command='$repmgr_bin standby promote -f $repmgr_cfg'
+follow_command='$repmgr_bin standby follow -f $repmgr_cfg'
 service_start_command='systemctl start postgresql-$pg_version'
 service_stop_command='systemctl stop postgresql-$pg_version'
 service_reload_command='systemctl reload postgresql-$pg_version'
@@ -86,6 +86,7 @@ EOF
   sed -r -i "s/[#]?hot_standby =.*/hot_standby = on/" $pg_conf
   sed -r -i "s/[#]?log_connections =.*/log_connections = on/" $pg_conf
   sed -r -i "s/[#]?default_statistics_target =.*/default_statistics_target = 100/" $pg_conf
+  sed -r -i "s/[#]?shared_preload_libraries =.*/shared_preload_libraries = 'repmgr'/" $pg_conf
 
   echo "### Starting PostgreSQL..."
 
