@@ -5,12 +5,15 @@ data "template_file" "postgresql" {
   template = "${file("${path.module}/templates/postgresql.tpl")}"
 
   vars {
+    node_id            = "${count.index + 1}"
     vpc_cidr           = "${var.vpc_cidr}"
     hostname           = "${element(keys(var.pg_ip_addresses), count.index)}"
     domainname         = "${var.dns_zone}"
     pg_max_connections = "${lookup(var.settings, "postgresql_max_connections")}"
     pg_version_family  = "${lookup(var.settings, "postgresql_version_family")}"
     pg_role            = "${element(var.pg_roles, count.index)}"
+    pg_rep_slots       = "${length(var.pg_ip_addresses)+1}"
+    pg_master_server   = "${element(keys(var.pg_ip_addresses), 0)}"
   }
 }
 
@@ -55,11 +58,12 @@ resource "aws_instance" "postgresql" {
 }
 
 resource "aws_route53_record" "postgresql" {
+  count   = "${length(var.pg_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.pg_ip_addresses),0)}.${var.dns_zone}"
+  name    = "${element(keys(var.pg_ip_addresses),count.index)}.${var.dns_zone}"
   type    = "A"
   ttl     = "300"
-  records = ["${element(values(var.pg_ip_addresses),0)}"]
+  records = ["${element(values(var.pg_ip_addresses),count.index)}"]
 }
 
 output "postgresql" {

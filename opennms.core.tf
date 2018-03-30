@@ -6,7 +6,7 @@ data "template_file" "opennms" {
   vars {
     hostname            = "${element(keys(var.onms_ip_addresses),0)}"
     domainname          = "${var.dns_zone}"
-    postgres_server     = "${element(keys(var.pg_ip_addresses),0)}"
+    postgres_onms_url   = "jdbc:postgresql://${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     activemq_url        = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
     elastic_url         = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
     elastic_user        = "elastic"
@@ -14,6 +14,7 @@ data "template_file" "opennms" {
     kafka_servers       = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
     cassandra_servers   = "${join(",", keys(var.cassandra_ip_addresses))}"
     cassandra_repfactor = "${lookup(var.settings, "cassandra_replication_factor")}"
+    use_30sec_frequency = "${lookup(var.settings, "onms_use_30sec_frequency")}"
   }
 }
 

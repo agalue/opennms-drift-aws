@@ -5,14 +5,15 @@ data "template_file" "opennms_ui" {
   template = "${file("${path.module}/templates/opennms.ui.tpl")}"
 
   vars {
-    hostname          = "${element(keys(var.onms_ui_ip_addresses), count.index)}"
-    domainname        = "${var.dns_zone}"
-    postgres_server   = "${element(keys(var.pg_ip_addresses),0)}"
-    cassandra_servers = "${join(",", keys(var.cassandra_ip_addresses))}"
-    elastic_url       = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
-    elastic_user      = "elastic"
-    elastic_password  = "${lookup(var.settings, "elastic_password")}"
-    webui_endpoint    = "${aws_elb.opennms_ui.dns_name}"
+    hostname             = "${element(keys(var.onms_ui_ip_addresses), count.index)}"
+    domainname           = "${var.dns_zone}"
+    postgres_onms_url    = "jdbc:postgresql://${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
+    postgres_grafana_url = "jdbc:postgresql://grafana:grafana@${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/grafana?targetServerType=master&loadBalanceHosts=false"
+    cassandra_servers    = "${join(",", keys(var.cassandra_ip_addresses))}"
+    elastic_url          = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
+    elastic_user         = "elastic"
+    elastic_password     = "${lookup(var.settings, "elastic_password")}"
+    webui_endpoint       = "${aws_elb.opennms_ui.dns_name}"
   }
 }
 
