@@ -25,6 +25,12 @@ data_dir=/var/lib/pgsql/$pg_version/data
 hba_conf=$data_dir/pg_hba.conf
 pg_conf=$data_dir/postgresql.conf
 
+cat <<EOF > /etc/profile.d/postgresql.sh
+PATH=/usr/pgsql-$pg_version/bin:\$PATH
+EOF
+
+source /etc/profile.d/postgresql.sh
+
 echo "### Configuring Hostname and Domain..."
 
 sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
@@ -44,8 +50,8 @@ use_replication_slots=1
 log_level=INFO
 failover=automatic
 pg_bindir='/usr/pgsql-$pg_version/bin'
-promote_command='$repmgr_bin standby promote -f $repmgr_cfg'
-follow_command='$repmgr_bin standby follow -f $repmgr_cfg'
+promote_command='$repmgr_bin standby promote -f $repmgr_cfg --log-to-file'
+follow_command='$repmgr_bin standby follow -f $repmgr_cfg --log-to-file --upstream-node-id=%n'
 service_start_command='systemctl start postgresql-$pg_version'
 service_stop_command='systemctl stop postgresql-$pg_version'
 service_reload_command='systemctl reload postgresql-$pg_version'
@@ -124,16 +130,16 @@ else
 
     sudo -u postgres $repmgr_bin -f $repmgr_cfg -v standby register
     sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
-
-    echo "### Starting repmgrd..."
-
-    # FIXME Design a custom initialization script to only start repmgrd on slave nodes through systemd, after PostgreSQL is up and running.
-    su - postgres -c "/usr/pgsql-$pg_version/bin/repmgrd -m -d -p /var/run/repmgr/repmgrd.pid -f $repmgr_cfg -v 2>&1 >/var/log/repmgr/repmgrd.log"
   else
     echo "### ERROR: There was a problem and repmgr was not able to setup the standby server $hostname ..."
   fi
 
 fi
+
+echo "### Starting repmgrd..."
+
+systemctl enable repmgr$pg_family
+systemctl start repmgr$pg_family
 
 echo "### Enabling and starting SNMP..."
 
