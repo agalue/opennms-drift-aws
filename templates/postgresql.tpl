@@ -54,7 +54,7 @@ cp $repmgr_cfg $repmgr_cfg.bak
 cat <<EOF > $repmgr_cfg
 node_id=$node_id
 node_name=$hostname
-conninfo='host=$hostname user=repmgr password=repmgr dbname=repmgr'
+conninfo='host=$hostname user=repmgr dbname=repmgr'
 data_directory=$data_dir
 use_replication_slots=true
 log_level=INFO
@@ -70,6 +70,14 @@ EOF
 chown postgres:postgres $repmgr_cfg
 
 echo "### Configuring PostgreSQL..."
+
+pgpass=/var/lib/pgsql/.pgpass
+cat <<EOF > $pgpass
+*:*:*:repmgr:repmgr
+*:*:replication:postgres:postgres
+EOF
+chown postgres:postgres $pgpass
+chmod 600 $pgpass
 
 if [ "$pg_role" == "master" ]; then
 
