@@ -58,7 +58,6 @@ start_delay=$((30*($node_id-1)))
 echo "### Waiting $start_delay seconds prior starting Zookeeper..."
 sleep $start_delay
 
-systemctl daemon-reload
 systemctl enable zookeeper
 systemctl start zookeeper
 

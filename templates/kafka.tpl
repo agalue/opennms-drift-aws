@@ -65,7 +65,6 @@ start_delay=$((60*(${node_id})))
 echo "### Waiting $start_delay seconds prior starting Kafka..."
 sleep $start_delay
 
-systemctl daemon-reload
 systemctl enable kafka
 systemctl start kafka
 

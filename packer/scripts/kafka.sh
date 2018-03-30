@@ -4,7 +4,7 @@
 ######### CUSTOMIZED VARIABLES #########
 
 scala_version="2.11"
-kafka_version="1.0.1"
+kafka_version="1.1.0"
 
 ########################################
 
@@ -72,6 +72,8 @@ WantedBy=multi-user.target
 EOF
 sudo mv $systemd_tmp $systemd_zoo
 sudo chmod 0644 $systemd_zoo
+
+sudo systemctl daemon-reload
 
 echo "### Configuring Kernel..."
 
