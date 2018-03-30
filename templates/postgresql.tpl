@@ -1,7 +1,6 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
 # Warning: The version family should match the Packer image
-# TODO: Configure master/slave streaming replication based on pg_role
 
 # AWS Template Variables
 
