@@ -48,7 +48,7 @@ postgres ALL = NOPASSWD: /bin/systemctl status postgresql-$pg_version, \
 /bin/systemctl reload postgresql-$pg_version, \
 /bin/systemctl restart postgresql-$pg_version
 EOF
-chmod 440 /etc/sudoers.d/postgresql
+chmod 440 /etc/sudoers.d/postgres
 
 cp $repmgr_cfg $repmgr_cfg.bak
 cat <<EOF > $repmgr_cfg
