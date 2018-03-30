@@ -85,7 +85,7 @@ The architecture involves the following components:
 
 * A cluster of 2 EC2 instances for OpenNMS UI and Grafana.
 
-* An EC2 instance for PostgreSQL.
+* A pair of EC2 instances for PostgreSQL, configured as master/slave with streaming replication, using repmgr to simplify the operation.
 
 * An EC2 instance for the central OpenNMS.
 
@@ -122,5 +122,3 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
 
 * Provide a sample Curator implementation (on the ES master servers).
-
-* Configure PostgreSQL as master/slave with streaming replication.

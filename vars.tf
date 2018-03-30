@@ -136,8 +136,7 @@ variable "pg_ip_addresses" {
 
   default = {
     postgresql1 = "172.16.1.101"
-
-    #postgresql2 = "172.16.1.102"
+    postgresql2 = "172.16.1.102"
   }
 }
 
@@ -284,6 +283,7 @@ variable "settings" {
     postgresql_version_family    = "9.6-3"
     postgresql_max_connections   = 200
     elastic_password             = "opennms"
+    onms_use_30sec_frequency     = "true"
   }
 }
 

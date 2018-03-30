@@ -5,13 +5,14 @@
 
 hostname="${hostname}"
 domainname="${domainname}"
-postgres_server="${postgres_server}"
+postgres_onms_url="${postgres_onms_url}"
 kafka_servers="${kafka_servers}"
 cassandra_servers="${cassandra_servers}"
 activemq_url="${activemq_url}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
+use_30sec_frequency="${use_30sec_frequency}"
 
 echo "### Configuring Hostname and Domain..."
 
@@ -26,6 +27,7 @@ opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
 
 # Database connections
+postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
 cat <<EOF > $opennms_etc/opennms-datasources.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <datasource-configuration xmlns:this="http://xmlns.opennms.org/xsd/config/opennms-datasources"
@@ -43,16 +45,17 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
   <jdbc-data-source name="opennms"
                     database-name="opennms"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://$postgres_server:5432/opennms"
+                    url="$postgres_onms_url"
                     user-name="opennms"
                     password="opennms">
     <param name="connectionTimeout" value="0"/>
+    <param name="maxLifetime" value="600000"/>
   </jdbc-data-source>
 
   <jdbc-data-source name="opennms-admin"
                     database-name="template1"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://$postgres_server:5432/template1"
+                    url="$postgres_tmpl_url"
                     user-name="postgres"
                     password="postgres" />
 </datasource-configuration>
@@ -123,9 +126,13 @@ org.opennms.timeseries.strategy=newts
 org.opennms.newts.config.hostname=$cassandra_servers
 org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
+EOF
+if [ "$use_30sec_frequency" == "true" ]; then
+  cat <<EOF >> $opennms_etc/opennms.properties.d/newts.properties
 org.opennms.newts.query.minimum_step=30000
 org.opennms.newts.query.heartbeat=45000
 EOF
+fi
 sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/poller-configuration.xml 
 sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/poller-configuration.xml 
 sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/collectd-configuration.xml 
@@ -148,6 +155,9 @@ sed -r -i '/"Netflow-9"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
 # Enable IPFIX
 sed -r -i '/"IPFIX"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
+
+# Enable SFlow
+sed -r -i '/"SFlow"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
 # Enable NX-OS
 sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
@@ -188,16 +198,18 @@ sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
 
 # WARNING: For testing purposes only
 # Lab collection and polling interval (30 seconds)
-sed -r -i 's/step="300"/step="30"/g' $opennms_etc/telemetryd-configuration.xml 
-sed -r -i 's/interval="300000"/interval="30000"/g' $opennms_etc/collectd-configuration.xml 
-sed -r -i 's/interval="300000" user/interval="30000" user/g' $opennms_etc/poller-configuration.xml 
-sed -r -i 's/step="300"/step="30"/g' $opennms_etc/poller-configuration.xml 
-files=(`ls -l $opennms_etc/*datacollection-config.xml | awk '{print $9}'`)
-for f in "$${files[@]}"; do
-  if [ -f $f ]; then
-    sed -r -i 's/step="300"/step="30"/g' $f
-  fi
-done
+if [ "$use_30sec_frequency" == "true" ]; then
+  sed -r -i 's/step="300"/step="30"/g' $opennms_etc/telemetryd-configuration.xml 
+  sed -r -i 's/interval="300000"/interval="30000"/g' $opennms_etc/collectd-configuration.xml 
+  sed -r -i 's/interval="300000" user/interval="30000" user/g' $opennms_etc/poller-configuration.xml 
+  sed -r -i 's/step="300"/step="30"/g' $opennms_etc/poller-configuration.xml 
+  files=(`ls -l $opennms_etc/*datacollection-config.xml | awk '{print $9}'`)
+  for f in "$${files[@]}"; do
+    if [ -f $f ]; then
+      sed -r -i 's/step="300"/step="30"/g' $f
+    fi
+  done
+fi
 
 # TODO: the following is due to some issues with the datachoices plugin
 cat <<EOF > $opennms_etc/org.opennms.features.datachoices.cfg

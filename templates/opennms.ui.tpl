@@ -5,7 +5,8 @@
 
 hostname="${hostname}"
 domainname="${domainname}"
-postgres_server="${postgres_server}"
+postgres_onms_url="${postgres_onms_url}"
+postgres_grafana_url="${postgres_grafana_url}"
 cassandra_servers="${cassandra_servers}"
 webui_endpoint="${webui_endpoint}"
 elastic_url="${elastic_url}"
@@ -25,6 +26,7 @@ opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
 
 # Database connections
+postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
 cat <<EOF > $opennms_etc/opennms-datasources.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <datasource-configuration xmlns:this="http://xmlns.opennms.org/xsd/config/opennms-datasources"
@@ -42,23 +44,21 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
   <jdbc-data-source name="opennms"
                     database-name="opennms"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://$postgres_server:5432/opennms"
+                    url="$postgres_onms_url"
                     user-name="opennms"
                     password="opennms">
     <param name="connectionTimeout" value="0"/>
+    <param name="maxLifetime" value="600000"/>
   </jdbc-data-source>
 
   <jdbc-data-source name="opennms-admin"
                     database-name="template1"
                     class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://$postgres_server:5432/template1"
+                    url="$postgres_tmpl_url"
                     user-name="postgres"
                     password="postgres" />
 </datasource-configuration>
 EOF
-
-# Eventd settings
-sed -r -i 's/127.0.0.1/0.0.0.0/g' $opennms_etc/eventd-configuration.xml
 
 # JVM Settings
 total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
@@ -233,13 +233,8 @@ grafana_cfg=/etc/grafana/grafana.ini
 cp $grafana_cfg $grafana_cfg.bak
 sed -r -i 's/;domain = localhost/domain = $webui_endpoint/' $grafana_cfg
 sed -r -i 's/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s' $grafana_cfg
+sed -r -i "|\[database\]|a url = $postgres_grafana_url|" $grafana_cfg
 sed -r -i 's/;type = sqlite3/type = postgres/' $grafana_cfg
-sed -r -i 's/;host = 127.0.0.1:3306/host = $postgres_server:5432/' $grafana_cfg
-sed -r -i '/;name = grafana/s/;//' $grafana_cfg
-sed -r -i 's/;user = root/user = grafana/' $grafana_cfg
-sed -r -i 's/;password =/password = grafana/' $grafana_cfg
-sed -r -i "s/;provider = file/provider = postgres/" $grafana_cfg
-sed -r -i "s/;provider_config = sessions/provider_config = user=grafana password=grafana host=$postgres_server port=5432 dbname=grafana sslmode=disable/" $grafana_cfg
 
 echo "*:*:*:postgres:postgres" > ~/.pgpass
 chmod 0600 ~/.pgpass
