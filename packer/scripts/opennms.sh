@@ -5,14 +5,18 @@
 
 onms_repo="branches-features-drift"
 onms_version="-latest-"
-helm_branch="jw/drift"
-grafana_version="4.6.3"
+helm_branch="develop"
+grafana_version="5.0.4"
+hawtio_version="1.4.68"
 
 ########################################
 
-echo "### Installing Grafana..."
+opennms_home=/opt/opennms
+opennms_etc=$opennms_home/etc
 
-sudo yum install -y -q https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-${grafana_version}-1.x86_64.rpm
+echo "### Installing Grafana $grafana_version..."
+
+sudo yum install -y -q https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-$grafana_version-1.x86_64.rpm
 
 echo "### Installing NodeJS & Yarn..."
 
@@ -20,13 +24,18 @@ sudo curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
 sudo yum -y -q install gcc-c++ nodejs
 sudo npm install -g yarn
 
-echo "### Installing Helm for Drift from source..."
+echo "### Installing Helm for Drift from branch $helm_branch..."
 
 sudo mkdir ~/development
 cd ~/development
 sudo git clone https://github.com/OpenNMS/opennms-helm.git
 cd opennms-helm
-sudo git checkout -b $helm_branch origin/$helm_branch
+if [[ `git branch | grep "^[*] $helm_branch" | sed -e 's/[* ]*//'` == "$helm_branch" ]]; then
+  echo "### Already in branch $helm_branch"
+else
+  echo "### Checking out branch $helm_branch"
+  sudo git checkout -b $helm_branch origin/$helm_branch
+fi
 sudo yarn
 sudo yarn build
 sudo mkdir -p /var/lib/grafana/plugins/opennms-helm-app/
@@ -42,25 +51,22 @@ sudo yum install -y -q jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Tw
 
 echo "### Installing OpenNMS..."
 
-if [ "${onms_repo}" != "stable" ]; then
-  echo "### Installing OpenNMS ${onms_repo} Repository..."
+if [ "$onms_repo" != "stable" ]; then
+  echo "### Installing OpenNMS $onms_repo Repository..."
   sudo yum remove -y -q opennms-repo-stable
-  sudo yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-${onms_repo}-rhel7.noarch.rpm
-  sudo rpm --import /etc/yum.repos.d/opennms-repo-${onms_repo}-rhel7.gpg
+  sudo yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-$onms_repo-rhel7.noarch.rpm
+  sudo rpm --import /etc/yum.repos.d/opennms-repo-$onms_repo-rhel7.gpg
 fi
 
-if [ "${onms_version}" == "-latest-" ]; then
-  echo "### Installing latest OpenNMS from ${onms_repo} Repository..."
+if [ "$onms_version" == "-latest-" ]; then
+  echo "### Installing latest OpenNMS from $onms_repo Repository..."
   sudo yum install -y -q opennms-core opennms-webapp-jetty
 else
-  echo "### Installing OpenNMS version ${onms_version} from ${onms_repo} Repository..."
-  sudo yum install -y -q opennms-core-${onms_version} opennms-webapp-jetty-${onms_version}
+  echo "### Installing OpenNMS version $onms_version from $onms_repo Repository..."
+  sudo yum install -y -q opennms-core-$onms_version opennms-webapp-jetty-$onms_version
 fi
 
-echo "### Initializing GIT..."
-
-opennms_home=/opt/opennms
-opennms_etc=$opennms_home/etc
+echo "### Initializing GIT at $opennms_etc..."
 
 cd $opennms_etc
 sudo git config --global user.name "OpenNMS"
@@ -70,9 +76,9 @@ sudo git add .
 sudo git commit -m "OpenNMS Installed."
 cd
 
-echo "### Installing Hawtio..."
+echo "### Installing Hawtio version $hawtio_version..."
 
-hawtio_url=https://oss.sonatype.org/content/repositories/public/io/hawt/hawtio-default/1.4.63/hawtio-default-1.4.63.war
+hawtio_url=https://oss.sonatype.org/content/repositories/public/io/hawt/hawtio-default/$hawtio_version/hawtio-default-$hawtio_version.war
 sudo wget -qO $opennms_home/jetty-webapps/hawtio.war $hawtio_url && \
   sudo unzip -qq $opennms_home/jetty-webapps/hawtio.war -d $opennms_home/jetty-webapps/hawtio && \
   sudo rm -f $opennms_home/jetty-webapps/hawtio.war

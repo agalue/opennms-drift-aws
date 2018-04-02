@@ -13,7 +13,7 @@ echo "### Configuring Hostname and Domain..."
 sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
 hostname $hostname.$domainname
 domainname $domainname
-sed -i -r "s/#Domain =.*/Domain = $domainname/" /etc/idmapd.conf
+sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Zookeeper..."
 

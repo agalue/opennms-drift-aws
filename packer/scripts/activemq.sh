@@ -7,7 +7,7 @@ amq_version="5.13.5"
 
 ########################################
 
-echo "### Downloading and installing ActiveMQ..."
+echo "### Downloading and installing ActiveMQ version $amq_version..."
 
 amq_name=apache-activemq-$amq_version
 amq_file=$amq_name-bin.tar.gz

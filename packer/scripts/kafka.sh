@@ -8,7 +8,7 @@ kafka_version="1.1.0"
 
 ########################################
 
-echo "### Downloading and installing Kafka..."
+echo "### Downloading and installing Kafka version $kafka_version with Scala $scala_version..."
 
 kafka_name=kafka_${scala_version}-${kafka_version}
 kafka_file=$kafka_name.tgz
@@ -22,6 +22,8 @@ sudo tar xzf $kafka_file
 sudo chown -R root:root $kafka_name
 sudo ln -s $kafka_name kafka
 sudo rm -f $kafka_file
+
+echo "### Configuring Systemd..."
 
 systemd_kafka=/etc/systemd/system/kafka.service
 systemd_tmp=/tmp/kafka.service

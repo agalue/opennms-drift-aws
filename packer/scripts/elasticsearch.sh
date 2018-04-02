@@ -13,17 +13,17 @@ plugin_name="elasticsearch-drift-plugin-1.0.0-SNAPSHOT"
 
 ########################################
 
-echo "### Downloading and installing Elasticsearch..."
+echo "### Downloading and installing Elasticsearch version $es_version..."
 
-sudo yum install -y -q https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${es_version}.rpm
+sudo yum install -y -q https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$es_version.rpm
 
 sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch x-pack
 
-echo "### Downloading and installing Curator..."
+echo "### Downloading and installing Curator version $curator_version..."
 
-sudo yum install -y -q https://packages.elastic.co/curator/5/centos/7/Packages/elasticsearch-curator-${curator_version}-1.x86_64.rpm
+sudo yum install -y -q https://packages.elastic.co/curator/5/centos/7/Packages/elasticsearch-curator-$curator_version-1.x86_64.rpm
 
-echo "### Installing Maven..."
+echo "### Installing Maven version $maven_version..."
 
 maven_name=apache-maven-$maven_version
 maven_file=$maven_name-bin.zip
@@ -38,7 +38,7 @@ sudo ln -s $maven_name maven
 sudo rm -f $maven_file
 cd
 
-echo "### Installing the OpenNMS Drift Plugin from Source..."
+echo "### Installing the OpenNMS Drift Plugin from branch $plugin_branch..."
 
 sudo yum install -y -q rpm-build
 

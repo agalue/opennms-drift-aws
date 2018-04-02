@@ -7,7 +7,7 @@ repo_version="311x"
 
 ########################################
 
-echo "### Downloading and installing Cassandra..."
+echo "### Downloading and installing Cassandra $repo_version..."
 
 tmp_repo=/tmp/cassandra.repo 
 cat <<EOF > $tmp_repo

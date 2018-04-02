@@ -1,7 +1,7 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
 
-echo "### Downloading and installing Oracle JDK..."
+echo "### Downloading and installing latest Oracle JDK 8..."
 
 java_url="http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.rpm"
 java_rpm=/tmp/jdk8-linux-x64.rpm

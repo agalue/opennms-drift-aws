@@ -7,7 +7,7 @@ es_version="6.2.2"
 
 ########################################
 
-echo "### Downloading and installing Kibana..."
+echo "### Downloading and installing Kibana version $es_version..."
 
 sudo yum install -y -q https://artifacts.elastic.co/downloads/kibana/kibana-${es_version}-x86_64.rpm
 
