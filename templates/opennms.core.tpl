@@ -8,6 +8,7 @@ domainname="${domainname}"
 postgres_onms_url="${postgres_onms_url}"
 kafka_servers="${kafka_servers}"
 cassandra_servers="${cassandra_servers}"
+opennms_ui_servers="${opennms_ui_servers}"
 activemq_url="${activemq_url}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
@@ -25,6 +26,7 @@ echo "### Configuring OpenNMS..."
 
 opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
+ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
 
 # Database connections
 postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
@@ -103,6 +105,24 @@ cat <<EOF > $opennms_etc/jmxremote.access
 admin readwrite
 jmx   readonly
 EOF
+
+# JMX Auth
+IFS=',' read -r -a ip_list <<< "$opennms_ui_servers"
+ip_list+=($ip_address)
+echo "<jmx-config>" > $opennms_etc/jmx-config.xml
+for ip in "$${ip_list[@]}"
+do
+  cat <<EOF >> $opennms_etc/jmx-config.xml
+  <mbean-server ipAddress="$ip" port="18980">
+    <parameter key="protocol" value="rmi"/>
+    <parameter key="urlPath" value="/jmxrmi"/>
+    <parameter key="factory" value="PASSWORD-CLEAR"/>
+    <parameter key="username" value="admin"/>
+    <parameter key="password" value="admin"/>
+  </mbean-server>
+EOF
+done
+echo "</jmx-config>" >> $opennms_etc/jmx-config.xml
 
 # External ActiveMQ
 cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties

@@ -14,6 +14,7 @@ data "template_file" "opennms" {
     kafka_servers       = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
     cassandra_servers   = "${join(",", keys(var.cassandra_ip_addresses))}"
     cassandra_repfactor = "${lookup(var.settings, "cassandra_replication_factor")}"
+    opennms_ui_servers  = "${join(",", values(var.onms_ui_ip_addresses))}"
     use_30sec_frequency = "${lookup(var.settings, "onms_use_30sec_frequency")}"
   }
 }

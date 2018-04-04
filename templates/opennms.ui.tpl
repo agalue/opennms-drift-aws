@@ -6,12 +6,13 @@
 hostname="${hostname}"
 domainname="${domainname}"
 postgres_onms_url="${postgres_onms_url}"
-postgres_grafana_url="${postgres_grafana_url}"
+postgres_server="${postgres_server}"
 cassandra_servers="${cassandra_servers}"
 webui_endpoint="${webui_endpoint}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
+use_30sec_frequency="${use_30sec_frequency}"
 
 echo "### Configuring Hostname and Domain..."
 
@@ -103,9 +104,13 @@ org.opennms.timeseries.strategy=newts
 org.opennms.newts.config.hostname=$cassandra_servers
 org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
+EOF
+if [ "$use_30sec_frequency" == "true" ]; then
+  cat <<EOF >> $opennms_etc/opennms.properties.d/newts.properties
 org.opennms.newts.query.minimum_step=30000
 org.opennms.newts.query.heartbeat=45000
 EOF
+fi
 
 # External Elasticsearch for Flows
 cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
@@ -228,13 +233,19 @@ systemctl enable opennms
 systemctl start opennms
 
 echo "### Configurng Grafana..."
+echo "### WARNING: Grafana doesn't support multi-host database configuration..."
 
 grafana_cfg=/etc/grafana/grafana.ini
 cp $grafana_cfg $grafana_cfg.bak
-sed -r -i 's/;domain = localhost/domain = $webui_endpoint/' $grafana_cfg
-sed -r -i 's/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s' $grafana_cfg
-sed -r -i "|\[database\]|a url = $postgres_grafana_url|" $grafana_cfg
-sed -r -i 's/;type = sqlite3/type = postgres/' $grafana_cfg
+sed -r -i "s/;domain = localhost/domain = $webui_endpoint/" $grafana_cfg
+sed -r -i "s/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s/" $grafana_cfg
+sed -r -i "s/;type = sqlite3/type = postgres/" $grafana_cfg
+sed -r -i "s/;host = 127.0.0.1:3306/host = $postgres_server:5432/" $grafana_cfg
+sed -r -i "/;name = grafana/s/;//" $grafana_cfg
+sed -r -i "s/;user = root/user = grafana/" $grafana_cfg
+sed -r -i "s/;password =/password = grafana/" $grafana_cfg
+sed -r -i "s/;provider = file/provider = postgres/" $grafana_cfg
+sed -r -i "s/;provider_config = sessions/provider_config = user=grafana password=grafana host=$postgres_server port=5432 dbname=grafana sslmode=disable/" $grafana_cfg
 
 echo "*:*:*:postgres:postgres" > ~/.pgpass
 chmod 0600 ~/.pgpass
