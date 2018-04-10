@@ -17,7 +17,7 @@ sudo ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 echo "### Installing common packages..."
 
 sudo yum -y -q update
-sudo yum -y -q install jq net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
+sudo yum -y -q install jq unzip net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat
 
 echo "### Configuring Net-SNMP..."
 
