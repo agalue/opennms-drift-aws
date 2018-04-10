@@ -5,7 +5,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-es_version="6.2.2"
+es_version="6.2.3"
 curator_version="5.4.1"
 maven_version="3.5.3"
 plugin_branch="master"
