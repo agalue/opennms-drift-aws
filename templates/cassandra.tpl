@@ -11,14 +11,13 @@ seed_name="${seed_name}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
-hostname $hostname.$domainname
-domainname $domainname
+ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+hostnamectl set-hostname --static $hostname
+echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Cassandra..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
 conf_dir=/etc/cassandra/conf
 conf_file=$conf_dir/cassandra.yaml
 sed -r -i "/cluster_name/s/Test Cluster/$cluster_name/" $conf_file

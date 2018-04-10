@@ -11,9 +11,9 @@ es_monsrv="${es_monsrv}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
-hostname $hostname.$domainname
-domainname $domainname
+ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+hostnamectl set-hostname --static $hostname
+echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Kibana..."

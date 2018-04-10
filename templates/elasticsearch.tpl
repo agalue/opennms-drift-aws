@@ -15,9 +15,9 @@ es_monsrv="${es_monsrv}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
-hostname $hostname.$domainname
-domainname $domainname
+ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+hostnamectl set-hostname --static $hostname
+echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Elasticsearch..."
@@ -28,6 +28,8 @@ es_jvm=$es_dir/jvm.options
 cp $es_yaml $es_yaml.bak
 cp $es_jvm $es_jvm.bak
 
+# JVM Memory
+
 total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
 mem_in_mb=`expr $total_mem_in_mb / 2`
 if [ "$mem_in_mb" -gt "30720" ]; then
@@ -35,6 +37,8 @@ if [ "$mem_in_mb" -gt "30720" ]; then
 fi
 sed -i -r "s/^-Xms1g/-Xms$${mem_in_mb}m/" $es_jvm
 sed -i -r "s/^-Xmx1g/-Xmx$${mem_in_mb}m/" $es_jvm
+
+# Basic Configuration
 
 sed -i -r "s/[#]?cluster.name:.*/cluster.name: $es_cluster_name/" $es_yaml
 sed -i -r "s/[#]?network.host:.*/network.host: $hostname/" $es_yaml
@@ -44,6 +48,8 @@ if [[ "$es_seed_name" != "" ]]; then
   sed -i -r "s/[#]?discovery.zen.minimum_master_nodes:.*/discovery.zen.minimum_master_nodes: 2/" $es_yaml
   sed -i -r "s/[#]?discovery.zen.ping.unicast.hosts:.*/discovery.zen.ping.unicast.hosts: [$es_seed_name]/" $es_yaml
 fi
+
+# Roles
 
 echo >> $es_yaml
 
@@ -65,6 +71,8 @@ if [[ "$es_role" == "coordinator" ]]; then
   echo "node.ingest: false" >> $es_yaml
 fi
 
+# X-Pack
+
 echo >> $es_yaml
 echo "xpack.license.self_generated.type: basic" >> $es_yaml
 
@@ -84,6 +92,14 @@ else
   echo "xpack.security.enabled=false" >> $es_yaml
   echo "xpack.monitoring.enabled=false" >> $es_yaml
 fi
+
+# CORS (Required to use Grafana Plugin)
+
+echo <<EOF >> $es_yaml
+
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+EOF
 
 echo "### Checking cluster prior start..."
 

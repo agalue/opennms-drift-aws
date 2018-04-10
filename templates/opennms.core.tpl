@@ -17,16 +17,15 @@ use_30sec_frequency="${use_30sec_frequency}"
 
 echo "### Configuring Hostname and Domain..."
 
-sed -i -r "s/HOSTNAME=.*/HOSTNAME=$hostname.$domainname/" /etc/sysconfig/network
-hostname $hostname.$domainname
-domainname $domainname
+ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+hostnamectl set-hostname --static $hostname
+echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring OpenNMS..."
 
 opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
 
 # Database connections
 postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
@@ -193,17 +192,17 @@ settings.index.number_of_replicas=1
 EOF
 
 # Configure Event Exporter
-sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n/' $opennms_etc/org.apache.karaf.features.cfg
+sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n  opennms-es-rest\n/' $opennms_etc/org.apache.karaf.features.cfg
 cat <<EOF > $opennms_etc/org.opennms.plugin.elasticsearch.rest.forwarder.cfg
-elasticsearchUrl=$elastic_url
-esusername=$elastic_user
-espassword=$elastic_password
+elasticUrl=$elastic_url
+elasticGlobalUser=$elastic_user
+elasticGlobalPassword=$elastic_password
 archiveRawEvents=true
 archiveAlarms=false
 archiveAlarmChangeEvents=false
 logAllEvents=true
 retries=1
-timeout=3000
+connTimeout=3000
 EOF
 
 # Enable Path Outages
@@ -247,7 +246,6 @@ $opennms_home/bin/newts init -r ${cassandra_repfactor}
 
 echo "### Enabling and starting OpenNMS Core..."
 
-sleep 120
 systemctl daemon-reload
 systemctl enable opennms
 systemctl start opennms
