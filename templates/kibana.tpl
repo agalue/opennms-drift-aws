@@ -42,8 +42,3 @@ done
 
 systemctl enable kibana
 systemctl start kibana
-
-echo "### Enabling and starting SNMP..."
-
-systemctl enable snmpd
-systemctl start snmpd

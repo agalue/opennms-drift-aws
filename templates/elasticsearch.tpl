@@ -113,8 +113,3 @@ echo "### Enabling and starting Elasticsearch..."
 
 systemctl enable elasticsearch
 systemctl start elasticsearch
-
-echo "### Enabling and starting SNMP..."
-
-systemctl enable snmpd
-systemctl start snmpd

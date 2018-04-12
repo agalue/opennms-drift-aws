@@ -60,8 +60,3 @@ sleep $start_delay
 
 systemctl enable zookeeper
 systemctl start zookeeper
-
-echo "### Enabling and starting SNMP..."
-
-systemctl enable snmpd
-systemctl start snmpd

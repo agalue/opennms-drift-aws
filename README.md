@@ -123,4 +123,6 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
 
-* Provide a sample Curator implementation (on the ES master servers).
+* Provide a sample Curator implementation (on the ES master servers), to remove old indices, and maybe compress the data segments on disk, for those indices that won't have more updates.
+
+* Use Redis as the resource cache implementation, so the OpenNMS UI servers can benefit from it and eliminate the need of calling Cassandra to build the resource list.

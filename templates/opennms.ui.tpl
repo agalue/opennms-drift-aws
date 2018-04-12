@@ -5,6 +5,7 @@
 
 hostname="${hostname}"
 domainname="${domainname}"
+redis_server="${redis_server}"
 postgres_onms_url="${postgres_onms_url}"
 postgres_server="${postgres_server}"
 cassandra_servers="${cassandra_servers}"
@@ -99,14 +100,23 @@ jmx   readonly
 EOF
 
 # External Cassandra
-cat <<EOF > $opennms_etc/opennms.properties.d/newts.properties
+newts_cfg=$opennms_etc/opennms.properties.d/newts.properties
+cat <<EOF > $newts_cfg
 org.opennms.timeseries.strategy=newts
 org.opennms.newts.config.hostname=$cassandra_servers
 org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
+org.opennms.newts.config.read_consistency=ONE
+org.opennms.newts.config.write_consistency=ANY
 EOF
+if [[ "$redis_server" != "" ]]; then
+  cat <<EOF >> $newts_cfg
+org.opennms.newts.config.cache.redis_hostname=$redis_server
+org.opennms.newts.config.cache.redis_port=6379
+EOF
+fi
 if [ "$use_30sec_frequency" == "true" ]; then
-  cat <<EOF >> $opennms_etc/opennms.properties.d/newts.properties
+  cat <<EOF >> $newts_cfg
 org.opennms.newts.query.minimum_step=30000
 org.opennms.newts.query.heartbeat=45000
 EOF
@@ -262,8 +272,3 @@ echo "### Enabling and starting Grafana server..."
 
 systemctl enable grafana-server
 systemctl start grafana-server
-
-echo "### Enabling and starting SNMP..."
-
-systemctl enable snmpd
-systemctl start snmpd

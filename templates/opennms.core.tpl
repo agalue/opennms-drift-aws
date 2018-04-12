@@ -13,6 +13,7 @@ activemq_url="${activemq_url}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
+use_redis="${use_redis}"
 use_30sec_frequency="${use_30sec_frequency}"
 
 echo "### Configuring Hostname and Domain..."
@@ -21,6 +22,23 @@ ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
+
+if [[ "$use_redis" == "true" ]]; then
+  echo "### Configuring Redis..."
+
+  echo "vm.overcommit_memory=1" > /etc/sysctl.d/redis.conf
+  sysctl vm.overcommit_memory=1
+  redis_conf=/etc/redis.conf
+  sed -i -r "s/^bind .*/bind $ip_address/" $redis_conf
+  sed -i -r "s/^protected-mode .*/protected-mode no/" $redis_conf
+  sed -i -r "s/^save /# save /" $redis_conf
+  sed -i -r "s/^# maxmemory-policy .*/maxmemory-policy allkeys-lru/" $redis_conf
+  #sed -i -r "s/^# maxmemory .*/maxmemory 128mb/" $redis_conf
+  #timeout?
+
+  systemctl enable redis
+  systemctl start redis
+fi
 
 echo "### Configuring OpenNMS..."
 
@@ -140,14 +158,28 @@ org.opennms.core.ipc.sink.kafka.group.id=OpenNMS
 EOF
 
 # External Cassandra
-cat <<EOF > $opennms_etc/opennms.properties.d/newts.properties
+newts_cfg=$opennms_etc/opennms.properties.d/newts.properties
+cat <<EOF > $newts_cfg
 org.opennms.timeseries.strategy=newts
 org.opennms.newts.config.hostname=$cassandra_servers
 org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
+org.opennms.newts.config.read_consistency=ONE
+org.opennms.newts.config.write_consistency=ANY
+org.opennms.newts.config.resource_shard=604800
+org.opennms.newts.config.ttl=31540000
+org.opennms.newts.config.writer_threads=16
+org.opennms.newts.config.ring_buffer_size=131072
+org.opennms.newts.config.cache.max_entries=131072
 EOF
+if [[ "$use_redis" == "true" ]]; then
+  cat <<EOF >> $newts_cfg
+org.opennms.newts.config.cache.redis_hostname=$ip_address
+org.opennms.newts.config.cache.redis_port=6379
+EOF
+fi
 if [ "$use_30sec_frequency" == "true" ]; then
-  cat <<EOF >> $opennms_etc/opennms.properties.d/newts.properties
+  cat <<EOF >> $newts_cfg
 org.opennms.newts.query.minimum_step=30000
 org.opennms.newts.query.heartbeat=45000
 EOF
@@ -249,8 +281,3 @@ echo "### Enabling and starting OpenNMS Core..."
 systemctl daemon-reload
 systemctl enable opennms
 systemctl start opennms
-
-echo "### Enabling and starting SNMP..."
-
-systemctl enable snmpd
-systemctl start snmpd

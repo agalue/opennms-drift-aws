@@ -108,8 +108,3 @@ echo "### Enabling and starting Cassandra..."
 
 systemctl enable cassandra
 systemctl start cassandra
-
-echo "### Enabling and starting SNMP..."
-
-systemctl enable snmpd
-systemctl start snmpd

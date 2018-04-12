@@ -67,8 +67,3 @@ sleep $start_delay
 
 systemctl enable kafka
 systemctl start kafka
-
-echo "### Enabling and starting SNMP..."
-
-systemctl enable snmpd
-systemctl start snmpd

@@ -157,8 +157,3 @@ fi
 echo "### Starting repmgrd..."
 
 systemctl start repmgr$pg_family
-
-echo "### Enabling and starting SNMP..."
-
-systemctl enable snmpd
-systemctl start snmpd

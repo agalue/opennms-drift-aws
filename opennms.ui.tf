@@ -7,6 +7,7 @@ data "template_file" "opennms_ui" {
   vars {
     hostname            = "${element(keys(var.onms_ui_ip_addresses), count.index)}"
     domainname          = "${var.dns_zone}"
+    redis_server        = ""
     postgres_onms_url   = "jdbc:postgresql://${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     postgres_server     = "${element(keys(var.pg_ip_addresses), 0)}"
     cassandra_servers   = "${join(",", keys(var.cassandra_ip_addresses))}"

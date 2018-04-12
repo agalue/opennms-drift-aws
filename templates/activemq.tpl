@@ -105,8 +105,3 @@ echo "### Enabling and starting ActiveMQ..."
 
 systemctl enable activemq
 systemctl start activemq
-
-echo "### Enabling and starting SNMP..."
-
-systemctl enable snmpd
-systemctl start snmpd
