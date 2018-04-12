@@ -24,11 +24,7 @@ echo "### Configuring Net-SNMP..."
 snmp_cfg=/etc/snmp/snmpd.conf
 sudo cp $snmp_cfg $snmp_cfg.original
 cat <<EOF > $tmp_file
-com2sec localUser default public
-group localGroup v1 localUser
-group localGroup v2c localUser
-view all included .1 80
-access localGroup "" any noauth 0 all none none
+rocommunity public default
 syslocation AWS
 syscontact Account Manager
 dontLogTCPWrappersConnects yes
@@ -36,12 +32,12 @@ disk /
 EOF
 sudo mv $tmp_file $snmp_cfg
 sudo chmod 600 $snmp_cfg
+sudo systemctl enable snmpd
 
 echo "### Configuring Kernel..."
 
 sudo sed -i 's/^\(.*swap\)/#\1/' /etc/fstab
 
-sysctl_cfg=/etc/sysctl.d/application.conf
 cat <<EOF > $tmp_file
 net.ipv4.tcp_keepalive_time=60
 net.ipv4.tcp_keepalive_probes=3
@@ -62,11 +58,25 @@ vm.swappiness=1
 
 vm.max_map_count = 1048575
 EOF
-sudo mv $tmp_file $sysctl_cfg
+sudo mv $tmp_file /etc/sysctl.d/application.conf
 
-limits_cfg=/etc/security/limits.d/application.conf
 cat <<EOF > $tmp_file
 * soft nofile $max_files
 * hard nofile $max_files
 EOF
-sudo mv $tmp_file $limits_cfg
+sudo mv $tmp_file /etc/security/limits.d/application.conf
+
+cat <<EOF > $tmp_file
+[Unit]
+Description=Disable Transparent Huge Pages (THP)
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c "echo 'never' > /sys/kernel/mm/transparent_hugepage/enabled && echo 'never' > /sys/kernel/mm/transparent_hugepage/defrag"
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo mv $tmp_file /etc/systemd/system/disable-thp.service
+sudo systemctl daemon-reload
+sudo systemctl enable disable-thp
