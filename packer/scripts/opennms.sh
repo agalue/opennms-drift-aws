@@ -20,7 +20,7 @@ sudo yum -y -q install https://dl.fedoraproject.org/pub/epel/epel-release-latest
 
 echo "### Installing Common Packages..."
 
-sudo yum -y -q haveged redis
+sudo yum -y -q install haveged redis
 sudo systemctl enable haveged
 
 echo "### Installing Grafana $grafana_version..."
