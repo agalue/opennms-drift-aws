@@ -42,6 +42,7 @@ cat <<EOF > $tmp_file
 net.ipv4.tcp_keepalive_time=60
 net.ipv4.tcp_keepalive_probes=3
 net.ipv4.tcp_keepalive_intvl=10
+
 net.core.rmem_max=16777216
 net.core.wmem_max=16777216
 net.core.rmem_default=16777216
@@ -55,8 +56,8 @@ net.core.netdev_max_backlog=2500
 net.core.somaxconn=65000
 
 vm.swappiness=1
-
-vm.max_map_count = 1048575
+vm.zone_reclaim_mode=0
+vm.max_map_count=1048575
 EOF
 sudo mv $tmp_file /etc/sysctl.d/application.conf
 

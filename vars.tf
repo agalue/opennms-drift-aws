@@ -84,6 +84,7 @@ data "aws_ami" "postgresql" {
 }
 
 # Minimum requirements are: 2GB of RAM and 2 CPUs.
+# https://www.datastax.com/dev/blog/ec2-series-doc
 
 variable "instance_types" {
   description = "Instance types per server/application"
@@ -292,11 +293,11 @@ variable "disk_space" {
   type        = "map"
 
   default = {
-    elasticsearch = "60"
-    activemq      = "20"
-    kafka         = "50"
+    elasticsearch = "100"
+    activemq      = "100"
+    kafka         = "100"
     zookeeper     = "8"
-    postgresql    = "20"
-    cassandra     = "60"
+    postgresql    = "100"
+    cassandra     = "100"
   }
 }

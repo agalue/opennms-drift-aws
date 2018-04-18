@@ -71,16 +71,9 @@ resource "aws_elb" "opennms_ui" {
   security_groups = ["${aws_security_group.opennms_ui.id}"]
 
   listener {
-    instance_port     = 8980
+    instance_port     = 80
     instance_protocol = "http"
-    lb_port           = 8980
-    lb_protocol       = "http"
-  }
-
-  listener {
-    instance_port     = 3000
-    instance_protocol = "http"
-    lb_port           = 3000
+    lb_port           = 80
     lb_protocol       = "http"
   }
 
@@ -88,7 +81,7 @@ resource "aws_elb" "opennms_ui" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
     timeout             = 3
-    target              = "HTTP:8980/opennms/login.jsp"
+    target              = "HTTP:80/opennms/login.jsp"
     interval            = 30
   }
 
@@ -106,14 +99,7 @@ resource "aws_elb_attachment" "opennms_ui" {
 resource "aws_lb_cookie_stickiness_policy" "opennms_ui" {
   name                     = "opennms-ui-policy"
   load_balancer            = "${aws_elb.opennms_ui.id}"
-  lb_port                  = 8980
-  cookie_expiration_period = 86400
-}
-
-resource "aws_lb_cookie_stickiness_policy" "grafana" {
-  name                     = "grafana-policy"
-  load_balancer            = "${aws_elb.opennms_ui.id}"
-  lb_port                  = 3000
+  lb_port                  = 80
   cookie_expiration_period = 86400
 }
 

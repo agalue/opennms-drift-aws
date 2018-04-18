@@ -7,20 +7,20 @@ onms_repo="branches-features-drift"
 onms_version="-latest-"
 helm_branch="develop"
 grafana_version="5.0.4"
-hawtio_version="1.4.68"
+hawtio_version="1.4.63"
 
 ########################################
 
 opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
 
-echo "### Install EPEL Repository..."
+echo "### Installing EPEL Repository..."
 
 sudo yum -y -q install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
 echo "### Installing Common Packages..."
 
-sudo yum -y -q install haveged redis
+sudo yum -y -q install haveged redis httpd
 sudo systemctl enable haveged
 
 echo "### Installing Grafana $grafana_version..."
@@ -88,9 +88,10 @@ cd
 echo "### Installing Hawtio version $hawtio_version..."
 
 hawtio_url=https://oss.sonatype.org/content/repositories/public/io/hawt/hawtio-default/$hawtio_version/hawtio-default-$hawtio_version.war
-sudo wget -qO $opennms_home/jetty-webapps/hawtio.war $hawtio_url && \
-  sudo unzip -qq $opennms_home/jetty-webapps/hawtio.war -d $opennms_home/jetty-webapps/hawtio && \
-  sudo rm -f $opennms_home/jetty-webapps/hawtio.war
+hawtio_war=$opennms_home/jetty-webapps/hawtio.war
+sudo wget -qO $hawtio_war $hawtio_url && \
+  sudo unzip -qq $hawtio_war -d $opennms_home/jetty-webapps/hawtio && \
+  sudo rm -f $hawtio_war
 
 echo "### Enabling CORS..."
 

@@ -23,6 +23,8 @@ hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
+# Redis
+
 if [[ "$use_redis" == "true" ]]; then
   echo "### Configuring Redis..."
 
@@ -33,8 +35,6 @@ if [[ "$use_redis" == "true" ]]; then
   sed -i -r "s/^protected-mode .*/protected-mode no/" $redis_conf
   sed -i -r "s/^save /# save /" $redis_conf
   sed -i -r "s/^# maxmemory-policy .*/maxmemory-policy allkeys-lru/" $redis_conf
-  #sed -i -r "s/^# maxmemory .*/maxmemory 128mb/" $redis_conf
-  #timeout?
 
   systemctl enable redis
   systemctl start redis
@@ -46,6 +46,7 @@ opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
 
 # Database connections
+
 postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
 cat <<EOF > $opennms_etc/opennms-datasources.xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -81,23 +82,51 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
 EOF
 
 # Eventd settings
+
 sed -r -i 's/127.0.0.1/0.0.0.0/g' $opennms_etc/eventd-configuration.xml
 
 # JVM Settings
+
 total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
 mem_in_mb=`expr $total_mem_in_mb / 2`
 if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
+
 jmxport=18980
+
+num_of_cores=`cat /proc/cpuinfo | grep "^processor" | wc -l`
+half_of_cores=`expr $num_of_cores / 2`
+
 cat <<EOF > $opennms_etc/opennms.conf
 START_TIMEOUT=0
 JAVA_HEAP_SIZE=$mem_in_mb
 MAXIMUM_FILE_DESCRIPTORS=204800
 
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC -XX:+UseStringDeduplication"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -d64 -XX:+PrintGCTimeStamps -XX:+PrintGCDetails"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Xloggc:$opennms_home/logs/gc.log"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -d64 -Djava.net.preferIPv4Stack=true"
+
+# GC Logging
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+PrintGCTimeStamps -XX:+PrintGCDetails"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Xloggc:/opt/opennms/logs/gc.log"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseGCLogFileRotation"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:NumberOfGCLogFiles=10"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:GCLogFileSize=10M"
+
+# GC Settings
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseStringDeduplication"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:G1RSetUpdatingPauseTimePercent=5"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:MaxGCPauseMillis=500"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:InitiatingHeapOccupancyPercent=70"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:ParallelGCThreads=$half_of_cores"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:ConcGCThreads=$half_of_cores"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+ParallelRefProcEnabled"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+AlwaysPreTouch"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseTLAB"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+ResizeTLAB"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:-UseBiasedLocking"
+
+# Java Flight Recorder
 ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
 
 # Configure Remote JMX
@@ -117,13 +146,13 @@ ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostn
 #ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:StartFlightRecording=duration=600s,filename=opennms.jfr,delay=1h"
 EOF
 
-# JMX Groups
+# JMX Auth
+
 cat <<EOF > $opennms_etc/jmxremote.access
 admin readwrite
 jmx   readonly
 EOF
 
-# JMX Auth
 IFS=',' read -r -a ip_list <<< "$opennms_ui_servers"
 ip_list+=($ip_address)
 echo "<jmx-config>" > $opennms_etc/jmx-config.xml
@@ -142,6 +171,7 @@ done
 echo "</jmx-config>" >> $opennms_etc/jmx-config.xml
 
 # External ActiveMQ
+
 cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
 org.opennms.activemq.broker.disable=true
 org.opennms.activemq.broker.url=$activemq_url
@@ -150,6 +180,7 @@ org.opennms.activemq.broker.password=admin
 EOF
 
 # External Kafka
+
 cat <<EOF > $opennms_etc/opennms.properties.d/kafka.properties
 org.opennms.core.ipc.sink.initialSleepTime=60000
 org.opennms.core.ipc.sink.strategy=kafka
@@ -158,6 +189,7 @@ org.opennms.core.ipc.sink.kafka.group.id=OpenNMS
 EOF
 
 # External Cassandra
+
 newts_cfg=$opennms_etc/opennms.properties.d/newts.properties
 cat <<EOF > $newts_cfg
 org.opennms.timeseries.strategy=newts
@@ -168,7 +200,7 @@ org.opennms.newts.config.read_consistency=ONE
 org.opennms.newts.config.write_consistency=ANY
 org.opennms.newts.config.resource_shard=604800
 org.opennms.newts.config.ttl=31540000
-org.opennms.newts.config.writer_threads=16
+org.opennms.newts.config.writer_threads=$num_of_cores
 org.opennms.newts.config.ring_buffer_size=131072
 org.opennms.newts.config.cache.max_entries=131072
 EOF
@@ -190,30 +222,25 @@ sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/collectd-configuration
 sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/collectd-configuration.xml 
 
 # RRD Settings
+
 cat <<EOF > $opennms_etc/opennms.properties.d/rrd.properties
 org.opennms.rrd.storeByGroup=true
 org.opennms.rrd.storeByForeignSource=true
 EOF
 
 # WebUI Settings
+
 cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
 org.opennms.security.disableLoginSuccessEvent=true
 EOF
 
-# Enable NetFlow
+# Flows
+
 sed -r -i '/"Netflow-5"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 sed -r -i '/"Netflow-9"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
-
-# Enable IPFIX
 sed -r -i '/"IPFIX"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
-
-# Enable SFlow
 sed -r -i '/"SFlow"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
-# Enable NX-OS
-sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
-
-# Configure Flow persistence
 cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
 elasticUrl=$elastic_url
 elasticGlobalUser=$elastic_user
@@ -223,32 +250,41 @@ settings.index.number_of_shards=6
 settings.index.number_of_replicas=1
 EOF
 
-# Configure Event Exporter
-sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n  opennms-es-rest\n/' $opennms_etc/org.apache.karaf.features.cfg
+# Enable NX-OS
+
+sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
+
+# Configure Elasticsearch forwarder
+
+sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n  alarm-change-notifier\n/' $opennms_etc/org.apache.karaf.features.cfg
 cat <<EOF > $opennms_etc/org.opennms.plugin.elasticsearch.rest.forwarder.cfg
 elasticUrl=$elastic_url
 elasticGlobalUser=$elastic_user
 elasticGlobalPassword=$elastic_password
 archiveRawEvents=true
-archiveAlarms=false
-archiveAlarmChangeEvents=false
+archiveAlarms=true
+archiveAlarmChangeEvents=true
 logAllEvents=true
 retries=1
 connTimeout=3000
 EOF
 
 # Enable Path Outages
+
 sed -r -i 's/pathOutageEnabled="false"/pathOutageEnabled="true"/' $opennms_etc/poller-configuration.xml
 
 # Fix PostgreSQL service
+
 sed -r -i 's/"Postgres"/"PostgreSQL"/g' $opennms_etc/poller-configuration.xml 
 
 # Logging
+
 sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
 sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
 
 # WARNING: For testing purposes only
 # Lab collection and polling interval (30 seconds)
+
 if [ "$use_30sec_frequency" == "true" ]; then
   sed -r -i 's/step="300"/step="30"/g' $opennms_etc/telemetryd-configuration.xml 
   sed -r -i 's/interval="300000"/interval="30000"/g' $opennms_etc/collectd-configuration.xml 

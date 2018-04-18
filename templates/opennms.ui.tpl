@@ -107,7 +107,6 @@ org.opennms.newts.config.hostname=$cassandra_servers
 org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
 org.opennms.newts.config.read_consistency=ONE
-org.opennms.newts.config.write_consistency=ANY
 EOF
 if [[ "$redis_server" != "" ]]; then
   cat <<EOF >> $newts_cfg
@@ -235,20 +234,13 @@ echo "### Running OpenNMS install script..."
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 touch $opennms_etc/configured
 
-echo "### Enabling and starting OpenNMS..."
-
-sleep 180
-systemctl daemon-reload
-systemctl enable opennms
-systemctl start opennms
-
 echo "### Configurng Grafana..."
 echo "### WARNING: Grafana doesn't support multi-host database configuration..."
 
 grafana_cfg=/etc/grafana/grafana.ini
 cp $grafana_cfg $grafana_cfg.bak
 sed -r -i "s/;domain = localhost/domain = $webui_endpoint/" $grafana_cfg
-sed -r -i "s/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s/" $grafana_cfg
+sed -r -i "s/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s:\/grafana/" $grafana_cfg
 sed -r -i "s/;type = sqlite3/type = postgres/" $grafana_cfg
 sed -r -i "s/;host = 127.0.0.1:3306/host = $postgres_server:5432/" $grafana_cfg
 sed -r -i "/;name = grafana/s/;//" $grafana_cfg
@@ -272,3 +264,61 @@ echo "### Enabling and starting Grafana server..."
 
 systemctl enable grafana-server
 systemctl start grafana-server
+sleep 10
+
+grafana_key=`curl -X POST -H "Content-Type: application/json" -d '{"name":"opennms-ui", "role": "Viewer"}' http://admin:admin@localhost:3000/api/auth/keys 2>/dev/null | jq .key - | sed 's/"//g'`
+if [ "$grafana_key" != "null" ]; then
+  cat <<EOF > $opennms_etc/opennms.properties.d/grafana.properties
+org.opennms.grafanaBox.show=true
+org.opennms.grafanaBox.hostname=$webui_endpoint
+org.opennms.grafanaBox.port=80
+org.opennms.grafanaBox.basePath=/grafana
+org.opennms.grafanaBox.apiKey=$grafana_key
+EOF
+fi
+
+echo "### Enabling Helm..."
+
+helm_url="http://admin:admin@localhost:3000/api/plugins/opennms-helm-app/settings"
+helm_enabled=`curl "$helm_url" 2>/dev/null | jq '.enabled'`
+if [ "$helm_enabled" != "true" ]; then
+  curl -XPOST "$helm_url" -d "" 2>/dev/null
+fi
+
+echo "### Configuring HTTP Proxy..."
+
+cat <<EOF > /etc/httpd/conf.d/opennms.conf
+<VirtualHost *:80>
+  ServerName $hostname
+  ErrorLog "logs/opennms-error_log"
+  CustomLog "logs/opennms-access_log" common
+  <Location /opennms>
+    Order deny,allow
+    Allow from all
+    ProxyPass http://127.0.0.1:8980/opennms
+    ProxyPassReverse http://127.0.0.1:8980/opennms
+  </Location>
+  <Location /hawtio>
+    Order deny,allow
+    Allow from all
+    ProxyPass http://127.0.0.1:8980/hawtio
+    ProxyPassReverse http://127.0.0.1:8980/hawtio
+  </Location>
+  <Location /grafana>
+    Order deny,allow
+    Allow from all
+    ProxyPass http://127.0.0.1:3000
+    ProxyPassReverse http://127.0.0.1:3000
+  </Location>
+</VirtualHost>
+EOF
+
+systemctl enable httpd
+systemctl start httpd
+
+echo "### Enabling and starting OpenNMS..."
+
+sleep 180
+systemctl daemon-reload
+systemctl enable opennms
+systemctl start opennms
