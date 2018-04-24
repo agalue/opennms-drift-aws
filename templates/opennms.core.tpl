@@ -81,10 +81,6 @@ cat <<EOF > $opennms_etc/opennms-datasources.xml
 </datasource-configuration>
 EOF
 
-# Eventd settings
-
-sed -r -i 's/127.0.0.1/0.0.0.0/g' $opennms_etc/eventd-configuration.xml
-
 # JVM Settings
 
 total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
@@ -160,8 +156,6 @@ for ip in "$${ip_list[@]}"
 do
   cat <<EOF >> $opennms_etc/jmx-config.xml
   <mbean-server ipAddress="$ip" port="18980">
-    <parameter key="protocol" value="rmi"/>
-    <parameter key="urlPath" value="/jmxrmi"/>
     <parameter key="factory" value="PASSWORD-CLEAR"/>
     <parameter key="username" value="admin"/>
     <parameter key="password" value="admin"/>
@@ -281,6 +275,30 @@ sed -r -i 's/"Postgres"/"PostgreSQL"/g' $opennms_etc/poller-configuration.xml
 
 sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
 sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
+cat <<EOF > logging.txt
+        <Route key="collectd">
+          <RollingFile name="Rolling-Collectd" fileName="\$${logdir}/collectd.log"
+                       filePattern="\$${logdir}/collectd.%i.log.gz">
+            <PatternLayout>
+              <pattern>%d %-5p [%t] SRC:%X{nodeLabel}:%X{ipAddress} %c{1.}: %m%n</pattern>
+            </PatternLayout>
+            <SizeBasedTriggeringPolicy size="100MB" />
+            <DefaultRolloverStrategy max="4" fileIndex="min" />
+          </RollingFile>
+        </Route>
+        <Route key="poller">
+          <RollingFile name="Rolling-Collectd" fileName="\$${logdir}/poller.log"
+                       filePattern="\$${logdir}/poller.%i.log.gz">
+            <PatternLayout>
+              <pattern>%d %-5p [%t] SRC:%X{service}:%X{ipAddress} %c{1.}: %m%n</pattern>
+            </PatternLayout>
+            <SizeBasedTriggeringPolicy size="100MB" />
+            <DefaultRolloverStrategy max="4" fileIndex="min" />
+          </RollingFile>
+        </Route>
+EOF
+sed -r -i '/Routes pattern=/r logging.txt/' $opennms_etc/log4j2.xml
+rm -f logging.txt
 
 # WARNING: For testing purposes only
 # Lab collection and polling interval (30 seconds)

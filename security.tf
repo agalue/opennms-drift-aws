@@ -296,13 +296,6 @@ resource "aws_security_group" "opennms" {
   }
 
   ingress {
-    from_port   = 5817
-    to_port     = 5817
-    protocol    = "tcp"
-    cidr_blocks = ["${var.vpc_cidr}"]
-  }
-
-  ingress {
     from_port   = 6379
     to_port     = 6379
     protocol    = "tcp"
@@ -341,20 +334,6 @@ resource "aws_security_group" "opennms_ui" {
     cidr_blocks = ["${var.vpc_cidr}"]
   }
 
-  ingress {
-    from_port   = 8980
-    to_port     = 8980
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -366,30 +345,5 @@ resource "aws_security_group" "opennms_ui" {
 
   tags {
     Name = "Terraform OpenNMS UI SG"
-  }
-}
-
-resource "aws_security_group" "grafana" {
-  name        = "terraform-opennms-grafana-sg"
-  description = "Allow Grafana connections."
-
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  vpc_id = "${aws_vpc.default.id}"
-
-  tags {
-    Name = "Terraform Grafana UI SG"
   }
 }

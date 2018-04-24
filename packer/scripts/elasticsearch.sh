@@ -5,7 +5,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-es_version="6.2.3"
+es_version="6.2.4"
 curator_version="5.4.1"
 maven_version="3.5.3"
 plugin_branch="master"
@@ -55,6 +55,7 @@ else
   sudo git checkout -b $plugin_branch origin/$plugin_branch
 fi
 
+sudo sed -r -i "s/elasticsearch.version[>][0-9.]*[<]/elasticsearch.version>$es_version</" pom.xml
 sudo /opt/maven/bin/mvn install -q -DskipTests=true rpm:rpm
 
 rpmfile=`find target -name *.rpm`

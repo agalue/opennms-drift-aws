@@ -29,7 +29,7 @@ systemd_kafka=/etc/systemd/system/kafka.service
 systemd_tmp=/tmp/kafka.service
 cat <<EOF > $systemd_tmp
 [Unit]
-Description=Apache Kafka server
+Description=Apache Kafka Server
 Documentation=http://kafka.apache.org
 Wants=network-online.target
 After=network-online.target
@@ -50,6 +50,31 @@ EOF
 sudo cp $systemd_tmp $systemd_kafka
 sudo chmod 0644 $systemd_kafka
 
+systemd_connect=/etc/systemd/system/connect-distributed.service
+systemd_tmp=/tmp/connect-distributed.service
+cat <<EOF > $systemd_tmp
+[Unit]
+Description=Apache Kafka Connect: Distributed Mode
+Documentation=http://kafka.apache.org
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+Environment="KAFKA_HEAP_OPTS=-Xmx1g -Xms1g"
+Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9998 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
+Environment="JMX_PORT=9998"
+ExecStart=/opt/kafka/bin/connect-distributed.sh /opt/kafka/config/connect-distributed.properties
+ExecStop=/opt/kafka/bin/kafka-server-stop.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo cp $systemd_tmp $systemd_connect
+sudo chmod 0644 $systemd_connect
+
 systemd_zoo=/etc/systemd/system/zookeeper.service
 systemd_tmp=/tmp/zookeeper.service
 cat <<EOF > $systemd_tmp
@@ -64,8 +89,8 @@ Type=simple
 User=root
 Group=root
 Environment="KAFKA_HEAP_OPTS=-Xmx1g -Xms1g"
-Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9998 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
-Environment="JMX_PORT=9998"
+Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.rmi.port=9997 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=%H -Djava.net.preferIPv4Stack=true"
+Environment="JMX_PORT=9997"
 ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
 ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
 
