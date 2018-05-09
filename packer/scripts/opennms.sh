@@ -6,7 +6,7 @@
 onms_repo="branches-features-drift"
 onms_version="-latest-"
 helm_branch="develop"
-grafana_version="5.0.4"
+grafana_version="5.1.0"
 hawtio_version="1.4.63"
 
 ########################################

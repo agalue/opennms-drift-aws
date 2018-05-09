@@ -8,9 +8,10 @@ location=${3-Vagrant};
 opennms_url=${4-http://opennms1:8980/opennms};
 activemq_url=${5-failover:(tcp://activemq1:61616,tcp://activemq2:61616)?randomize=false};
 kafka_svr=${6-kafka1:9092,kafka2:9092,kafka3:9092};
+timezone=${7-America/New_York};
 
 # Internal Variables
-java_url=http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.rpm
+java_url="http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/jdk-8u172-linux-x64.rpm"
 git_user_name="Alejandro Galue"
 git_user_email="agalue@opennms.org"
 
@@ -29,6 +30,32 @@ if ! rpm -qa | grep -q wget; then
   rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
   yum install -y -q jq ntp ntpdate net-tools vim-enhanced net-snmp net-snmp-utils wget curl git pytz dstat htop sysstat nmap-ncat
 fi
+
+echo "### Configuring timezone..."
+timedatectl set-timezone $timezone
+ntpdate -u pool.ntp.org
+
+echo "### Configuring NTP..."
+ntp_cfg=/etc/ntpd.conf
+if [ -e "$ntp_cfg.bak" ]; then
+  cp $ntp_cfg $ntp_cfg.bak
+fi
+cat <<EOF > $ntp_cfg
+driftfile /var/lib/ntp/drift
+restrict default nomodify notrap nopeer noquery kod
+restrict -6 default nomodify notrap nopeer noquery kod
+restrict 127.0.0.1
+restrict ::1
+server 0.north-america.pool.ntp.org iburst
+server 1.north-america.pool.ntp.org iburst
+server 2.north-america.pool.ntp.org iburst
+server 3.north-america.pool.ntp.org iburst
+includefile /etc/ntp/crypto/pw
+keys /etc/ntp/keys
+disable monitor
+EOF
+systemctl enable ntpd
+systemctl start ntpd
 
 # Calculated variables
 ip_address=`ifconfig eth1 | grep "inet " | awk '{print $2}'`
@@ -57,18 +84,6 @@ if ! rpm -qa | grep -q haveged; then
   yum install -y -q haveged
   systemctl enable haveged
   systemctl start haveged
-fi
-
-# Setup timezone
-if ! grep --quiet EST /etc/localtime; then
-  echo "### Configuring timezone..."
-  rm -f /etc/localtime
-  ln -s /usr/share/zoneinfo/America/New_York /etc/localtime
-  ntpdate -u pool.ntp.org
-
-  # Enable and start ntp
-  systemctl enable ntpd
-  systemctl start ntpd
 fi
 
 # Configure Net-SNMP Daemon

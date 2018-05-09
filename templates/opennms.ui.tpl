@@ -218,6 +218,11 @@ acknowledged-by=admin
 acknowledged-at=Mon Jan 01 00\:00\:00 EDT 2018
 EOF
 
+# Configuring Deep Dive Tool
+cat <<EOF > $opennms_etc/org.opennms.netmgt.flows.rest.cfg
+flowGraphUrl=http://$webui_endpoint/grafana/dashboard/flows?node=\$nodeId&interface=\$ifIndex
+EOF
+
 # Logging
 sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
 sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
@@ -279,10 +284,28 @@ fi
 
 echo "### Enabling Helm..."
 
-helm_url="http://admin:admin@localhost:3000/api/plugins/opennms-helm-app/settings"
+helm_url="http://localhost:3000/api/plugins/opennms-helm-app/settings"
 helm_enabled=`curl "$helm_url" 2>/dev/null | jq '.enabled'`
 if [ "$helm_enabled" != "true" ]; then
-  curl -XPOST "$helm_url" -d "" 2>/dev/null
+  curl -u admin:admin -XPOST "$helm_url" -d "" 2>/dev/null
+  cat <<EOF > data.json
+{
+  "name": "opennms-performance",
+  "type": "opennms-helm-performance-datasource",
+  "access": "proxy",
+  "url": "http://localhost:8980/opennms",
+  "basicAuth": true,
+  "user": "admin",
+  "password": "admin"
+}
+EOF
+  ds_url="http://localhost:3000/api/datasources"
+  curl -u admin:admin -H 'Content-Type: application/json' -XPOST -d @data.json $ds_url
+  sed -i -r 's/-performance/-fault/g' data.json
+  curl -u admin:admin -H 'Content-Type: application/json' -XPOST -d @data.json $ds_url
+  sed -i -r 's/-fault/-flow/g' data.json
+  curl -u admin:admin -H 'Content-Type: application/json' -XPOST -d @data.json $ds_url
+  rm data.json
 fi
 
 echo "### Configuring HTTP Proxy..."

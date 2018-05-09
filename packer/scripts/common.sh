@@ -12,7 +12,7 @@ tmp_file=/tmp/_temp.tmp
 
 echo "### Configuring Timezone..."
 
-sudo ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+sudo timedatectl set-timezone $timezone
 
 echo "### Installing common packages..."
 

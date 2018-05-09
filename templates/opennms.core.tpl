@@ -197,6 +197,8 @@ org.opennms.newts.config.ttl=31540000
 org.opennms.newts.config.writer_threads=$num_of_cores
 org.opennms.newts.config.ring_buffer_size=131072
 org.opennms.newts.config.cache.max_entries=131072
+org.opennms.newts.config.cache.priming.enable=true
+org.opennms.newts.config.cache.priming.block_ms=120000
 EOF
 if [[ "$use_redis" == "true" ]]; then
   cat <<EOF >> $newts_cfg

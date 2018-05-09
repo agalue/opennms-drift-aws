@@ -61,7 +61,9 @@ vagrant up
 
 * OpenNMS version 22 or newer is required. For now, the script will use the RPMs from the `features/drift` branch. To change it, make sure to update the Packer initialization script for OpenNMS.
 
-* Time synchronization is mandatory on every single device (including monitored devices). AWS guarrantees that, meaning the Minion and the Flow Exporters should also be synchronized prior start using this lab (either by using NTP or manual sync). 
+* Time synchronization is mandatory on every single device (including monitored devices). AWS guarrantees that, meaning the Minion and the Flow Exporters should also be synchronized prior start using this lab (either by using NTP or manual sync).
+
+* In case of using GNS3 to test a Cisco Lab, make the Minion machine an NTP server, and then configure the Cisco routers/switches to use it.
 
 ## Design
 
