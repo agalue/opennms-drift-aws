@@ -20,6 +20,8 @@ aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 * Install Vagrant from [vagrantup.com](https://www.vagrantup.com)
 
+* Make sure the AMIs used for the Packer JSON files match your chosen region in AWS (Amazon Linux 2 LTS Candidate 2 for us-west-2 is the default).
+
 * Tweak the versions on the packer initialization scripts located at `packer/scripts`.
 
 * Tweak the common settings on `vars.tf`, specially `aws_key_name` and `aws_private_key`, to match the chosen region. All the customizable settings are defined on `vars.tf`. Please do not change the other `.tf` files.
@@ -37,6 +39,8 @@ Of, in order to build a specific image:
 cd packer
 packer build opennms.json
 ```
+
+Packer will use the default VPC and the default subnet for the chosen region. If you want to use a specific VPC/Subnet, please update the Packer JSON files.
 
 * Execute the following commands from the repository's root directory (at the same level as the .tf files):
 

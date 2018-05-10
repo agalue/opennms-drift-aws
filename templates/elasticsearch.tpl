@@ -44,7 +44,7 @@ sed -i -r "s/[#]?cluster.name:.*/cluster.name: $es_cluster_name/" $es_yaml
 sed -i -r "s/[#]?network.host:.*/network.host: $hostname/" $es_yaml
 sed -i -r "s/[#]?node.name:.*/node.name: $hostname/" $es_yaml
 
-if [[ "$es_seed_name" != "" ]]; then
+if [ "$es_seed_name" != "" ]; then
   sed -i -r "s/[#]?discovery.zen.minimum_master_nodes:.*/discovery.zen.minimum_master_nodes: 2/" $es_yaml
   sed -i -r "s/[#]?discovery.zen.ping.unicast.hosts:.*/discovery.zen.ping.unicast.hosts: [$es_seed_name]/" $es_yaml
 fi
@@ -53,19 +53,19 @@ fi
 
 echo >> $es_yaml
 
-if [[ "$es_role" == "master" ]]; then
+if [ "$es_role" == "master" ]; then
   echo "node.master: true" >> $es_yaml
   echo "node.data: false" >> $es_yaml
   echo "node.ingest: false" >> $es_yaml
 fi
 
-if [[ "$es_role" == "data" ]]; then
+if [ "$es_role" == "data" ]; then
   echo "node.master: false" >> $es_yaml
   echo "node.data: true" >> $es_yaml
   echo "node.ingest: true" >> $es_yaml
 fi
 
-if [[ "$es_role" == "coordinator" ]]; then
+if [ "$es_role" == "coordinator" ]; then
   echo "node.master: false" >> $es_yaml
   echo "node.data: false" >> $es_yaml
   echo "node.ingest: false" >> $es_yaml
@@ -76,10 +76,10 @@ fi
 echo >> $es_yaml
 echo "xpack.license.self_generated.type: basic" >> $es_yaml
 
-if [[ "$es_xpack" == "true" ]]; then
+if [ "$es_xpack" == "true" ]; then
   echo $es_password | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x 'bootstrap.password'
 
-  if [[ "$es_monsrv" != "" ]]; then
+  if [ "$es_monsrv" != "" ]; then
     echo "xpack.monitoring.exporters:" >> $es_yaml
     echo "  remote: " >> $es_yaml
     echo "    type: http" >> $es_yaml
@@ -100,6 +100,81 @@ echo <<EOF >> $es_yaml
 http.cors.enabled: true
 http.cors.allow-origin: "*"
 EOF
+
+# Curator
+
+if [ "$es_role" == "master" ]; then
+  echo "### Configuring Curator..."
+
+  echo <<EOF > /etc/elasticsearch-curator/config.yml
+client:
+  host:
+    - $es_seed_name
+  port: 9200
+  url_prefix:
+  use_ssl: false
+  certificate:
+  client_cert:
+  client_key:
+  ssl_no_validate: False
+  http_auth:
+  timeout: 30
+  master_only: True
+
+logging:
+  loglevel: INFO
+  logfile:
+  logformat: default
+  blacklist: ['elasticsearch', 'urllib3']
+EOF
+
+  echo <<EOF > /etc/elasticsearch-curator/delete_indices.yml
+actions:
+  1:
+    action: delete_indices
+    description: >-
+      Delete indices older than 30 days.
+    options:
+      ignore_empty_list: True
+      disable_action: False
+    filters:
+      - filtertype: pattern
+        kind: prefix
+        value: netflow-
+      - filtertype: age
+        source: name
+        direction: older
+        timesharing: '%Y-%m-%d-%H'
+        unit: hours
+        unit_count: 720
+EOF
+
+cat <<EOF > /etc/elasticsearch-curator/forcemerge_indices.yml
+actions:
+  1:
+    action: forcemerge
+    description: >-
+      Force merge Netflow indices
+    options:
+      num_max_segments: 1
+      delay: 120
+      timneout_override:
+      continue_if_exeption: False
+      disable_action: False
+    filters:
+      - filtertype: pattern
+        kind: prefix
+        value: netflow-
+      - filtertype: age
+        source: name
+        direction: older
+        timesharing: '%Y-%m-%d-%H'
+        unit: hours
+        unit_count: 12
+      - filtertype: forcemerged
+        max_num_segments: 1
+EOF
+fi
 
 echo "### Checking cluster prior start..."
 

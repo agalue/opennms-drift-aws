@@ -1,8 +1,11 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-31c7f654"
+    "source_ami": "ami-31c7f654",
+    "app_name": "Kibana 6",
+    "environment": "Drift"
   },
+  "description": "{{ user `app_name` }} for {{ user `environment` }}",
   "builders": [
     {
       "type": "amazon-ebs",
@@ -10,7 +13,15 @@
       "source_ami": "{{ user `source_ami` }}",
       "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
-      "ami_name": "kibana-{{timestamp}}"
+      "ami_name": "kibana-drift-{{ timestamp }}",
+      "run_tags": {
+        "Name": "Packer AMI {{ user `app_name` }}",
+        "Environment": "{{ user `environment` }}"
+      },
+      "snapshot_tags": {
+        "Name": "{{ user `app_name` }}",
+        "Environment": "{{ user `environment` }}"
+      }
     }
   ],
   "provisioners": [

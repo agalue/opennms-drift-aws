@@ -75,6 +75,12 @@ else
   sudo yum install -y -q opennms-core-$onms_version opennms-webapp-jetty-$onms_version
 fi
 
+echo "### Copying external configuration files..."
+
+src_dir=/tmp/sources
+sudo chown -R root:root $src_dir/
+sudo rsync -avr $src_dir/ /opt/opennms/etc/
+
 echo "### Initializing GIT at $opennms_etc..."
 
 cd $opennms_etc

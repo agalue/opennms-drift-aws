@@ -273,6 +273,19 @@ sed -r -i 's/pathOutageEnabled="false"/pathOutageEnabled="true"/' $opennms_etc/p
 
 sed -r -i 's/"Postgres"/"PostgreSQL"/g' $opennms_etc/poller-configuration.xml 
 
+# Default Foreign Source
+
+cat <<EOF > $opennms_etc/default-foreign-source.xml
+<foreign-source xmlns="http://xmlns.opennms.org/xsd/config/foreign-source" name="default" date-stamp="2018-01-01T00:00:00.000-05:00">
+   <scan-interval>1d</scan-interval>
+   <detectors>
+      <detector name="ICMP" class="org.opennms.netmgt.provision.detector.icmp.IcmpDetector"/>
+      <detector name="SNMP" class="org.opennms.netmgt.provision.detector.snmp.SnmpDetector"/>
+   </detectors>
+   <policies/>
+</foreign-source>
+EOF
+
 # Logging
 
 sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml

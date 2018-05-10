@@ -44,6 +44,11 @@ resource "aws_instance" "opennms" {
     "aws_route53_record.opennms",
   ]
 
+  provisioner "file" {
+    source      = "./resources/provision/"
+    destination = "/tmp"
+  }
+
   connection {
     user        = "ec2-user"
     private_key = "${file("${var.aws_private_key}")}"
