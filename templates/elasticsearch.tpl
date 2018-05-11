@@ -25,8 +25,6 @@ echo "### Configuring Elasticsearch..."
 es_dir=/etc/elasticsearch
 es_yaml=$es_dir/elasticsearch.yml
 es_jvm=$es_dir/jvm.options
-cp $es_yaml $es_yaml.bak
-cp $es_jvm $es_jvm.bak
 
 # JVM Memory
 

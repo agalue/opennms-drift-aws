@@ -22,15 +22,16 @@ mkdir -p $zoo_data
 echo $node_id > $zoo_data/myid
 
 zoo_cfg=/opt/kafka/config/zookeeper.properties
-cp $zoo_cfg $zoo_cfg.bak
-cat <<EOF > $zoo_cfg
-dataDir=$zoo_data
-clientPort=2181
-maxClientCnxns=0
+
+sed -i -r "s|dataDir=.*|dataDir=$zoo_data|" $zoo_cfg
+
+cat <<EOF >> $zoo_cfg
+# Additional Settings
 tickTime=2000
 initLimit=10
 syncLimit=5
 EOF
+
 # TODO Assuming hostname prefix. Make sure it is consistent with zookeeper_ip_addresses in vars.tf
 for i in `seq 1 $total_servers`;
 do

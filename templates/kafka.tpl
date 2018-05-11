@@ -32,20 +32,20 @@ sed -i -r "/KAFKA_HEAP_OPTS/s/1g/$${mem_in_mb}m/g" /etc/systemd/system/kafka.ser
 
 listener_name=`curl http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null`
 kafka_cfg=/opt/kafka/config/server.properties
-cp $kafka_cfg $kafka_cfg.bak
-cat <<EOF > $kafka_cfg
-broker.id=${node_id}
-advertised.listeners=PLAINTEXT://$listener_name:9092
-listeners=PLAINTEXT://0.0.0.0:9092
-log.dirs=$kafka_data
-num.partitions=$num_partitions
+
+sed -i -r "/^broker.id/s/0/$node_id/" $kafka_cfg
+sed -i -r "s|^[#]?listeners=.*|listeners=PLAINTEXT://0.0.0.0:9092|" $kafka_cfg
+sed -i -r "s|^[#]?advertised.listeners=.*|advertised.listeners=PLAINTEXT://$listener_name:9092|" $kafka_cfg
+sed -i -r "s|^log.dirs=.*|log.dirs=$kafka_data|" $kafka_cfg
+sed -i -r "/^num.partitions/s/1/$num_partitions/" $kafka_cfg
+sed -i -r "s/^zookeeper.connect=.*/zookeeper.connect=$zookeeper_connect/" $kafka_cfg
+
+cat <<EOF >> $kafka_cfg
+
+# Additional Settings
+
 default.replication.factor=$replication_factor
 min.insync.replicas=$min_insync_replicas
-log.retention.hours=168
-log.segment.bytes=1073741824
-log.retention.check.interval.ms=300000
-zookeeper.connect=$zookeeper_connect
-zookeeper.connection.timeout.ms=6000
 auto.create.topics.enable=true
 delete.topic.enable=false
 controlled.shutdown.enable=true

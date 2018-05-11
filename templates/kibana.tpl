@@ -20,7 +20,6 @@ echo "### Configuring Kibana..."
 
 kb_dir=/etc/kibana
 kb_yaml=$kb_dir/kibana.yml
-cp $kb_yaml $kb_yaml.bak
 
 sed -i -r "s/[#]server.host:.*/server.host: $hostname/" $kb_yaml
 sed -i -r "s/[#]server.name:.*/server.name: $hostname/"  $kb_yaml

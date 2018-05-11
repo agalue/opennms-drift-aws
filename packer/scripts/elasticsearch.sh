@@ -13,11 +13,22 @@ plugin_name="elasticsearch-drift-plugin-1.0.0-SNAPSHOT"
 
 ########################################
 
+es_config=/etc/elasticsearch
+
 echo "### Downloading and installing Elasticsearch version $es_version..."
 
 sudo yum install -y -q https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$es_version.rpm
-
 sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch x-pack
+
+echo "### Initializing GIT at $es_config..."
+
+cd $es_config
+sudo git config --global user.name "OpenNMS"
+sudo git config --global user.email "support@opennms.org"
+sudo git init .
+sudo git add .
+sudo git commit -m "Elasticsearch $es_version installed."
+cd
 
 echo "### Downloading and installing Curator version $curator_version..."
 

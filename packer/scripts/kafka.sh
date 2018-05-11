@@ -14,14 +14,25 @@ kafka_name=kafka_${scala_version}-${kafka_version}
 kafka_file=$kafka_name.tgz
 kafka_mirror=$(curl --stderr /dev/null https://www.apache.org/dyn/closer.cgi\?as_json\=1 | jq -r '.preferred')
 kafka_url="${kafka_mirror}kafka/$kafka_version/$kafka_file"
+kafka_cfg=/opt/kafka/config
 
 cd /opt
-
 sudo wget -q "$kafka_url" -O "$kafka_file"
 sudo tar xzf $kafka_file
 sudo chown -R root:root $kafka_name
 sudo ln -s $kafka_name kafka
 sudo rm -f $kafka_file
+cd
+
+echo "### Initializing GIT at $kafka_cfg..."
+
+cd $kafka_cfg
+sudo git config --global user.name "OpenNMS"
+sudo git config --global user.email "support@opennms.org"
+sudo git init .
+sudo git add .
+sudo git commit -m "Kafka $kafka_version installed."
+cd
 
 echo "### Configuring Systemd..."
 
