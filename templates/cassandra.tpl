@@ -25,11 +25,6 @@ sed -r -i "/seeds/s/127.0.0.1/$seed_name/" $conf_file
 sed -r -i "/listen_address/s/localhost/$ip_address/" $conf_file
 sed -r -i "/rpc_address/s/localhost/$ip_address/" $conf_file
 
-echo "### Configuring Kernel..."
-
-nofile=`grep nofile /etc/security/limits.d/cassandra.conf | sed 's/.*nofile //'`
-ulimit -n $nofile
-
 echo "### Configuring JMX..."
 
 env_file=$conf_dir/cassandra-env.sh
@@ -72,6 +67,7 @@ sed -r -i "/MaxGCPauseMillis/s/#-XX/-XX/" $jvm_file
 sed -r -i "/InitiatingHeapOccupancyPercent/s/#-XX/-XX/" $jvm_file
 sed -r -i "/ParallelGCThreads/s/#-XX/-XX/" $jvm_file
 
+# JMX Auth: passwords
 cat <<EOF > $jmx_passwd
 monitorRole QED
 controlRole R&D
@@ -80,6 +76,7 @@ EOF
 chmod 0400 $jmx_passwd
 chown cassandra:cassandra $jmx_passwd
 
+# JMX Auth: access
 cat <<EOF > $jmx_access
 monitorRole   readonly
 cassandra     readwrite
