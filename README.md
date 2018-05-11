@@ -63,7 +63,7 @@ vagrant up
 
 ## Requirements
 
-* OpenNMS version 22 or newer is required. For now, the script will use the RPMs from the `features/drift` branch. To change it, make sure to update the Packer initialization script for OpenNMS.
+* OpenNMS version 22 or newer is required. For now, the script will use the RPMs from the `develop` branch. To change it, make sure to update the Packer initialization script for OpenNMS.
 
 * Time synchronization is mandatory on every single device (including monitored devices). AWS guarrantees that, meaning the Minion and the Flow Exporters should also be synchronized prior start using this lab (either by using NTP or manual sync).
 
@@ -71,7 +71,7 @@ vagrant up
 
 ## Design
 
-The purpose here is understand the drift architecture, not using AWS resources like RDS, SQS, etc. to deploy OpenNMS on the cloud.
+The purpose here is understand the Drift Architecture, not using AWS resources like RDS, SQS, etc. to deploy OpenNMS on the cloud.
 
 For this reason, everything will live on the same subnet (a.k.a. one availability zone) with direct Internet access through an Internet Gateway. All the EC2 instances are going to have a specific private IP address, registered against a local DNS through Route 53 and a dynamic public IP, which is how the operator can connect to each instance, and the way Minion will reach the solution.
 
