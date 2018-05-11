@@ -2,7 +2,7 @@
   "variables": {
     "region": "us-east-2",
     "source_ami": "ami-31c7f654",
-    "app_name": "OpenNMS",
+    "app_name": "OpenNMS Horizon",
     "environment": "Drift"
   },
   "description": "{{ user `app_name` }} for {{ user `environment` }}",
