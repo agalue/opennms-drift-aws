@@ -287,7 +287,7 @@ echo "### Enabling Helm..."
 helm_url="http://localhost:3000/api/plugins/opennms-helm-app/settings"
 helm_enabled=`curl "$helm_url" 2>/dev/null | jq '.enabled'`
 if [ "$helm_enabled" != "true" ]; then
-  curl -u admin:admin -XPOST "$helm_url" -d "" 2>/dev/null
+  curl -u admin:admin -XPOST "$helm_url" -d "id=opennms-helm-app&enabled=true" 2>/dev/null
   cat <<EOF > data.json
 {
   "name": "opennms-performance",
