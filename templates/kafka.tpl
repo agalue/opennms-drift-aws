@@ -34,11 +34,11 @@ listener_name=`curl http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/n
 kafka_cfg=/opt/kafka/config/server.properties
 
 sed -i -r "/^broker.id/s/0/$node_id/" $kafka_cfg
+sed -i -r "/^num.partitions/s/1/$num_partitions/" $kafka_cfg
 sed -i -r "s|^[#]?listeners=.*|listeners=PLAINTEXT://0.0.0.0:9092|" $kafka_cfg
 sed -i -r "s|^[#]?advertised.listeners=.*|advertised.listeners=PLAINTEXT://$listener_name:9092|" $kafka_cfg
 sed -i -r "s|^log.dirs=.*|log.dirs=$kafka_data|" $kafka_cfg
-sed -i -r "/^num.partitions/s/1/$num_partitions/" $kafka_cfg
-sed -i -r "s/^zookeeper.connect=.*/zookeeper.connect=$zookeeper_connect/" $kafka_cfg
+sed -i -r "s|^zookeeper.connect=.*|zookeeper.connect=$zookeeper_connect|" $kafka_cfg
 
 cat <<EOF >> $kafka_cfg
 
