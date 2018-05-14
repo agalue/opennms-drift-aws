@@ -2,7 +2,7 @@
 # Author: Alejandro Galue <agalue@opennms.org>
 
 server=${1-localhost}
-requisition=${1-OpenNMS}
+requisition=${2-OpenNMS}
 
 echo "Updating and importing requisition $requisition on server $server ..."
 
