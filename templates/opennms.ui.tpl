@@ -295,8 +295,8 @@ if [ "$helm_enabled" != "true" ]; then
   "access": "proxy",
   "url": "http://localhost:8980/opennms",
   "basicAuth": true,
-  "user": "admin",
-  "password": "admin"
+  "basicAuthUser": "admin",
+  "basicAuthPassword": "admin"
 }
 EOF
   ds_url="http://localhost:3000/api/datasources"
