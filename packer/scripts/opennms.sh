@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="branches-develop"
+onms_repo="bleeding"
 onms_version="-latest-"
 helm_branch="develop"
 grafana_version="5.1.0"
