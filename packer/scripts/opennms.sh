@@ -13,6 +13,7 @@ hawtio_version="1.4.63"
 
 opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
+tmp_file=/tmp/_onms_temp_file
 
 echo "### Installing EPEL Repository..."
 
@@ -75,12 +76,6 @@ else
   sudo yum install -y -q opennms-core-$onms_version opennms-webapp-jetty-$onms_version
 fi
 
-echo "### Copying external configuration files..."
-
-src_dir=/tmp/sources
-sudo chown -R root:root $src_dir/
-sudo rsync -avr $src_dir/ /opt/opennms/etc/
-
 echo "### Initializing GIT at $opennms_etc..."
 
 cd $opennms_etc
@@ -91,13 +86,133 @@ sudo git add .
 sudo git commit -m "OpenNMS Installed."
 cd
 
+echo "### Copying external configuration files..."
+
+src_dir=/tmp/sources
+sudo chown -R root:root $src_dir/
+sudo rsync -avr $src_dir/ /opt/opennms/etc/
+
+echo "### Apply common configuration changes..."
+
+cat <<EOF > $tmp_file
+org.opennms.rrd.storeByGroup=true
+org.opennms.rrd.storeByForeignSource=true
+EOF
+sudo mv -f $tmp_file $opennms_etc/opennms.properties.d/rrd.properties
+
+cat <<EOF > $tmp_file
+org.opennms.security.disableLoginSuccessEvent=true
+EOF
+sudo mv -f $tmp_file $opennms_etc/opennms.properties.d/webui.properties
+
+cat <<EOF > $tmp_file
+enabled=false
+acknowledged-by=admin
+acknowledged-at=Mon Jan 01 00\:00\:00 EDT 2018
+EOF
+sudo mv -f $tmp_file $opennms_etc/org.opennms.features.datachoices.cfg
+
+sudo sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
+sudo sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
+
+cat <<EOF > $tmp_file
+<?xml version="1.0" encoding="UTF-8"?>
+<datasource-configuration xmlns:this="http://xmlns.opennms.org/xsd/config/opennms-datasources"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.opennms.org/xsd/config/opennms-datasources
+  http://www.opennms.org/xsd/config/opennms-datasources.xsd ">
+
+  <connection-pool factory="org.opennms.core.db.HikariCPConnectionFactory"
+    idleTimeout="600"
+    loginTimeout="3"
+    minPool="50"
+    maxPool="50"
+    maxSize="50" />
+
+  <jdbc-data-source name="opennms"
+                    database-name="opennms"
+                    class-name="org.postgresql.Driver"
+                    url="jdbc:postgresql://localhost:5432/opennms"
+                    user-name="opennms"
+                    password="opennms">
+    <param name="connectionTimeout" value="0"/>
+    <param name="maxLifetime" value="600000"/>
+  </jdbc-data-source>
+
+  <jdbc-data-source name="opennms-admin"
+                    database-name="template1"
+                    class-name="org.postgresql.Driver"
+                    url="jdbc:postgresql://localhost:5432/template1"
+                    user-name="postgres"
+                    password="postgres" />
+</datasource-configuration>
+EOF
+sudo mv -f $tmp_file $opennms_etc/opennms-datasources.xml
+
+cat <<EOF > $tmp_file
+START_TIMEOUT=0
+JAVA_HEAP_SIZE=1024
+MAXIMUM_FILE_DESCRIPTORS=204800
+
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -d64 -Djava.net.preferIPv4Stack=true"
+
+# GC Logging
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+PrintGCTimeStamps -XX:+PrintGCDetails"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Xloggc:/opt/opennms/logs/gc.log"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseGCLogFileRotation"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:NumberOfGCLogFiles=10"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:GCLogFileSize=10M"
+
+# GC Settings
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseStringDeduplication"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:G1RSetUpdatingPauseTimePercent=5"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:MaxGCPauseMillis=500"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:InitiatingHeapOccupancyPercent=70"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:ParallelGCThreads=2"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:ConcGCThreads=2"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+ParallelRefProcEnabled"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+AlwaysPreTouch"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseTLAB"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+ResizeTLAB"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:-UseBiasedLocking"
+
+# Java Flight Recorder
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
+
+# Configure Remote JMX
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.port=18980"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.rmi.port=18980"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.local.only=false"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.ssl=false"
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.authenticate=true"
+
+# Listen on all interfaces
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server.serverHost=0.0.0.0"
+
+# Accept remote RMI connections on this interface
+ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=0.0.0.0"
+
+# If you enable Flight Recorder, be aware of the implications since it is a commercial feature of the Oracle JVM.
+#ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:StartFlightRecording=duration=600s,filename=opennms.jfr,delay=1h"
+EOF
+sudo mv -f $tmp_file $opennms_etc/opennms.conf
+
+cat <<EOF > $tmp_file
+admin readwrite
+jmx   readonly
+EOF
+sudo mv -f $tmp_file $opennms_etc/jmxremote.access
+
+sudo chown -R root:root $opennms_etc/
+
 echo "### Installing Hawtio version $hawtio_version..."
 
 hawtio_url=https://oss.sonatype.org/content/repositories/public/io/hawt/hawtio-default/$hawtio_version/hawtio-default-$hawtio_version.war
 hawtio_war=$opennms_home/jetty-webapps/hawtio.war
-sudo wget -qO $hawtio_war $hawtio_url && \
-  sudo unzip -qq $hawtio_war -d $opennms_home/jetty-webapps/hawtio && \
-  sudo rm -f $hawtio_war
+sudo wget -qO $hawtio_war $hawtio_url
+sudo unzip -qq $hawtio_war -d $opennms_home/jetty-webapps/hawtio
+sudo rm -f $hawtio_war
 
 echo "### Enabling CORS..."
 

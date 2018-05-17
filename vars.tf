@@ -284,6 +284,7 @@ variable "settings" {
     postgresql_version_family    = "9.6-3"
     postgresql_max_connections   = 200
     elastic_password             = "opennms"
+    elastic_flow_index_strategy  = "hourly"
     onms_use_30sec_frequency     = "true"
   }
 }

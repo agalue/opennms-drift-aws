@@ -13,6 +13,7 @@ webui_endpoint="${webui_endpoint}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
+elastic_index_strategy="${elastic_index_strategy}"
 use_30sec_frequency="${use_30sec_frequency}"
 
 echo "### Configuring Hostname and Domain..."
@@ -29,75 +30,22 @@ opennms_etc=$opennms_home/etc
 
 # Database connections
 postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
-cat <<EOF > $opennms_etc/opennms-datasources.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<datasource-configuration xmlns:this="http://xmlns.opennms.org/xsd/config/opennms-datasources"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://xmlns.opennms.org/xsd/config/opennms-datasources
-  http://www.opennms.org/xsd/config/opennms-datasources.xsd ">
-
-  <connection-pool factory="org.opennms.core.db.HikariCPConnectionFactory"
-    idleTimeout="600"
-    loginTimeout="3"
-    minPool="50"
-    maxPool="50"
-    maxSize="50" />
-
-  <jdbc-data-source name="opennms"
-                    database-name="opennms"
-                    class-name="org.postgresql.Driver"
-                    url="$postgres_onms_url"
-                    user-name="opennms"
-                    password="opennms">
-    <param name="connectionTimeout" value="0"/>
-    <param name="maxLifetime" value="600000"/>
-  </jdbc-data-source>
-
-  <jdbc-data-source name="opennms-admin"
-                    database-name="template1"
-                    class-name="org.postgresql.Driver"
-                    url="$postgres_tmpl_url"
-                    user-name="postgres"
-                    password="postgres" />
-</datasource-configuration>
-EOF
+onms_url=`echo $postgres_onms_url | sed 's|[&]|\\\\&|'`
+tmpl_url=`echo $postgres_tmpl_url | sed 's|[&]|\\\\&|'`
+sed -r -i "/jdbc.*opennms/s|url=\".*\"|url=\"$onms_url\"|" opennms-datasources.xml
+sed -r -i "/jdbc.*template1/s|url=\".*\"|url=\"$onms_url\"|" opennms-datasources.xml
 
 # JVM Settings
+num_of_cores=`cat /proc/cpuinfo | grep "^processor" | wc -l`
+half_of_cores=`expr $num_of_cores / 2`
 total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
 mem_in_mb=`expr $total_mem_in_mb / 2`
 if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
-jmxport=18980
-cat <<EOF > $opennms_etc/opennms.conf
-START_TIMEOUT=0
-JAVA_HEAP_SIZE=$mem_in_mb
-MAXIMUM_FILE_DESCRIPTORS=204800
-
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC -XX:+UseStringDeduplication"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -d64 -XX:+PrintGCTimeStamps -XX:+PrintGCDetails"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Xloggc:$opennms_home/logs/gc.log"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
-
-# Configure Remote JMX
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.port=$jmxport"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.rmi.port=$jmxport"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.local.only=false"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.ssl=false"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.authenticate=true"
-
-# Listen on all interfaces
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server.serverHost=0.0.0.0"
-
-# Accept remote RMI connections on this interface
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=$hostname"
-EOF
-
-# JMX Groups
-cat <<EOF > $opennms_etc/jmxremote.access
-admin readwrite
-jmx   readonly
-EOF
+sed -i -r "/JAVA_HEAP_SIZE/s/=1024/=$mem_in_mb/" $opennms_etc/opennms.conf
+sed -i -r "/GCThreads/s/=2/=$half_of_cores/" $opennms_etc/opennms.conf
+sed -i -r "/rmi.server.hostname/s/=0.0.0.0/=$hostname/" $opennms_etc/opennms.conf
 
 # External Cassandra
 newts_cfg=$opennms_etc/opennms.properties.d/newts.properties
@@ -126,12 +74,7 @@ cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
 elasticUrl=$elastic_url
 elasticGlobalUser=$elastic_user
 elasticGlobalPassword=$elastic_password
-EOF
-
-# RRD Settings
-cat <<EOF > $opennms_etc/opennms.properties.d/rrd.properties
-org.opennms.rrd.storeByGroup=true
-org.opennms.rrd.storeByForeignSource=true
+elasticIndexStrategy=$elastic_index_strategy
 EOF
 
 # Simplify Eventd
@@ -206,26 +149,14 @@ cat <<EOF > $opennms_etc/service-configuration.xml
 EOF
 
 # WebUI Settings
-cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
+cat <<EOF >> $opennms_etc/opennms.properties.d/webui.properties
 org.opennms.web.console.centerUrl=/status/status-box.jsp,/geomap/map-box.jsp,/heatmap/heatmap-box.jsp
-org.opennms.security.disableLoginSuccessEvent=true
-EOF
-
-# TODO: the following is due to some issues with the datachoices plugin
-cat <<EOF > $opennms_etc/org.opennms.features.datachoices.cfg
-enabled=false
-acknowledged-by=admin
-acknowledged-at=Mon Jan 01 00\:00\:00 EDT 2018
 EOF
 
 # Configuring Deep Dive Tool
 cat <<EOF > $opennms_etc/org.opennms.netmgt.flows.rest.cfg
 flowGraphUrl=http://$webui_endpoint/grafana/dashboard/flows?node=\$nodeId&interface=\$ifIndex
 EOF
-
-# Logging
-sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
-sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
 
 echo "### Forcing OpenNMS to be read-only in terms of administrative changes..."
 

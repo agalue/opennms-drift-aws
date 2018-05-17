@@ -13,6 +13,7 @@ activemq_url="${activemq_url}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
+elastic_index_strategy="${elastic_index_strategy}"
 use_redis="${use_redis}"
 use_30sec_frequency="${use_30sec_frequency}"
 
@@ -48,106 +49,23 @@ opennms_etc=$opennms_home/etc
 # Database connections
 
 postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
-cat <<EOF > $opennms_etc/opennms-datasources.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<datasource-configuration xmlns:this="http://xmlns.opennms.org/xsd/config/opennms-datasources"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://xmlns.opennms.org/xsd/config/opennms-datasources
-  http://www.opennms.org/xsd/config/opennms-datasources.xsd ">
-
-  <connection-pool factory="org.opennms.core.db.HikariCPConnectionFactory"
-    idleTimeout="600"
-    loginTimeout="3"
-    minPool="50"
-    maxPool="50"
-    maxSize="50" />
-
-  <jdbc-data-source name="opennms"
-                    database-name="opennms"
-                    class-name="org.postgresql.Driver"
-                    url="$postgres_onms_url"
-                    user-name="opennms"
-                    password="opennms">
-    <param name="connectionTimeout" value="0"/>
-    <param name="maxLifetime" value="600000"/>
-  </jdbc-data-source>
-
-  <jdbc-data-source name="opennms-admin"
-                    database-name="template1"
-                    class-name="org.postgresql.Driver"
-                    url="$postgres_tmpl_url"
-                    user-name="postgres"
-                    password="postgres" />
-</datasource-configuration>
-EOF
+onms_url=`echo $postgres_onms_url | sed 's|[&]|\\\\&|'`
+tmpl_url=`echo $postgres_tmpl_url | sed 's|[&]|\\\\&|'`
+sed -r -i "/jdbc.*opennms/s|url=\".*\"|url=\"$onms_url\"|" opennms-datasources.xml
+sed -r -i "/jdbc.*template1/s|url=\".*\"|url=\"$onms_url\"|" opennms-datasources.xml
 
 # JVM Settings
 
+num_of_cores=`cat /proc/cpuinfo | grep "^processor" | wc -l`
+half_of_cores=`expr $num_of_cores / 2`
 total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
 mem_in_mb=`expr $total_mem_in_mb / 2`
 if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
-
-jmxport=18980
-
-num_of_cores=`cat /proc/cpuinfo | grep "^processor" | wc -l`
-half_of_cores=`expr $num_of_cores / 2`
-
-cat <<EOF > $opennms_etc/opennms.conf
-START_TIMEOUT=0
-JAVA_HEAP_SIZE=$mem_in_mb
-MAXIMUM_FILE_DESCRIPTORS=204800
-
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -d64 -Djava.net.preferIPv4Stack=true"
-
-# GC Logging
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+PrintGCTimeStamps -XX:+PrintGCDetails"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Xloggc:/opt/opennms/logs/gc.log"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseGCLogFileRotation"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:NumberOfGCLogFiles=10"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:GCLogFileSize=10M"
-
-# GC Settings
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseStringDeduplication"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:G1RSetUpdatingPauseTimePercent=5"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:MaxGCPauseMillis=500"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:InitiatingHeapOccupancyPercent=70"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:ParallelGCThreads=$half_of_cores"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:ConcGCThreads=$half_of_cores"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+ParallelRefProcEnabled"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+AlwaysPreTouch"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UseTLAB"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+ResizeTLAB"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:-UseBiasedLocking"
-
-# Java Flight Recorder
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
-
-# Configure Remote JMX
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.port=$jmxport"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.rmi.port=$jmxport"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.local.only=false"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.ssl=false"
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dcom.sun.management.jmxremote.authenticate=true"
-
-# Listen on all interfaces
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Dopennms.poller.server.serverHost=0.0.0.0"
-
-# Accept remote RMI connections on this interface
-ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -Djava.rmi.server.hostname=$hostname"
-
-# If you enable Flight Recorder, be aware of the implications since it is a commercial feature of the Oracle JVM.
-#ADDITIONAL_MANAGER_OPTIONS="\$ADDITIONAL_MANAGER_OPTIONS -XX:StartFlightRecording=duration=600s,filename=opennms.jfr,delay=1h"
-EOF
-
-# JMX Auth
-
-cat <<EOF > $opennms_etc/jmxremote.access
-admin readwrite
-jmx   readonly
-EOF
+sed -i -r "/JAVA_HEAP_SIZE/s/=1024/=$mem_in_mb/" $opennms_etc/opennms.conf
+sed -i -r "/GCThreads/s/=2/=$half_of_cores/" $opennms_etc/opennms.conf
+sed -i -r "/rmi.server.hostname/s/=0.0.0.0/=$hostname/" $opennms_etc/opennms.conf
 
 IFS=',' read -r -a ip_list <<< "$opennms_ui_servers"
 ip_list+=($ip_address)
@@ -217,19 +135,6 @@ sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/poller-configuration.x
 sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/collectd-configuration.xml 
 sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/collectd-configuration.xml 
 
-# RRD Settings
-
-cat <<EOF > $opennms_etc/opennms.properties.d/rrd.properties
-org.opennms.rrd.storeByGroup=true
-org.opennms.rrd.storeByForeignSource=true
-EOF
-
-# WebUI Settings
-
-cat <<EOF > $opennms_etc/opennms.properties.d/webui.properties
-org.opennms.security.disableLoginSuccessEvent=true
-EOF
-
 # Flows
 
 sed -r -i '/"Netflow-5"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
@@ -241,7 +146,7 @@ cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
 elasticUrl=$elastic_url
 elasticGlobalUser=$elastic_user
 elasticGlobalPassword=$elastic_password
-elasticIndexStrategy=hourly
+elasticIndexStrategy=$elastic_index_strategy
 settings.index.number_of_shards=6
 settings.index.number_of_replicas=1
 EOF
@@ -288,8 +193,6 @@ EOF
 
 # Logging
 
-sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
-sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
 cat <<EOF > logging.txt
         <Route key="collectd">
           <RollingFile name="Rolling-Collectd" fileName="\$${logdir}/collectd.log"

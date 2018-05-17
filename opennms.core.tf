@@ -4,19 +4,20 @@ data "template_file" "opennms" {
   template = "${file("${path.module}/templates/opennms.core.tpl")}"
 
   vars {
-    hostname            = "${element(keys(var.onms_ip_addresses),0)}"
-    domainname          = "${var.dns_zone}"
-    postgres_onms_url   = "jdbc:postgresql://${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
-    activemq_url        = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
-    elastic_url         = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
-    elastic_user        = "elastic"
-    elastic_password    = "${lookup(var.settings, "elastic_password")}"
-    kafka_servers       = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
-    cassandra_servers   = "${join(",", keys(var.cassandra_ip_addresses))}"
-    cassandra_repfactor = "${lookup(var.settings, "cassandra_replication_factor")}"
-    opennms_ui_servers  = "${join(",", values(var.onms_ui_ip_addresses))}"
-    use_redis           = "false"
-    use_30sec_frequency = "${lookup(var.settings, "onms_use_30sec_frequency")}"
+    hostname               = "${element(keys(var.onms_ip_addresses),0)}"
+    domainname             = "${var.dns_zone}"
+    postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
+    activemq_url           = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
+    elastic_url            = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
+    elastic_user           = "elastic"
+    elastic_index_strategy = "${lookup(var.settings, "elastic_flow_index_strategy")}"
+    elastic_password       = "${lookup(var.settings, "elastic_password")}"
+    kafka_servers          = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
+    cassandra_servers      = "${join(",", keys(var.cassandra_ip_addresses))}"
+    cassandra_repfactor    = "${lookup(var.settings, "cassandra_replication_factor")}"
+    opennms_ui_servers     = "${join(",", values(var.onms_ui_ip_addresses))}"
+    use_redis              = "false"
+    use_30sec_frequency    = "${lookup(var.settings, "onms_use_30sec_frequency")}"
   }
 }
 

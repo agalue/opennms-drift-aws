@@ -9,7 +9,6 @@ es_version="6.2.4"
 curator_version="5.4.1"
 maven_version="3.5.3"
 plugin_branch="master"
-plugin_name="elasticsearch-drift-plugin-1.0.0-SNAPSHOT"
 
 ########################################
 
@@ -22,7 +21,7 @@ sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch x-pack
 
 echo "### Initializing GIT at $es_config..."
 
-cd $es_config
+sudo cd $es_config
 sudo git config --global user.name "OpenNMS"
 sudo git config --global user.email "support@opennms.org"
 sudo git init .

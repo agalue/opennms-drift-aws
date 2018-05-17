@@ -16,7 +16,7 @@ sudo -u kibana /usr/share/kibana/bin/kibana-plugin install x-pack
 
 echo "### Initializing GIT at $kibana_config..."
 
-cd $kibana_config
+sudo cd $kibana_config
 sudo git config --global user.name "OpenNMS"
 sudo git config --global user.email "support@opennms.org"
 sudo git init .
