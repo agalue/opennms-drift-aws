@@ -82,6 +82,14 @@ EOF
 done
 echo "</jmx-config>" >> $opennms_etc/jmx-config.xml
 
+cat <<EOF > onmsjvm.txt
+         <parameter key="factory" value="PASSWORD-CLEAR"/>
+         <parameter key="username" value="admin"/>
+         <parameter key="password" value="admin"/>
+EOF
+sed -r -i '/service name="OpenNMS-JVM"/r onmsjvm.txt' $opennms_etc/poller-configuration.xml
+rm -f onmsjvm.txt
+
 # External ActiveMQ
 
 cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
@@ -215,7 +223,7 @@ cat <<EOF > logging.txt
           </RollingFile>
         </Route>
 EOF
-sed -r -i '/Routes pattern=/r logging.txt/' $opennms_etc/log4j2.xml
+sed -r -i '/Routes pattern=/r logging.txt' $opennms_etc/log4j2.xml
 rm -f logging.txt
 
 # WARNING: For testing purposes only
