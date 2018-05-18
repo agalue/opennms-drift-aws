@@ -58,6 +58,7 @@ org.opennms.newts.config.read_consistency=ONE
 EOF
 if [[ "$redis_server" != "" ]]; then
   cat <<EOF >> $newts_cfg
+org.opennms.newts.config.cache.strategy=org.opennms.netmgt.newts.support.RedisResourceMetadataCache
 org.opennms.newts.config.cache.redis_hostname=$redis_server
 org.opennms.newts.config.cache.redis_port=6379
 EOF

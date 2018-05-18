@@ -30,9 +30,10 @@ if [[ "$use_redis" == "true" ]]; then
   echo "### Configuring Redis..."
 
   echo "vm.overcommit_memory=1" > /etc/sysctl.d/redis.conf
-  sysctl vm.overcommit_memory=1
+  sysctl -w vm.overcommit_memory=1
   redis_conf=/etc/redis.conf
-  sed -i -r "s/^bind .*/bind $ip_address/" $redis_conf
+  cp $redis_conf $redis_conf.bak
+  sed -i -r "s/^bind .*/bind 0.0.0.0/" $redis_conf
   sed -i -r "s/^protected-mode .*/protected-mode no/" $redis_conf
   sed -i -r "s/^save /# save /" $redis_conf
   sed -i -r "s/^# maxmemory-policy .*/maxmemory-policy allkeys-lru/" $redis_conf
@@ -128,7 +129,8 @@ org.opennms.newts.config.cache.priming.block_ms=120000
 EOF
 if [[ "$use_redis" == "true" ]]; then
   cat <<EOF >> $newts_cfg
-org.opennms.newts.config.cache.redis_hostname=$ip_address
+org.opennms.newts.config.cache.strategy=org.opennms.netmgt.newts.support.RedisResourceMetadataCache
+org.opennms.newts.config.cache.redis_hostname=127.0.0.1
 org.opennms.newts.config.cache.redis_port=6379
 EOF
 fi
