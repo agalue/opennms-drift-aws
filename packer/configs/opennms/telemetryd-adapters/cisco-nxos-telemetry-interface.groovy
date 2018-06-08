@@ -29,6 +29,7 @@
 import groovy.util.logging.Slf4j
 
 import java.util.List
+import java.util.Objects
 
 import org.opennms.netmgt.collection.api.AttributeType
 import org.opennms.netmgt.collection.support.builder.DeferredGenericTypeResource
@@ -100,7 +101,52 @@ class CollectionSetGenerator {
                     NxosGpbParserUtil.getValueAsDouble(telemetryMsg, metric), AttributeType.COUNTER)
             }
         }
+
+        /*
+         * Example of retrieving data using DME from a Nexus Switch (Hint: the Visore Tool can help in this regard)
+         * The following code will process the data when the switch is configured like this:
+         * 
+         * telemetry
+         *   destination-group 100
+         *     ip address 192.168.205.253 port 50001 protocol gRPC encoding GPB 
+         *   sensor-group 220
+         *     path sys/intf depth unbounded
+         *   subscription 300
+         *     dst-grp 100
+         *     snsr-grp 220 sample-interval 300000
+         */ 
+        if (telemetryMsg.getEncodingPath().equals("sys/intf")) {
+          findFieldWithName(telemetryMsg.getDataGpbkvList().get(0), "children").getFieldsList()
+            .grep(it.getName().equals("l1PhysIf"))
+            .each { f ->
+              def intfId = findFieldWithName(f, "id").getStringValue()
+              def genericTypeResource = new DeferredGenericTypeResource(nodeLevelResource, "nxosIntf", intfId)
+              def rmonIfHCIn = findFieldWithName(f, "rmonIfHCIn");
+              def rmonIfHCOut = findFieldWithName(f, "rmonIfHCOut");
+              ["ucastPkts", "multicastPkts", "broadcastPkts", "octets"].each { metric ->
+                builder.withNumericAttribute(genericTypeResource, "nxosRmonIntfStats", "in$metric",
+                    NxosGpbParserUtil.getValueFromRowAsDouble(rmonIfHCIn, metric), AttributeType.COUNTER)
+                builder.withNumericAttribute(genericTypeResource, "nxosRmonIntfStats", "out$metric",
+                    NxosGpbParserUtil.getValueFromRowAsDouble(rmonIfHCOut, metric), AttributeType.COUNTER)
+              }
+            }
+        } 
+
     }
+
+    static TelemetryBis.TelemetryField findFieldWithName(TelemetryBis.TelemetryField field, String name) {
+        if (Objects.equals(field.getName(), name)) {
+            return field;
+        }
+        for (subField in field.getFieldsList()) {
+            def matchingField = findFieldWithName(subField, name);
+            if (matchingField != null) {
+                return matchingField;
+            }
+        }
+        return null;
+    }
+
 }
 
 // The following variables are passed in as globals from the adapter:

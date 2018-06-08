@@ -3,10 +3,10 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="bleeding"
+onms_repo="stable"
 onms_version="-latest-"
 helm_branch="develop"
-grafana_version="5.1.0"
+grafana_version="5.1.3"
 hawtio_version="1.4.63"
 
 ########################################
