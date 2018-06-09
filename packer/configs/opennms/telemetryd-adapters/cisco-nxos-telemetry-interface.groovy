@@ -114,37 +114,39 @@ class CollectionSetGenerator {
          *   subscription 300
          *     dst-grp 100
          *     snsr-grp 220 sample-interval 300000
-         */ 
+         */
         if (telemetryMsg.getEncodingPath().equals("sys/intf")) {
           findFieldWithName(telemetryMsg.getDataGpbkvList().get(0), "children").getFieldsList()
-            .grep(it.getName().equals("l1PhysIf"))
             .each { f ->
               def intfId = findFieldWithName(f, "id").getStringValue()
+              log.debug("Processing NX-OS interface {}", intfId)
               def genericTypeResource = new DeferredGenericTypeResource(nodeLevelResource, "nxosIntf", intfId)
               def rmonIfHCIn = findFieldWithName(f, "rmonIfHCIn");
               def rmonIfHCOut = findFieldWithName(f, "rmonIfHCOut");
-              ["ucastPkts", "multicastPkts", "broadcastPkts", "octets"].each { metric ->
-                builder.withNumericAttribute(genericTypeResource, "nxosRmonIntfStats", "in$metric",
-                    NxosGpbParserUtil.getValueFromRowAsDouble(rmonIfHCIn, metric), AttributeType.COUNTER)
-                builder.withNumericAttribute(genericTypeResource, "nxosRmonIntfStats", "out$metric",
-                    NxosGpbParserUtil.getValueFromRowAsDouble(rmonIfHCOut, metric), AttributeType.COUNTER)
+              if (rmonIfHCIn != null && rmonIfHCOut != null) {
+	              ["ucastPkts", "multicastPkts", "broadcastPkts", "octets"].each { metric ->
+	                builder.withNumericAttribute(genericTypeResource, "nxosRmonIntfStats", "in$metric",
+	                    NxosGpbParserUtil.getValueFromRowAsDouble(rmonIfHCIn, metric), AttributeType.COUNTER)
+	                builder.withNumericAttribute(genericTypeResource, "nxosRmonIntfStats", "out$metric",
+	                    NxosGpbParserUtil.getValueFromRowAsDouble(rmonIfHCOut, metric), AttributeType.COUNTER)
+	              }
               }
             }
         } 
 
     }
 
-    static TelemetryBis.TelemetryField findFieldWithName(TelemetryBis.TelemetryField field, String name) {
+    static findFieldWithName(TelemetryBis.TelemetryField field, String name) {
         if (Objects.equals(field.getName(), name)) {
-            return field;
+            return field
         }
         for (subField in field.getFieldsList()) {
-            def matchingField = findFieldWithName(subField, name);
+            def matchingField = findFieldWithName(subField, name)
             if (matchingField != null) {
-                return matchingField;
+                return matchingField
             }
         }
-        return null;
+        return null
     }
 
 }
