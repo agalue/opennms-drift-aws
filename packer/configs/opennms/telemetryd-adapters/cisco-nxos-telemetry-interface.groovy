@@ -118,7 +118,7 @@ class CollectionSetGenerator {
         if (telemetryMsg.getEncodingPath().equals("sys/intf")) {
           findFieldWithName(telemetryMsg.getDataGpbkvList().get(0), "children").getFieldsList()
             .each { f ->
-              def intfId = findFieldWithName(f, "id").getStringValue()
+              def intfId = findFieldWithName(f, "id").getStringValue().replaceAll(/\//,"_")
               log.debug("Processing NX-OS interface {}", intfId)
               def genericTypeResource = new DeferredGenericTypeResource(nodeLevelResource, "nxosIntf", intfId)
               def rmonIfHCIn = findFieldWithName(f, "rmonIfHCIn");
