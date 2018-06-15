@@ -1,17 +1,17 @@
 <model-import xmlns="http://xmlns.opennms.org/xsd/config/model-import" date-stamp="2018-01-01T00:00:00.000-05:00" foreign-source="Cisco">
-  <node location="GNS3" foreign-id="R2" node-label="R2">
+  <node location="GNS3" building="GNS3" foreign-id="R2" node-label="R2">
     <interface ip-addr="192.168.205.252" status="1" snmp-primary="P"/>
     <asset name="city" value="Apex"/>
     <asset name="state" value="NC"/>
     <asset name="country" value="US"/>    
   </node>
-  <node location="GNS3" building="" foreign-id="R1" node-label="R1">
+  <node location="GNS3" building="GNS3" foreign-id="R1" node-label="R1">
     <interface ip-addr="192.168.205.251" status="1" snmp-primary="P"/>
     <asset name="city" value="Apex"/>
     <asset name="state" value="NC"/>
     <asset name="country" value="US"/>    
   </node>
-  <node location="GNS3" foreign-id="nexus9k" node-label="nexus9k">
+  <node location="GNS3" building="GNS3" foreign-id="nexus9k" node-label="nexus9k">
     <interface ip-addr="192.168.205.254" status="1" snmp-primary="P"/>
     <asset name="city" value="Apex"/>
     <asset name="state" value="NC"/>
