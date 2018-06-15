@@ -5,106 +5,175 @@
     <interface descr="lo0" ip-addr="127.0.0.1" status="1" snmp-primary="N">
       <monitored-service service-name="OpenNMS-JVM"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="onmsui1" node-label="onmsui-01-server">
     <interface descr="eth0" ip-addr="172.16.1.71" status="1" snmp-primary="P">
       <monitored-service service-name="OpenNMS-JVM"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="onmsui2" node-label="onmsui-02-server">
     <interface descr="eth0" ip-addr="172.16.1.72" status="1" snmp-primary="P">
       <monitored-service service-name="OpenNMS-JVM"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="postgresql1" node-label="postgresql1-server">
     <interface descr="eth0" ip-addr="172.16.1.101" status="1" snmp-primary="P">
       <monitored-service service-name="PostgreSQL"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="postgresql2" node-label="postgresql2-server">
     <interface descr="eth0" ip-addr="172.16.1.102" status="1" snmp-primary="P">
       <monitored-service service-name="PostgreSQL"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="kibana" node-label="kibana-01-server">
     <interface descr="eth0" ip-addr="172.16.1.50" status="1" snmp-primary="P"/>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="esmaster01" node-label="elastic-master-01-server">
     <interface descr="eth0" ip-addr="172.16.1.51" status="1" snmp-primary="P">
       <monitored-service service-name="Elasticsearch"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="esmaster02" node-label="elastic-master-02-server">
     <interface descr="eth0" ip-addr="172.16.1.52" status="1" snmp-primary="P">
       <monitored-service service-name="Elasticsearch"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="esmaster03" node-label="elastic-master-03-server">
     <interface descr="eth0" ip-addr="172.16.1.53" status="1" snmp-primary="P">
       <monitored-service service-name="Elasticsearch"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="esdata01" node-label="elastic-data-01-server">
     <interface descr="eth0" ip-addr="172.16.1.54" status="1" snmp-primary="P">
       <monitored-service service-name="Elasticsearch"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="esdata02" node-label="elastic-data-02-server">
     <interface descr="eth0" ip-addr="172.16.1.55" status="1" snmp-primary="P">
       <monitored-service service-name="Elasticsearch"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="esdata03" node-label="elastic-data-03-server">
     <interface descr="eth0" ip-addr="172.16.1.56" status="1" snmp-primary="P">
       <monitored-service service-name="Elasticsearch"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="amq01" node-label="activemq-01-server">
     <interface descr="eth0" ip-addr="172.16.1.11" status="1" snmp-primary="P"/>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="amq02" node-label="activemq-02-server">
     <interface descr="eth0" ip-addr="172.16.1.12" status="1" snmp-primary="P"/>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="zoo1" node-label="zookeeper-01-server">
     <interface descr="eth0" ip-addr="172.16.1.21" status="1" snmp-primary="P"/>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="zoo2" node-label="zookeeper-02-server">
     <interface descr="eth0" ip-addr="172.16.1.22" status="1" snmp-primary="P"/>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="zoo3" node-label="zookeeper-03-server">
     <interface descr="eth0" ip-addr="172.16.1.23" status="1" snmp-primary="P"/>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="kafka1" node-label="kafka-01-server">
     <interface descr="eth0" ip-addr="172.16.1.31" status="1" snmp-primary="P">
       <monitored-service service-name="JMX-Kafka"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="kafka2" node-label="kafka-02-server">
     <interface descr="eth0" ip-addr="172.16.1.32" status="1" snmp-primary="P">
       <monitored-service service-name="JMX-Kafka"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="kafka3" node-label="kafka-03-server">
     <interface descr="eth0" ip-addr="172.16.1.33" status="1" snmp-primary="P">
       <monitored-service service-name="JMX-Kafka"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="cassandra1" node-label="cassandra-01-server">
     <interface descr="eth0" ip-addr="172.16.1.41" status="1" snmp-primary="P">
       <monitored-service service-name="JMX-Cassandra"/>
       <monitored-service service-name="JMX-Cassandra-Newts"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="cassandra2" node-label="cassandra-02-server">
     <interface descr="eth0" ip-addr="172.16.1.42" status="1" snmp-primary="P">
       <monitored-service service-name="JMX-Cassandra"/>
       <monitored-service service-name="JMX-Cassandra-Newts"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
   <node building="AWS" foreign-id="cassandra3" node-label="cassandra-03-server">
     <interface descr="eth0" ip-addr="172.16.1.43" status="1" snmp-primary="P">
       <monitored-service service-name="JMX-Cassandra"/>
       <monitored-service service-name="JMX-Cassandra-Newts"/>
     </interface>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
   </node>
 </model-import>
