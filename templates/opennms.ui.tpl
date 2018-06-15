@@ -32,8 +32,8 @@ opennms_etc=$opennms_home/etc
 postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
 onms_url=`echo $postgres_onms_url | sed 's|[&]|\\\\&|'`
 tmpl_url=`echo $postgres_tmpl_url | sed 's|[&]|\\\\&|'`
-sed -r -i "/jdbc.*opennms/s|url=\".*\"|url=\"$onms_url\"|" opennms-datasources.xml
-sed -r -i "/jdbc.*template1/s|url=\".*\"|url=\"$onms_url\"|" opennms-datasources.xml
+sed -r -i "/jdbc.*opennms/s|url=\".*\"|url=\"$onms_url\"|" $opennms_etc/opennms-datasources.xml
+sed -r -i "/jdbc.*template1/s|url=\".*\"|url=\"$onms_url\"|" $opennms_etc/opennms-datasources.xml
 
 # JVM Settings
 num_of_cores=`cat /proc/cpuinfo | grep "^processor" | wc -l`
