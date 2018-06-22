@@ -129,6 +129,4 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
 
-* Upgrade PostgreSQL to 10.x
-
 * Upgrade Elasticsearch to 6.3.x
