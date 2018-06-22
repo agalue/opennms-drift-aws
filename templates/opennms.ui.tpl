@@ -237,7 +237,7 @@ EOF
   curl -u admin:admin -H 'Content-Type: application/json' -XPOST -d @data.json $ds_url
   sed -i -r 's/-fault/-flow/g' data.json
   curl -u admin:admin -H 'Content-Type: application/json' -XPOST -d @data.json $ds_url
-  rm data.json
+  rm -f data.json
 fi
 
 echo "### Configuring HTTP Proxy..."

@@ -2,7 +2,7 @@
   "variables": {
     "region": "us-east-2",
     "source_ami": "ami-2a0f324f",
-    "app_name": "PostgreSQL 9.6",
+    "app_name": "PostgreSQL 10",
     "environment": "Drift"
   },
   "description": "{{ user `app_name` }} for {{ user `environment` }}",

@@ -82,7 +82,8 @@ if [ "$pg_role" == "master" ]; then
 
   echo "### Configuring Master Server..."
 
-  /usr/pgsql-$pg_version/bin/postgresql$pg_family-setup initdb
+  pgsetup=`find /usr/pgsql-$pg_version/bin/ -name postgresql*setup`
+  $pgsetup initdb
 
   sed -r -i "s/(peer|ident)/trust/g" $hba_conf
   sed -r -i "s|127.0.0.1/32|$vpc_cidr|g" $hba_conf

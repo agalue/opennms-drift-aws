@@ -6,7 +6,7 @@
 onms_repo="stable"
 onms_version="-latest-"
 helm_branch="develop"
-grafana_version="5.1.3"
+grafana_version="5.1.4"
 hawtio_version="1.4.63"
 
 ########################################

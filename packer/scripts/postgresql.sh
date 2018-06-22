@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-pg_repo_version="9.6-3"
+pg_repo_version="10-2"
 
 ########################################
 

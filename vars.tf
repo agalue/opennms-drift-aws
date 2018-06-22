@@ -281,7 +281,7 @@ variable "settings" {
     kafka_replication_factor     = 2
     kafka_min_insync_replicas    = 1
     cassandra_replication_factor = 2
-    postgresql_version_family    = "9.6-3"
+    postgresql_version_family    = "10-2"
     postgresql_max_connections   = 200
     elastic_password             = "opennms"
     elastic_flow_index_strategy  = "hourly"
