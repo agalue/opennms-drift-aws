@@ -15,7 +15,7 @@ tmp_repo=/tmp/cassandra.repo
 cat <<EOF > $tmp_repo
 [cassandra]
 name=Apache Cassandra
-baseurl=https://www.apache.org/dist/cassandra/redhat/${repo_version}/
+baseurl=https://www.apache.org/dist/cassandra/redhat/$repo_version/
 gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://www.apache.org/dist/cassandra/KEYS

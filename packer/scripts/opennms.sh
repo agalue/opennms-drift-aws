@@ -6,7 +6,7 @@
 onms_repo="stable"
 onms_version="-latest-"
 helm_branch="develop"
-grafana_version="5.1.4"
+grafana_version="5.2.1"
 hawtio_version="1.4.63"
 
 ########################################
@@ -14,10 +14,6 @@ hawtio_version="1.4.63"
 opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
 tmp_file=/tmp/_onms_temp_file
-
-echo "### Installing EPEL Repository..."
-
-sudo yum -y -q install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
 echo "### Installing Common Packages..."
 
@@ -30,7 +26,7 @@ sudo yum install -y -q https://s3-us-west-2.amazonaws.com/grafana-releases/relea
 
 echo "### Installing NodeJS & Yarn..."
 
-sudo curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+sudo curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
 sudo yum -y -q install gcc-c++ nodejs
 sudo npm install -g yarn
 

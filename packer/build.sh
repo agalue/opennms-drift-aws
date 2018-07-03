@@ -1,7 +1,7 @@
 #!/bin/bash
 
 region=${1-us-east-2};
-source_ami=${2-ami-2a0f324f};
+source_ami=${2-ami-8c122be9};
 
 echo "AWS Region: $region"
 echo "AWS Source AMI: $source_ami"
