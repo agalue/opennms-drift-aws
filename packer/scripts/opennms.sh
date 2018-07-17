@@ -5,9 +5,8 @@
 
 onms_repo="stable"
 onms_version="-latest-"
-helm_branch="develop"
 grafana_version="5.2.1"
-hawtio_version="1.4.63"
+hawtio_version="2.0.2"
 
 ########################################
 
@@ -30,30 +29,13 @@ sudo curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash 
 sudo yum -y -q install gcc-c++ nodejs
 sudo npm install -g yarn
 
-echo "### Installing Helm for Drift from branch $helm_branch..."
-
-sudo mkdir ~/development
-cd ~/development
-sudo git clone https://github.com/OpenNMS/opennms-helm.git
-cd opennms-helm
-if [[ `git branch | grep "^[*] $helm_branch" | sed -e 's/[* ]*//'` == "$helm_branch" ]]; then
-  echo "### Already in branch $helm_branch"
-else
-  echo "### Checking out branch $helm_branch"
-  sudo git checkout -b $helm_branch origin/$helm_branch
-fi
-sudo yarn
-sudo yarn build
-sudo mkdir -p /var/lib/grafana/plugins/opennms-helm-app/
-sudo rsync -ar --delete ~/development/opennms-helm/ /var/lib/grafana/plugins/opennms-helm-app/
-cd
-
 echo "### Installing OpenNMS Dependencies from stable repository..."
 
 sudo sed -r -i '/name=Amazon Linux 2/a exclude=rrdtool-*' /etc/yum.repos.d/amzn2-core.repo
 sudo yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel7.noarch.rpm
 sudo rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel7.gpg
 sudo yum install -y -q jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Twig)'
+sudo yum install -y -q opennms-helm
 
 echo "### Installing OpenNMS..."
 

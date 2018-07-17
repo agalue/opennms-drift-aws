@@ -137,7 +137,7 @@ fi
 if [ "$use_30sec_frequency" == "true" ]; then
   cat <<EOF >> $newts_cfg
 org.opennms.newts.query.minimum_step=30000
-org.opennms.newts.query.heartbeat=45000
+org.opennms.newts.query.heartbeat=450000
 EOF
 fi
 sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/poller-configuration.xml 

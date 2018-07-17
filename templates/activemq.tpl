@@ -32,71 +32,66 @@ cat <<EOF > /opt/activemq/conf/activemq.xml
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
   http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
 
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="locations">
-            <value>file:\$${activemq.conf}/credentials.properties</value>
-        </property>
-    </bean>
+  <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="locations">
+      <value>file:\$${activemq.conf}/credentials.properties</value>
+    </property>
+  </bean>
 
-    <bean id="logQuery" class="io.fabric8.insight.log.log4j.Log4jLogQuery"
-          lazy-init="false" scope="singleton"
-          init-method="start" destroy-method="stop">
-    </bean>
+  <bean id="logQuery" class="io.fabric8.insight.log.log4j.Log4jLogQuery"
+    lazy-init="false" scope="singleton"
+    init-method="start" destroy-method="stop">
+  </bean>
 
-    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="$hostname" brokerId="$hostname" dataDirectory="\$${activemq.data}">
+  <broker xmlns="http://activemq.apache.org/schema/core" brokerName="$hostname" brokerId="$hostname" dataDirectory="\$${activemq.data}">
+    <destinationPolicy>
+      <policyMap>
+        <policyEntries>
+          <policyEntry topic=">" >
+            <pendingMessageLimitStrategy>
+              <constantPendingMessageLimitStrategy limit="1000"/>
+            </pendingMessageLimitStrategy>
+          </policyEntry>
+        </policyEntries>
+      </policyMap>
+    </destinationPolicy>
 
-        <destinationPolicy>
-            <policyMap>
-              <policyEntries>
-                <policyEntry topic=">" >
-                  <pendingMessageLimitStrategy>
-                    <constantPendingMessageLimitStrategy limit="1000"/>
-                  </pendingMessageLimitStrategy>
-                </policyEntry>
-              </policyEntries>
-            </policyMap>
-        </destinationPolicy>
+    <managementContext>
+      <managementContext createConnector="false"/>
+    </managementContext>
 
-        <managementContext>
-            <managementContext createConnector="false"/>
-        </managementContext>
+    <persistenceAdapter>
+      <kahaDB directory="\$${activemq.data}/kahadb"/>
+    </persistenceAdapter>
 
-        <persistenceAdapter>
-            <kahaDB directory="\$${activemq.data}/kahadb"/>
-        </persistenceAdapter>
+    <systemUsage>
+      <systemUsage>
+        <memoryUsage>
+          <memoryUsage percentOfJvmHeap="70" />
+        </memoryUsage>
+        <storeUsage>
+          <storeUsage limit="100 gb"/>
+        </storeUsage>
+        <tempUsage>
+          <tempUsage limit="50 gb"/>
+        </tempUsage>
+      </systemUsage>
+    </systemUsage>
 
-        <systemUsage>
-            <systemUsage>
-                <memoryUsage>
-                    <memoryUsage percentOfJvmHeap="70" />
-                </memoryUsage>
-                <storeUsage>
-                    <storeUsage limit="100 gb"/>
-                </storeUsage>
-                <tempUsage>
-                    <tempUsage limit="50 gb"/>
-                </tempUsage>
-            </systemUsage>
-        </systemUsage>
+    <networkConnectors>
+      <networkConnector name="LinkTo -> $amq_sibling" uri="static:(tcp://$amq_sibling:61616)" networkTTL="3" />
+    </networkConnectors>
 
-        <networkConnectors>
-            <networkConnector name="LinkTo -> $amq_sibling"
-                uri="static:(tcp://$amq_sibling:61616)"
-                networkTTL="3"
-            />            
-        </networkConnectors>
+    <transportConnectors>
+      <transportConnector name="openwire" uri="tcp://0.0.0.0:61616?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+    </transportConnectors>
 
-        <transportConnectors>
-            <transportConnector name="openwire" uri="tcp://0.0.0.0:61616?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
-        </transportConnectors>
+    <shutdownHooks>
+      <bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook" />
+    </shutdownHooks>
+  </broker>
 
-        <shutdownHooks>
-            <bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook" />
-        </shutdownHooks>
-
-    </broker>
-
-    <import resource="jetty.xml"/>
+  <import resource="jetty.xml"/>
 
 </beans>
 EOF
