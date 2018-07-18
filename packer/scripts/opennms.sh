@@ -6,7 +6,7 @@
 onms_repo="stable"
 onms_version="-latest-"
 grafana_version="5.2.1"
-hawtio_version="2.0.2"
+hawtio_version="1.4.68"
 
 ########################################
 
