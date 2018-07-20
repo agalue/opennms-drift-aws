@@ -8,7 +8,7 @@ domainname="${domainname}"
 redis_server="${redis_server}"
 postgres_onms_url="${postgres_onms_url}"
 postgres_server="${postgres_server}"
-cassandra_servers="${cassandra_servers}"
+cassandra_seed="${cassandra_seed}"
 webui_endpoint="${webui_endpoint}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
@@ -51,7 +51,7 @@ sed -i -r "/rmi.server.hostname/s/=0.0.0.0/=$hostname/" $opennms_etc/opennms.con
 newts_cfg=$opennms_etc/opennms.properties.d/newts.properties
 cat <<EOF > $newts_cfg
 org.opennms.timeseries.strategy=newts
-org.opennms.newts.config.hostname=$cassandra_servers
+org.opennms.newts.config.hostname=$cassandra_seed
 org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
 org.opennms.newts.config.read_consistency=ONE
@@ -172,7 +172,6 @@ $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 touch $opennms_etc/configured
 
 echo "### Configurng Grafana..."
-echo "### WARNING: Grafana doesn't support multi-host database configuration..."
 
 grafana_cfg=/etc/grafana/grafana.ini
 cp $grafana_cfg $grafana_cfg.bak
@@ -186,16 +185,21 @@ sed -r -i "s/;password =/password = grafana/" $grafana_cfg
 sed -r -i "s/;provider = file/provider = postgres/" $grafana_cfg
 sed -r -i "s/;provider_config = sessions/provider_config = user=grafana password=grafana host=$postgres_server port=5432 dbname=grafana sslmode=disable/" $grafana_cfg
 
-echo "*:*:*:postgres:postgres" > ~/.pgpass
-chmod 0600 ~/.pgpass
-if ! psql -U postgres -h $postgres_server -lqt | cut -d \| -f 1 | grep -qw grafana; then
+echo "### Configurng PostgreSQL database for Grafana..."
+echo "### WARNING - Grafana doesn't support multi-host database configuration..."
+
+PGHOST=$postgres_server
+PGPORT=5432
+PGUSER=postgres
+PGPASSWORD=postgres
+
+if ! psql -lqt | cut -d \| -f 1 | grep -qw grafana; then
   echo "Creating grafana user and database in PostgreSQL..."
-  createdb -U postgres -h $postgres_server -E UTF-8 grafana
-  createuser -U postgres -h $postgres_server grafana
-  psql -U postgres -h $postgres_server -c "alter role grafana with password 'grafana';"
-  psql -U postgres -h $postgres_server -c "grant all on database grafana to grafana;"
+  createdb -E UTF-8 grafana
+  createuser grafana
+  psql -c "alter role grafana with password 'grafana';"
+  psql -c "grant all on database grafana to grafana;"
 fi
-rm -f ~/.pgpass
 
 echo "### Enabling and starting Grafana server..."
 

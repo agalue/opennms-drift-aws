@@ -1,5 +1,6 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+# TODO: Initialize the Newts keyspace manually to use TWCS and NetworkTopologyStrategy
 
 # AWS Template Variables
 
@@ -7,7 +8,9 @@ hostname="${hostname}"
 domainname="${domainname}"
 postgres_onms_url="${postgres_onms_url}"
 kafka_servers="${kafka_servers}"
-cassandra_servers="${cassandra_servers}"
+cassandra_seed="${cassandra_seed}"
+cassandra_datacenter="${cassandra_datacenter}"
+cassandra_repfactor="${cassandra_repfactor}"
 opennms_ui_servers="${opennms_ui_servers}"
 activemq_url="${activemq_url}"
 elastic_url="${elastic_url}"
@@ -114,7 +117,7 @@ EOF
 newts_cfg=$opennms_etc/opennms.properties.d/newts.properties
 cat <<EOF > $newts_cfg
 org.opennms.timeseries.strategy=newts
-org.opennms.newts.config.hostname=$cassandra_servers
+org.opennms.newts.config.hostname=$cassandra_seed
 org.opennms.newts.config.keyspace=newts
 org.opennms.newts.config.port=9042
 org.opennms.newts.config.read_consistency=ONE
@@ -256,7 +259,11 @@ echo "### Running OpenNMS install script..."
 sleep 60
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 $opennms_home/bin/install -dis
-$opennms_home/bin/newts init -r ${cassandra_repfactor}
+
+echo "### Initializing Newts keyspace..."
+newts=$opennms_etc/newts.cql
+sed -r -i "s/'DC1' : 2/'$cassandra_datacenter' : $cassandra_repfactor/" $newts
+cqlsh -f $newts $cassandra_seed 
 
 echo "### Enabling and starting OpenNMS Core..."
 

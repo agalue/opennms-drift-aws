@@ -8,6 +8,8 @@ hostname="${hostname}"
 domainname="${domainname}"
 cluster_name="${cluster_name}"
 seed_name="${seed_name}"
+datacenter="${datacenter}"
+rack="${rack}"
 
 echo "### Configuring Hostname and Domain..."
 
@@ -20,10 +22,13 @@ echo "### Configuring Cassandra..."
 
 conf_dir=/etc/cassandra/conf
 conf_file=$conf_dir/cassandra.yaml
+conf_rackdc=$conf_dir/cassandra-rackdc.properties
+
 sed -r -i "/cluster_name/s/Test Cluster/$cluster_name/" $conf_file
 sed -r -i "/seeds/s/127.0.0.1/$seed_name/" $conf_file
 sed -r -i "/listen_address/s/localhost/$ip_address/" $conf_file
 sed -r -i "/rpc_address/s/localhost/$ip_address/" $conf_file
+sed -r -i "/endpoint_snitch/s/SimpleSnitch/GossipingPropertyFileSnitch/" $conf_file
 
 echo "### Configuring JMX..."
 
@@ -39,7 +44,11 @@ if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
 
-# Cassandra Configuration
+# Update Rack Properties
+sed -r -i "s/dc1/$datacenter/" $conf_rackdc
+sed -r -i "s/rack1/$rack/" $conf_rackdc
+
+# Cassandra JVM Environment Configuration
 sed -r -i "/rmi.server.hostname/s/^\#//" $env_file
 sed -r -i "/rmi.server.hostname/s/.public name./$ip_address/" $env_file
 sed -r -i "/jmxremote.access/s/#//" $env_file

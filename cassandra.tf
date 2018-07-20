@@ -10,6 +10,8 @@ data "template_file" "cassandra" {
     domainname   = "${var.dns_zone}"
     cluster_name = "${lookup(var.settings, "cluster_name")}"
     seed_name    = "${element(keys(var.cassandra_ip_addresses), 0)}"
+    datacenter   = "${lookup(var.settings, "cassandra_datacenter")}"
+    rack         = "Rack${count.index + 1}"
   }
 }
 

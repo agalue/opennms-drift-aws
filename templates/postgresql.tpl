@@ -2,6 +2,17 @@
 # Author: Alejandro Galue <agalue@opennms.org>
 # Warning: The version family should match the Packer image
 
+# - At the very least, max_val_senders should equal the number of replicas you intend to have.
+# - repmgr is doing automatic promotion, but keep in mind that this could lead to split-brain situations.
+#
+# synchronous_commin="off" (async replication)
+# - It is the most performant option.
+# - It does carry the risk of data lost in the event of a system crash.
+# - Could cause inconsistencies between read queries on the primary and the replica.
+#
+# synchronous_commin!="off" (sync replication)
+# - More than 1 replica is required, and the solution should be configured as quorum, to avoid hanging the primary.
+
 # AWS Template Variables
 
 node_id="${node_id}"

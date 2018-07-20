@@ -280,6 +280,7 @@ variable "settings" {
     kafka_num_partitions         = 16
     kafka_replication_factor     = 2
     kafka_min_insync_replicas    = 1
+    cassandra_datacenter         = "AWS"
     cassandra_replication_factor = 2
     postgresql_version_family    = "10-2"
     postgresql_max_connections   = 200

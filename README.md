@@ -20,7 +20,7 @@ aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 * Install Vagrant from [vagrantup.com](https://www.vagrantup.com)
 
-* Make sure the AMIs used for the Packer JSON files match your chosen region in AWS (Amazon Linux 2 LTS Candidate 2 for us-west-2 is the default).
+* Make sure the AMIs used for the Packer JSON files match your chosen region in AWS (Amazon Linux 2 for us-west-2 is the default).
 
 * Tweak the versions on the packer initialization scripts located at `packer/scripts`.
 
@@ -71,7 +71,7 @@ vagrant up
 
 ## Design
 
-The purpose here is understand the Drift Architecture, not using AWS resources like RDS, SQS, etc. to deploy OpenNMS on the cloud.
+The purpose here is understand the Drift Architecture for OpenNMS, not using AWS resources like RDS, SQS, etc. to deploy OpenNMS on the cloud.
 
 For this reason, everything will live on the same subnet (a.k.a. one availability zone) with direct Internet access through an Internet Gateway. All the EC2 instances are going to have a specific private IP address, registered against a local DNS through Route 53 and a dynamic public IP, which is how the operator can connect to each instance, and the way Minion will reach the solution.
 
@@ -105,9 +105,9 @@ The architecture involves the following components:
 
 For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3. Increasing the brokers on the AMQ cluster requires a lot more work, as the current design works on a active-passive fashion, as AMQ doesn't scale horizontally.
 
-## Limitations
+**The way on which all the components should be configured relfect the best practices for production (except for the sizes of the EC2 instances).**
 
-* Due to the asynchronous way on which Terraform initialize AWS resources, and how the EC2 instances initialize themselves, it is possible that manual intervension is rqeuired in order to make sure that all the applications are up and running. Errors can acoour even with the defensive code has been added to the initialization scripts.
+## Limitations
 
 * Be aware of EC2 instance limits on your AWS account for the chosen region, as it might be possible that you won't be able to use this POC unless you increase the limits. The default limit is 20, and this POC will be creating more than that.
 
@@ -115,7 +115,7 @@ For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be i
 
 * Grafana doesn't support multi-host database connections. That means, the solution points to the master PG server. If the master server dies, the `grafana.ini` should be manually updated, and Grafana should be restarted on each UI server, unless a VIP and/or a solution like PGBounder or PGPool is used. For more information: https://github.com/grafana/grafana/issues/3676
 
-* This is not a production ready deployment. This is just a proof of concept for all the components required to deploy Drift. Several changes are required not only on the EC2 instance types, but also on the configuration of all the components to make it production ready.
+* This is just a proof of concept for all the components required to deploy Drift. Besides EC2 instance type changes, configuration changes might be required to make this solution production ready.
 
 * The bootstrap scripts are very simple and are not designed to be re-executed, as they do not perform validations. Also, in order to get the runtime version of the scripts, the following command should be executed from the desired instance:
 
@@ -129,4 +129,4 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
 
-* Upgrade Elasticsearch to 6.3.x
+* Replace ActiveMQ with Kafka for Horizon 23

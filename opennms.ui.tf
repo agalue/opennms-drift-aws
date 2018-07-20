@@ -10,7 +10,7 @@ data "template_file" "opennms_ui" {
     redis_server           = ""
     postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     postgres_server        = "${element(keys(var.pg_ip_addresses), 0)}"
-    cassandra_servers      = "${join(",", keys(var.cassandra_ip_addresses))}"
+    cassandra_seed         = "${element(keys(var.cassandra_ip_addresses), 0)}"
     elastic_url            = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
     elastic_user           = "elastic"
     elastic_password       = "${lookup(var.settings, "elastic_password")}"
