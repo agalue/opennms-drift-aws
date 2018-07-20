@@ -23,12 +23,6 @@ echo "### Installing Grafana $grafana_version..."
 
 sudo yum install -y -q https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-$grafana_version-1.x86_64.rpm
 
-echo "### Installing NodeJS & Yarn..."
-
-sudo curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
-sudo yum -y -q install gcc-c++ nodejs
-sudo npm install -g yarn
-
 echo "### Installing OpenNMS Dependencies from stable repository..."
 
 sudo sed -r -i '/name=Amazon Linux 2/a exclude=rrdtool-*' /etc/yum.repos.d/amzn2-core.repo

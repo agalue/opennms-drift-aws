@@ -38,6 +38,10 @@
       "script": "./scripts/postgresql.sh"
     },
     {
+      "type": "shell",
+      "script": "./scripts/cassandra.sh"
+    },
+    {
       "type": "file",
       "source": "./configs/opennms/",
       "destination": "/tmp/sources"
