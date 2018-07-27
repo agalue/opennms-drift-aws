@@ -170,15 +170,15 @@ sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
 # Configure Elasticsearch forwarder
 
-sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n  alarm-change-notifier\n/' $opennms_etc/org.apache.karaf.features.cfg
+sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n/' $opennms_etc/org.apache.karaf.features.cfg
 cat <<EOF > $opennms_etc/org.opennms.plugin.elasticsearch.rest.forwarder.cfg
 elasticUrl=$elastic_url
 elasticGlobalUser=$elastic_user
 elasticGlobalPassword=$elastic_password
 archiveRawEvents=true
 archiveAlarms=true
-archiveAlarmChangeEvents=true
-logAllEvents=true
+archiveAlarmChangeEvents=false
+logAllEvents=false
 retries=1
 connTimeout=3000
 EOF
@@ -221,7 +221,7 @@ cat <<EOF > logging.txt
           <RollingFile name="Rolling-Collectd" fileName="\$${logdir}/poller.log"
                        filePattern="\$${logdir}/poller.%i.log.gz">
             <PatternLayout>
-              <pattern>%d %-5p [%t] SRC:%X{service}:%X{ipAddress} %c{1.}: %m%n</pattern>
+              <pattern>%d %-5p [%t] SRC:%X{nodeLabel}:%X{ipAddress} %c{1.}: %m%n</pattern>
             </PatternLayout>
             <SizeBasedTriggeringPolicy size="100MB" />
             <DefaultRolloverStrategy max="4" fileIndex="min" />
