@@ -94,6 +94,11 @@ EOF
 sed -r -i '/service name="OpenNMS-JVM"/r onmsjvm.txt' $opennms_etc/poller-configuration.xml
 rm -f onmsjvm.txt
 
+# Adding additional Karaf Features
+
+features=opennms-es-rest,opennms-kafka-producer
+sed -r -i "s/opennms-bundle-refresher/opennms-bundle-refresher, \\n  $features/" $opennms_etc/org.apache.karaf.features.cfg
+
 # External ActiveMQ
 
 cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
@@ -110,6 +115,15 @@ org.opennms.core.ipc.sink.initialSleepTime=60000
 org.opennms.core.ipc.sink.strategy=kafka
 org.opennms.core.ipc.sink.kafka.bootstrap.servers=$kafka_servers
 org.opennms.core.ipc.sink.kafka.group.id=OpenNMS
+EOF
+
+# Kafka Forwarder
+
+cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.client.cfg
+bootstrap.servers=$kafka_servers
+eventTopic=OpenNMS-Nodes
+alarmTopic=OpenNMS-Alarms
+eventTopic=
 EOF
 
 # External Cassandra
@@ -170,7 +184,6 @@ sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
 # Configure Elasticsearch forwarder
 
-sed -r -i 's/opennms-bundle-refresher/opennms-bundle-refresher, \\\n  opennms-es-rest\n/' $opennms_etc/org.apache.karaf.features.cfg
 cat <<EOF > $opennms_etc/org.opennms.plugin.elasticsearch.rest.forwarder.cfg
 elasticUrl=$elastic_url
 elasticGlobalUser=$elastic_user
