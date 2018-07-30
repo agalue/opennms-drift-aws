@@ -51,10 +51,15 @@ cat <<EOF > /opt/activemq/conf/activemq.xml
     <destinationPolicy>
       <policyMap>
         <policyEntries>
-          <policyEntry topic=">" >
+          <policyEntry topic=">" producerFlowControl="true"> <!-- http://activemq.apache.org/slow-consumer-handling.html -->
             <pendingMessageLimitStrategy>
               <constantPendingMessageLimitStrategy limit="1000"/>
             </pendingMessageLimitStrategy>
+          </policyEntry>
+          <policyEntry queue=">" producerFlowControl="true" memoryLimit="1mb"> <!-- http://activemq.apache.org/message-cursors.html -->
+            <deadLetterStrategy> <!-- https://issues.opennms.org/browse/NMS-9203 -->
+              <discarding/>
+            </deadLetterStrategy>
           </policyEntry>
         </policyEntries>
       </policyMap>
