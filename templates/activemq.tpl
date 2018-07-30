@@ -6,6 +6,7 @@
 hostname="${hostname}"
 domainname="${domainname}"
 amq_sibling="${amq_sibling}"
+disk_space_in_gb="${disk_space_in_gb}"
 
 echo "### Configuring Hostname and Domain..."
 
@@ -22,6 +23,9 @@ if [ "$mem_in_mb" -gt "8192" ]; then
   mem_in_mb="8192"
 fi
 sed -i -r "/^ACTIVEMQ_OPTS_MEMORY/s/\"-Xm.*\"/\"-Xms$${mem_in_mb}m -Xmx$${mem_in_mb}m\"/" /opt/activemq/bin/env
+
+store_usage=`expr $disk_space_in_gb / 2`
+temp_usage=`expr $store_usage / 2`
 
 ln -s /opt/activemq/bin/activemq /etc/init.d/activemq
 
@@ -70,10 +74,10 @@ cat <<EOF > /opt/activemq/conf/activemq.xml
           <memoryUsage percentOfJvmHeap="70" />
         </memoryUsage>
         <storeUsage>
-          <storeUsage limit="100 gb"/>
+          <storeUsage limit="$store_usage gb"/>
         </storeUsage>
         <tempUsage>
-          <tempUsage limit="50 gb"/>
+          <tempUsage limit="$temp_usage gb"/>
         </tempUsage>
       </systemUsage>
     </systemUsage>

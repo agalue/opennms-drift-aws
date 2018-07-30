@@ -5,9 +5,10 @@ data "template_file" "activemq" {
   template = "${file("${path.module}/templates/activemq.tpl")}"
 
   vars {
-    hostname    = "${element(keys(var.amq_ip_addresses), count.index)}"
-    domainname  = "${var.dns_zone}"
-    amq_sibling = "${element(var.amq_siblings, count.index)}"
+    hostname         = "${element(keys(var.amq_ip_addresses), count.index)}"
+    domainname       = "${var.dns_zone}"
+    amq_sibling      = "${element(var.amq_siblings, count.index)}"
+    disk_space_in_gb = "${lookup(var.disk_space, "activemq")}"
   }
 }
 
