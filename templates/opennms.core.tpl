@@ -109,7 +109,7 @@ org.opennms.core.ipc.sink.kafka.group.id=OpenNMS
 # RPC
 org.opennms.core.ipc.rpc.strategy=kafka
 org.opennms.core.ipc.rpc.kafka.bootstrap.servers=$kafka_servers
-org.opennms.core.ipc.rpc.kafka.ttl=30
+org.opennms.core.ipc.rpc.kafka.ttl=30000
 EOF
 
 # Kafka Forwarder
