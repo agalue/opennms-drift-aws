@@ -1,6 +1,5 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
-# TODO: Initialize the Newts keyspace manually to use TWCS and NetworkTopologyStrategy
 
 # AWS Template Variables
 
@@ -15,7 +14,6 @@ opennms_ui_servers="${opennms_ui_servers}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
-elastic_index_strategy="${elastic_index_strategy}"
 use_redis="${use_redis}"
 use_30sec_frequency="${use_30sec_frequency}"
 
@@ -95,8 +93,8 @@ rm -f onmsjvm.txt
 
 # Adding additional Karaf Features
 
-features=opennms-es-rest,opennms-kafka-producer
-sed -r -i "s/opennms-bundle-refresher/opennms-bundle-refresher, \\n  $features/" $opennms_etc/org.apache.karaf.features.cfg
+features="opennms-es-rest, opennms-kafka-producer"
+sed -r -i "s/opennms-bundle-refresher.*/opennms-bundle-refresher, $features/" $opennms_etc/org.apache.karaf.features.cfg
 
 # External Kafka
 
@@ -156,22 +154,6 @@ sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/poller-configuration.x
 sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/poller-configuration.xml 
 sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/collectd-configuration.xml 
 sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/collectd-configuration.xml 
-
-# Flows
-
-sed -r -i '/"Netflow-5"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
-sed -r -i '/"Netflow-9"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
-sed -r -i '/"IPFIX"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
-sed -r -i '/"SFlow"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
-
-cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
-elasticUrl=$elastic_url
-elasticGlobalUser=$elastic_user
-elasticGlobalPassword=$elastic_password
-elasticIndexStrategy=$elastic_index_strategy
-settings.index.number_of_shards=6
-settings.index.number_of_replicas=1
-EOF
 
 # Enable NX-OS
 

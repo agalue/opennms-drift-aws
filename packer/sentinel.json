@@ -1,0 +1,41 @@
+{
+  "variables": {
+    "region": "us-east-2",
+    "source_ami": "ami-8c122be9",
+    "app_name": "OpenNMS Sentinel",
+    "environment": "Drift"
+  },
+  "description": "{{ user `app_name` }} for {{ user `environment` }}",
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "{{ user `region` }}",
+      "source_ami": "{{ user `source_ami` }}",
+      "instance_type": "t2.medium",
+      "ssh_username": "ec2-user",
+      "ami_name": "opennms-sentinel-drift-{{ timestamp }}",
+      "run_tags": {
+        "Name": "Packer AMI {{ user `app_name` }}",
+        "Environment": "{{ user `environment` }}"
+      },
+      "tags": {
+        "Name": "{{ user `app_name` }}",
+        "Environment": "{{ user `environment` }}"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "./scripts/common.sh"
+    },
+    {
+      "type": "shell",
+      "script": "./scripts/java.sh"
+    },
+    {
+      "type": "shell",
+      "script": "./scripts/sentinel.sh"
+    }
+  ]
+}

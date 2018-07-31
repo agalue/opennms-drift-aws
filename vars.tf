@@ -65,6 +65,15 @@ data "aws_ami" "opennms" {
   }
 }
 
+data "aws_ami" "sentinel" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["opennms-sentinel-*"]
+  }
+}
+
 data "aws_ami" "postgresql" {
   most_recent = true
 
@@ -82,15 +91,16 @@ variable "instance_types" {
   type        = "map"
 
   default = {
-    onms_core  = "t2.large"
-    onms_ui    = "t2.medium"
-    postgresql = "t2.medium"
-    es_master  = "t2.small"
-    es_data    = "t2.medium"
-    kibana     = "t2.medium"
-    kafka      = "t2.medium"
-    zookeeper  = "t2.medium"
-    cassandra  = "t2.medium"
+    onms_core      = "t2.large"
+    onms_sentinel  = "t2.large"
+    onms_ui        = "t2.medium"
+    postgresql     = "t2.medium"
+    es_master      = "t2.small"
+    es_data        = "t2.medium"
+    kibana         = "t2.medium"
+    kafka          = "t2.medium"
+    zookeeper      = "t2.medium"
+    cassandra      = "t2.medium"
   }
 }
 
@@ -148,6 +158,16 @@ variable "onms_ip_addresses" {
 
   default = {
     opennms = "172.16.1.100"
+  }
+}
+
+variable "onms_sentinel_ip_addresses" {
+  description = "OpenNMS Sentinel Servers Private IPs"
+  type        = "map"
+
+  default = {
+    sentinel1 = "172.16.1.81"
+    sentinel2 = "172.16.1.82"
   }
 }
 
