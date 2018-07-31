@@ -96,8 +96,8 @@ rm -f onmsjvm.txt
 
 # Adding additional Karaf Features
 
-features=opennms-es-rest,opennms-kafka-producer
-sed -r -i "s/opennms-bundle-refresher/opennms-bundle-refresher, \\n  $features/" $opennms_etc/org.apache.karaf.features.cfg
+features="opennms-es-rest, opennms-kafka-producer"
+sed -r -i "s/opennms-bundle-refresher.*/opennms-bundle-refresher, $features/" $opennms_etc/org.apache.karaf.features.cfg
 
 # External ActiveMQ
 
