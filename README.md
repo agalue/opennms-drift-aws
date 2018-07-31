@@ -128,5 +128,3 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 * Improve the Elasticsearch cluster architecture to have a dedicated monitoring cluster (assuming X-Pack will be used).
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
-
-* Replace ActiveMQ with Kafka for Horizon 23

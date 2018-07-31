@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="stable"
+onms_repo="opennms-22"
 onms_version="-latest-"
 grafana_version="5.2.1"
 hawtio_version="1.4.68"
