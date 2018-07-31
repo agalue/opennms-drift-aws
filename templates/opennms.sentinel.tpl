@@ -1,5 +1,8 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+#
+# Guide:
+# https://github.com/OpenNMS/opennms/blob/jira/HZN-1338/opennms-doc/guide-admin/src/asciidoc/text/sentinel/sentinel.adoc
 
 # AWS Template Variables
 
@@ -38,17 +41,12 @@ cat <<EOF > $sentinel_home/deploy/features.xml
   xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.4.0 http://karaf.apache.org/xmlns/features/v1.4.0"
 >
 
-  <feature name="autostart-sentinel-bootstrap-modules" version="\$${project.version}" start-level="100" install="auto">
+  <feature name="autostart-sentinel-telemetry-flows" version="\$${project.version}" start-level="200" install="auto">
     <config name="org.opennms.sentinel.controller">
       location = $sentinel_location
       id = $sentinel_id
       http-url = $opennms_url
     </config>
-    <feature>scv</feature>
-    <feature>opennms-spring-extender</feature>
-  </feature>
-
-  <feature name="autostart-sentinel-telemetry-flows" version="\$${project.version}" start-level="200" install="auto">
     <config name="org.opennms.netmgt.distributed.datasource">
       datasource.url = $postgres_onms_url
       datasource.username = postgres
@@ -75,8 +73,6 @@ cat <<EOF > $sentinel_home/deploy/features.xml
       group.id = OpenNMS
       bootstrap.servers = $kafka_servers
     </config>
-    <feature>sentinel-core</feature>
-    <feature>sentinel-persistence</feature>
     <feature>sentinel-kafka</feature>
     <feature>sentinel-flows</feature>
   </feature>

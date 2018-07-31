@@ -89,6 +89,8 @@ The architecture involves the following components:
 
 * A cluster of 2 EC2 instances for OpenNMS UI and Grafana.
 
+* A cluster of 2 EC2 instances for OpenNMS Sentinel. _TODO Update Diagram_
+
 * A pair of EC2 instances for PostgreSQL, configured as master/slave with streaming replication, using repmgr to simplify the operation.
 
 * An EC2 instance for the central OpenNMS.
