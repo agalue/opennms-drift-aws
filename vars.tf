@@ -20,15 +20,6 @@ variable "aws_region" {
   default     = "us-east-2"              # For testing purposes only
 }
 
-data "aws_ami" "activemq" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["activemq-*"]
-  }
-}
-
 data "aws_ami" "cassandra" {
   most_recent = true
 
@@ -70,7 +61,7 @@ data "aws_ami" "opennms" {
 
   filter {
     name   = "name"
-    values = ["opennms-horizon-22-*"]
+    values = ["opennms-horizon-23-*"]
   }
 }
 
@@ -97,7 +88,6 @@ variable "instance_types" {
     es_master  = "t2.small"
     es_data    = "t2.medium"
     kibana     = "t2.medium"
-    activemq   = "t2.medium"
     kafka      = "t2.medium"
     zookeeper  = "t2.medium"
     cassandra  = "t2.medium"
@@ -169,27 +159,6 @@ variable "onms_ui_ip_addresses" {
     onmsui1 = "172.16.1.71"
     onmsui2 = "172.16.1.72"
   }
-}
-
-variable "amq_ip_addresses" {
-  description = "ActiveMQ IP Pair: 2 instances working on a Network of Brokers config, for failover"
-  type        = "map"
-
-  default = {
-    activemq1 = "172.16.1.11"
-    activemq2 = "172.16.1.12"
-  }
-}
-
-variable "amq_siblings" {
-  description = "ActiveMQ IP Sibling Pair: the inverse of amq_ip_addresses"
-  type        = "list"
-
-  # Declare the sibling based on the key order defined for amq_ip_addresses
-  default = [
-    "activemq2",
-    "activemq1",
-  ]
 }
 
 variable "zookeeper_ip_addresses" {
@@ -296,9 +265,8 @@ variable "disk_space" {
 
   default = {
     elasticsearch = "100"
-    activemq      = "100"
     kafka         = "100"
-    zookeeper     = "8"
+    zookeeper     = "20"
     postgresql    = "100"
     cassandra     = "100"
   }

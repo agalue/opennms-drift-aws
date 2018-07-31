@@ -95,18 +95,6 @@
     <asset name="state" value="OH"/>
     <asset name="country" value="US"/>    
   </node>
-  <node building="AWS" foreign-id="amq01" node-label="activemq-01-server">
-    <interface descr="eth0" ip-addr="172.16.1.11" status="1" snmp-primary="P"/>
-    <asset name="city" value="Columbus"/>
-    <asset name="state" value="OH"/>
-    <asset name="country" value="US"/>    
-  </node>
-  <node building="AWS" foreign-id="amq02" node-label="activemq-02-server">
-    <interface descr="eth0" ip-addr="172.16.1.12" status="1" snmp-primary="P"/>
-    <asset name="city" value="Columbus"/>
-    <asset name="state" value="OH"/>
-    <asset name="country" value="US"/>    
-  </node>
   <node building="AWS" foreign-id="zoo1" node-label="zookeeper-01-server">
     <interface descr="eth0" ip-addr="172.16.1.21" status="1" snmp-primary="P"/>
     <asset name="city" value="Columbus"/>

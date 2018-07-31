@@ -3,10 +3,9 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="opennms-22"
+onms_repo="bleeding"
 onms_version="-latest-"
-grafana_version="5.2.1"
-hawtio_version="1.4.68"
+grafana_version="5.2.2"
 
 ########################################
 
@@ -40,13 +39,14 @@ if [ "$onms_repo" != "stable" ]; then
   sudo rpm --import /etc/yum.repos.d/opennms-repo-$onms_repo-rhel7.gpg
 fi
 
+suffix=""
 if [ "$onms_version" == "-latest-" ]; then
   echo "### Installing latest OpenNMS from $onms_repo Repository..."
-  sudo yum install -y -q opennms-core opennms-webapp-jetty
 else
   echo "### Installing OpenNMS version $onms_version from $onms_repo Repository..."
-  sudo yum install -y -q opennms-core-$onms_version opennms-webapp-jetty-$onms_version
+  suffix="-$onms_version"
 fi
+sudo yum install -y -q opennms-core$suffix opennms-webapp-jetty$suffix opennms-webapp-hawtio$suffix
 
 echo "### Initializing GIT at $opennms_etc..."
 
@@ -70,14 +70,6 @@ sudo sed -r -i 's/value="DEBUG"/value="WARN"/' $opennms_etc/log4j2.xml
 sudo sed -r -i '/manager/s/WARN/DEBUG/' $opennms_etc/log4j2.xml
 
 sudo chown -R root:root $opennms_etc/
-
-echo "### Installing Hawtio version $hawtio_version..."
-
-hawtio_url=https://oss.sonatype.org/content/repositories/public/io/hawt/hawtio-default/$hawtio_version/hawtio-default-$hawtio_version.war
-hawtio_war=$opennms_home/jetty-webapps/hawtio.war
-sudo wget -qO $hawtio_war $hawtio_url
-sudo unzip -qq $hawtio_war -d $opennms_home/jetty-webapps/hawtio
-sudo rm -f $hawtio_war
 
 echo "### Enabling CORS..."
 

@@ -63,7 +63,7 @@ vagrant up
 
 ## Requirements
 
-* OpenNMS Horizon version 22 or newer is required.
+* OpenNMS Horizon version 23 or newer is required.
 
 * Time synchronization is mandatory on every single device (including monitored devices). AWS guarrantees that, meaning the Minion and the Flow Exporters should also be synchronized prior start using this lab (either by using NTP or manual sync).
 
@@ -78,8 +78,6 @@ For this reason, everything will live on the same subnet (a.k.a. one availabilit
 Thanks to packer, all the required software will be part of the respective custom AMIs. Those AMIs should be re-created only when the installed software should be changed. Otherwise, they can be re-used, drastically reducing the time to have the EC2 instances ready, as they will just make configuration changes.
 
 The architecture involves the following components:
-
-* A pair of EC2 instances for ActiveMQ, configured using Network of Brokers, so OpenNMS and Minion can use it on a failover fashion, and the connection between the 2 brokers will guarrantee that all the messages will be delivered.
 
 * A cluster of 3 EC2 instances for Cassandra/Newts.
 
@@ -103,7 +101,7 @@ The architecture involves the following components:
 
 * Private DNS through Route 53 for all the instances.
 
-For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3. Increasing the brokers on the AMQ cluster requires a lot more work, as the current design works on a active-passive fashion, as AMQ doesn't scale horizontally.
+For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3.
 
 **The way on which all the components should be configured relfect the best practices for production (except for the sizes of the EC2 instances).**
 

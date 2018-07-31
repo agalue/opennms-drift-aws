@@ -6,12 +6,11 @@ repo=${1-stable};
 version=${2--latest-};
 location=${3-Vagrant};
 opennms_url=${4-http://opennms1:8980/opennms};
-activemq_url=${5-failover:(tcp://activemq1:61616,tcp://activemq2:61616)?randomize=false};
-kafka_svr=${6-kafka1:9092,kafka2:9092,kafka3:9092};
-timezone=${7-America/New_York};
+kafka_svr=${5-kafka1:9092,kafka2:9092,kafka3:9092};
+timezone=${6-America/New_York};
 
 # Internal Variables
-java_url="http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/jdk-8u172-linux-x64.rpm"
+java_url="http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jdk-8u181-linux-x64.rpm"
 git_user_name="Alejandro Galue"
 git_user_email="agalue@opennms.org"
 
@@ -137,7 +136,9 @@ EOF
 
   cat <<EOF > featuresBoot.d/kafka.boot
 !opennms-core-ipc-sink-camel
+!opennms-core-ipc-rpc-jms
 opennms-core-ipc-sink-kafka
+opennms-core-ipc-rpc-kafka
 EOF
 
   minion_id=`hostname`
@@ -145,10 +146,14 @@ EOF
 location=$location
 id=$minion_id
 http-url=$opennms_url
-broker-url=$activemq_url
 EOF
 
   cat <<EOF > org.opennms.core.ipc.sink.kafka.cfg
+bootstrap.servers=$kafka_svr
+acks=1
+EOF
+
+  cat <<EOF > org.opennms.core.ipc.rpc.kafka.cfg
 bootstrap.servers=$kafka_svr
 acks=1
 EOF

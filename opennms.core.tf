@@ -7,7 +7,6 @@ data "template_file" "opennms" {
     hostname               = "${element(keys(var.onms_ip_addresses),0)}"
     domainname             = "${var.dns_zone}"
     postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
-    activemq_url           = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
     elastic_url            = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
     elastic_user           = "elastic"
     elastic_index_strategy = "${lookup(var.settings, "elastic_flow_index_strategy")}"
@@ -39,7 +38,6 @@ resource "aws_instance" "opennms" {
 
   depends_on = [
     "aws_instance.postgresql",
-    "aws_instance.activemq",
     "aws_instance.kafka",
     "aws_instance.cassandra",
     "aws_instance.elasticsearch_data",

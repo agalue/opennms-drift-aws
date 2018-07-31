@@ -2,7 +2,7 @@
   "variables": {
     "region": "us-east-2",
     "source_ami": "ami-8c122be9",
-    "app_name": "OpenNMS Horizon 22",
+    "app_name": "OpenNMS Horizon 23",
     "environment": "Drift"
   },
   "description": "{{ user `app_name` }} for {{ user `environment` }}",
@@ -13,7 +13,7 @@
       "source_ami": "{{ user `source_ami` }}",
       "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
-      "ami_name": "opennms-horizon-22-drift-{{ timestamp }}",
+      "ami_name": "opennms-horizon-23-drift-{{ timestamp }}",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",
         "Environment": "{{ user `environment` }}"

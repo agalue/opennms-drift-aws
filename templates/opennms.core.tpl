@@ -12,7 +12,6 @@ cassandra_seed="${cassandra_seed}"
 cassandra_datacenter="${cassandra_datacenter}"
 cassandra_repfactor="${cassandra_repfactor}"
 opennms_ui_servers="${opennms_ui_servers}"
-activemq_url="${activemq_url}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
@@ -99,22 +98,18 @@ rm -f onmsjvm.txt
 features=opennms-es-rest,opennms-kafka-producer
 sed -r -i "s/opennms-bundle-refresher/opennms-bundle-refresher, \\n  $features/" $opennms_etc/org.apache.karaf.features.cfg
 
-# External ActiveMQ
-
-cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
-org.opennms.activemq.broker.disable=true
-org.opennms.activemq.broker.url=$activemq_url
-org.opennms.activemq.broker.username=admin
-org.opennms.activemq.broker.password=admin
-EOF
-
 # External Kafka
 
 cat <<EOF > $opennms_etc/opennms.properties.d/kafka.properties
+# Sink
 org.opennms.core.ipc.sink.initialSleepTime=60000
 org.opennms.core.ipc.sink.strategy=kafka
 org.opennms.core.ipc.sink.kafka.bootstrap.servers=$kafka_servers
 org.opennms.core.ipc.sink.kafka.group.id=OpenNMS
+# RPC
+org.opennms.core.ipc.rpc.strategy=kafka
+org.opennms.core.ipc.rpc.kafka.bootstrap.servers=$kafka_servers
+org.opennms.core.ipc.rpc.kafka.ttl=30
 EOF
 
 # Kafka Forwarder

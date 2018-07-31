@@ -8,7 +8,6 @@ echo "AWS Source AMI: $source_ami"
 echo
 
 if hash packer 2>/dev/null; then
-  packer build -var "region=$region" -var "source_ami=$source_ami" activemq.json && \
   packer build -var "region=$region" -var "source_ami=$source_ami" cassandra.json  && \
   packer build -var "region=$region" -var "source_ami=$source_ami" elasticsearch.json && \
   packer build -var "region=$region" -var "source_ami=$source_ami" kafka.json  && \
