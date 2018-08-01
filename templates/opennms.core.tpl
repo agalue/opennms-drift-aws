@@ -244,13 +244,6 @@ if [ "$use_30sec_frequency" == "true" ]; then
   done
 fi
 
-# TODO: the following is due to some issues with the datachoices plugin
-cat <<EOF > $opennms_etc/org.opennms.features.datachoices.cfg
-enabled=false
-acknowledged-by=admin
-acknowledged-at=Mon Jan 01 00\:00\:00 EDT 2018
-EOF
-
 echo "### Running OpenNMS install script..."
 
 sleep 60
