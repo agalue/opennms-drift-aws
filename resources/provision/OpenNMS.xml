@@ -9,6 +9,18 @@
     <asset name="state" value="OH"/>
     <asset name="country" value="US"/>    
   </node>
+  <node building="AWS" foreign-id="sentinel1" node-label="sentinel-01-server">
+    <interface descr="eth0" ip-addr="172.16.1.81" status="1" snmp-primary="P"/>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
+  </node>
+  <node building="AWS" foreign-id="sentinel2" node-label="sentinel-02-server">
+    <interface descr="eth0" ip-addr="172.16.1.82" status="1" snmp-primary="P"/>
+    <asset name="city" value="Columbus"/>
+    <asset name="state" value="OH"/>
+    <asset name="country" value="US"/>    
+  </node>
   <node building="AWS" foreign-id="onmsui1" node-label="onmsui-01-server">
     <interface descr="eth0" ip-addr="172.16.1.71" status="1" snmp-primary="P">
       <monitored-service service-name="OpenNMS-JVM"/>
