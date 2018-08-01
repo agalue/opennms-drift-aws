@@ -70,7 +70,7 @@ cat <<EOF > $sentinel_home/deploy/features.xml
       settings.index.number_of_replicas=1
     </config>
     <config name="org.opennms.core.ipc.sink.kafka.consumer">
-      group.id = OpenNMS
+      group.id = Sentinel
       bootstrap.servers = $kafka_servers
     </config>
     <feature>sentinel-kafka</feature>
