@@ -110,13 +110,20 @@ org.opennms.core.ipc.rpc.kafka.bootstrap.servers=$kafka_servers
 org.opennms.core.ipc.rpc.kafka.ttl=30000
 EOF
 
-# Kafka Forwarder
+# Kafka Producer
 
 cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.client.cfg
 bootstrap.servers=$kafka_servers
-eventTopic=OpenNMS-Nodes
-alarmTopic=OpenNMS-Alarms
+EOF
+
+cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.cfg
+nodeTopic=OpenNMS.Nodes
+alarmTopic=OpenNMS.Alarms
 eventTopic=
+metricTopic=OpenNMS.Metrics
+forward.metrics=true
+nodeRefreshTimeoutMs=300000
+alarmSyncIntervalMs=300000
 EOF
 
 # External Cassandra
