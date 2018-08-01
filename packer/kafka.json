@@ -2,7 +2,7 @@
   "variables": {
     "region": "us-east-2",
     "source_ami": "ami-8c122be9",
-    "app_name": "Apache Kafka 1.x",
+    "app_name": "Apache Kafka 2.x",
     "environment": "Drift"
   },
   "description": "{{ user `app_name` }} for {{ user `environment` }}",
