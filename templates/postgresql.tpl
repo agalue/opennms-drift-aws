@@ -127,7 +127,10 @@ EOF
 
   systemctl enable postgresql-$pg_version
   systemctl start postgresql-$pg_version
-  sleep 10
+
+  until pg_isready; do
+    sleep 5
+  done
 
   echo "### Configuring repmgr..."
 
@@ -143,7 +146,11 @@ EOF
 else
 
   echo "### Configuring Slave Server..."
-  sleep 30
+
+  echo "### Waiting for $pg_master_server to be ready..."
+  until pg_isready -h $pg_master_server; do
+    sleep 5
+  done
 
   sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W --dry-run standby clone
   if [ $? -eq 0 ]; then
@@ -153,8 +160,12 @@ else
 
     echo "### Starting PostgreSQL..."
 
+    systemctl enable postgresql-$pg_version
     systemctl start postgresql-$pg_version
-    sleep 10
+
+    until pg_isready; do
+      sleep 5
+    done
 
     echo "### Registering slave node through repmgr..."
 
