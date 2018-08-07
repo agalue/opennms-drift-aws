@@ -107,11 +107,29 @@ For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be i
 
 **The way on which all the components should be configured relfect the best practices for production (except for the sizes of the EC2 instances).**
 
+## Retention Periods in Kafka
+
+All the Kafka Topics are created automatically by Kafka when OpenNMS or Minion use the topic for the first time. The topics will be created using the default settings, which means, the default retention will be 7 days for all the topics.
+
+There are special cases like RPC Topics where it doesn't make sense to have a long retention, as the messages won't be re-used after the TTL. For this reason, keeping those messages for a couple of hours is more than enough.
+
+The following script updates the retention (should be executed from one of the Kafka servers):
+
+```shell
+config="retention.ms=7200000"
+zookeeper="zookeeper1:2181/kafka"
+for topic in $(/opt/kafka/bin/kafka-topics.sh --list --zookeeper $zookeeper | grep rpc); do
+  /opt/kafka/bin/kafka-configs.sh --zookeeper $zookeeper --alter --entity-type topics --entity-name $topic --add-config $config
+done
+```
+
+If the performance metrics are also being forwarded to Kafka, it is also recommended to set a more conservative numbers for the retention, as the intention for this is being able to process the metrics through the Streaming API, or forward the metrics to another application through the Kafka Sink API (or a standalone application). Once the data is processed, it can be discarded.
+
 ## Limitations
 
 * Be aware of EC2 instance limits on your AWS account for the chosen region, as it might be possible that you won't be able to use this POC unless you increase the limits. The default limit is 20, and this POC will be creating more than that.
 
-* The OpenNMS UI servers have been configured to be read-only in terms of admintration tasks. So, even admin users won't be able to perform administration tasks, but user actions like acknowledging alarms are still available.
+* The OpenNMS UI servers have been configured to be read-only in terms of admintration tasks. So, even admin users won't be able to perform administration tasks, but user actions like acknowledging alarms are still available. All administrative tasks should be done through the Core OpenNMS server.
 
 * Grafana doesn't support multi-host database connections. That means, the solution points to the master PG server. If the master server dies, the `grafana.ini` should be manually updated, and Grafana should be restarted on each UI server, unless a VIP and/or a solution like PGBounder or PGPool is used. For more information: https://github.com/grafana/grafana/issues/3676
 
@@ -128,3 +146,7 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 * Improve the Elasticsearch cluster architecture to have a dedicated monitoring cluster (assuming X-Pack will be used).
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
+
+* Minimize/Eliminate the wait times by waiting on actual applications to be ready.
+
+* Make the bootstrap scripts reusable (i.e. to be able to execute them multiple times without side effects, in case the bootstrap process was wrong).

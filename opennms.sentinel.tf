@@ -32,6 +32,7 @@ resource "aws_instance" "opennms_sentinel" {
 
   vpc_security_group_ids = [
     "${aws_security_group.common.id}",
+    "${aws_security_group.sentinel.id}",
   ]
 
   depends_on = [

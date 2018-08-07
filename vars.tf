@@ -266,13 +266,13 @@ variable "settings" {
 
   default = {
     cluster_name                 = "OpenNMS-Cluster"
-    kafka_num_partitions         = 16
+    kafka_num_partitions         = 32
     kafka_replication_factor     = 2
     kafka_min_insync_replicas    = 1
     cassandra_datacenter         = "AWS"
     cassandra_replication_factor = 2
     postgresql_version_family    = "10-2"
-    postgresql_max_connections   = 200
+    postgresql_max_connections   = 300
     elastic_password             = "opennms"
     elastic_flow_index_strategy  = "hourly"
     onms_use_30sec_frequency     = "true"

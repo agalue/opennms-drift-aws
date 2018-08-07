@@ -55,9 +55,5 @@ sed -i -r "/KAFKA_HEAP_OPTS/s/1g/$${mem_in_mb}m/g" /etc/systemd/system/zookeeper
 
 echo "### Enabling and starting Zookeeper..."
 
-start_delay=$((30*($node_id-1)))
-echo "### Waiting $start_delay seconds prior starting Zookeeper..."
-sleep $start_delay
-
 systemctl enable zookeeper
 systemctl start zookeeper

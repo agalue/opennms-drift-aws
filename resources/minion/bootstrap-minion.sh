@@ -108,7 +108,7 @@ EOF
 fi
 
 # Install OpenNMS Minion packages
-if [ ! -d "/opt/opennms" ]; then
+if [ ! -d "/opt/minion" ]; then
   echo "### Installing OpenNMS Minion..."
   yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-$repo-rhel7.noarch.rpm
   rpm --import /etc/yum.repos.d/opennms-repo-$repo-rhel7.gpg
