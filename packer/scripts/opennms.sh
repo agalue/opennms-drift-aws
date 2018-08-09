@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="bleeding"
+onms_repo="branches-features-sentinel"
 onms_version="-latest-"
 grafana_version="5.2.2"
 

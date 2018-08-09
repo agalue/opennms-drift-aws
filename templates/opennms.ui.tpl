@@ -47,6 +47,9 @@ sed -i -r "/JAVA_HEAP_SIZE/s/=1024/=$mem_in_mb/" $opennms_etc/opennms.conf
 sed -i -r "/GCThreads/s/=2/=$half_of_cores/" $opennms_etc/opennms.conf
 sed -i -r "/rmi.server.hostname/s/=0.0.0.0/=$hostname/" $opennms_etc/opennms.conf
 
+# Exposing Karaf Console
+sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $opennms_etc/org.apache.karaf.shell.cfg
+
 # External Cassandra
 newts_cfg=$opennms_etc/opennms.properties.d/newts.properties
 cat <<EOF > $newts_cfg

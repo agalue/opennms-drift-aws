@@ -34,7 +34,7 @@ resource "aws_instance" "elasticsearch_master" {
   ]
 
   depends_on = [
-    "aws_route53_record.elasticsearch_master",
+    "aws_route53_record.elasticsearch_master_private",
   ]
 
   connection {
@@ -57,10 +57,22 @@ resource "aws_route53_record" "elasticsearch_master" {
   zone_id = "${aws_route53_zone.main.zone_id}"
   name    = "${element(keys(var.es_master_ip_addresses), count.index)}.${var.dns_zone}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.es_master_ip_addresses), count.index)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(aws_instance.elasticsearch_master.*.public_ip, count.index)}",
+  ]
 }
 
+resource "aws_route53_record" "elasticsearch_master_private" {
+  count   = "${length(var.es_master_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.es_master_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.es_master_ip_addresses), count.index)}",
+  ]
+}
 output "esmaster" {
   value = "${join(",",aws_instance.elasticsearch_master.*.public_ip)}"
 }

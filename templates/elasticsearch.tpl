@@ -39,7 +39,7 @@ sed -i -r "s/^-Xmx1g/-Xmx$${mem_in_mb}m/" $es_jvm
 # Basic Configuration
 
 sed -i -r "s/[#]?cluster.name:.*/cluster.name: $es_cluster_name/" $es_yaml
-sed -i -r "s/[#]?network.host:.*/network.host: $hostname/" $es_yaml
+sed -i -r "s/[#]?network.host:.*/network.host: $ip_address/" $es_yaml
 sed -i -r "s/[#]?node.name:.*/node.name: $hostname/" $es_yaml
 
 if [ "$es_seed_name" != "" ]; then

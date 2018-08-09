@@ -8,7 +8,7 @@ data "template_file" "kafka" {
     node_id             = "${count.index + 1}"
     hostname            = "${element(keys(var.kafka_ip_addresses), count.index)}"
     domainname          = "${var.dns_zone}"
-    zookeeper_connect   = "${join(",",formatlist("%v:2181", keys(var.zookeeper_ip_addresses)))}/kafka"
+    zookeeper_connect   = "${join(",",formatlist("%v:2181", aws_route53_record.zookeeper_private.*.name))}/kafka"
     num_partitions      = "${lookup(var.settings, "kafka_num_partitions")}"
     replication_factor  = "${lookup(var.settings, "kafka_replication_factor")}"
     min_insync_replicas = "${lookup(var.settings, "kafka_min_insync_replicas")}"
@@ -32,8 +32,7 @@ resource "aws_instance" "kafka" {
   ]
 
   depends_on = [
-    "aws_instance.zookeeper",
-    "aws_route53_record.kafka",
+    "aws_route53_record.kafka_private",
   ]
 
   root_block_device {
@@ -61,8 +60,21 @@ resource "aws_route53_record" "kafka" {
   zone_id = "${aws_route53_zone.main.zone_id}"
   name    = "${element(keys(var.kafka_ip_addresses), count.index)}.${var.dns_zone}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.kafka_ip_addresses), count.index)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(aws_instance.kafka.*.public_ip, count.index)}",
+  ]
+}
+
+resource "aws_route53_record" "kafka_private" {
+  count   = "${length(var.kafka_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.kafka_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.kafka_ip_addresses), count.index)}",
+  ]
 }
 
 output "kafka" {

@@ -24,7 +24,14 @@ aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 * Tweak the versions on the packer initialization scripts located at `packer/scripts`.
 
-* Tweak the common settings on `vars.tf`, specially `aws_key_name` and `aws_private_key`, to match the chosen region. All the customizable settings are defined on `vars.tf`. Please do not change the other `.tf` files.
+* Tweak the common settings on `vars.tf`, in particular:
+
+  * `aws_key_name` and `aws_private_key`, to match the chosen region.
+  * `parent_dns_zone` and `dns_zone`, to match an existing Route53 Hosted Zone.
+
+  All the customizable settings are defined on `vars.tf`. Please do not change the other `.tf` files.
+
+  An internal DNS is also maintained to improve the speed of the service discovery (application dependencies).
 
 * Build the custom AMIs using Packer:
 
@@ -63,7 +70,7 @@ vagrant up
 
 ## Requirements
 
-* OpenNMS Horizon version 23 or newer is required.
+* OpenNMS Horizon version 23 or newer is required. Currently, the RPMs from the `features/sentinel` branch are being used in order to test Sentinel.
 
 * Time synchronization is mandatory on every single device (including monitored devices). AWS guarrantees that, meaning the Minion and the Flow Exporters should also be synchronized prior start using this lab (either by using NTP or manual sync).
 
@@ -73,7 +80,7 @@ vagrant up
 
 The purpose here is understand the Drift Architecture for OpenNMS, not using AWS resources like RDS, SQS, etc. to deploy OpenNMS on the cloud.
 
-For this reason, everything will live on the same subnet (a.k.a. one availability zone) with direct Internet access through an Internet Gateway. All the EC2 instances are going to have a specific private IP address, registered against a local DNS through Route 53 and a dynamic public IP, which is how the operator can connect to each instance, and the way Minion will reach the solution.
+For this reason, everything will live on the same subnet (a.k.a. one availability zone) with direct Internet access through an Internet Gateway. All the EC2 instances are going to have a specific private IP address, registered on a public DNS domain through Route 53, which is how the operator can connect to each instance, and the way Minion will reach the solution.
 
 Thanks to packer, all the required software will be part of the respective custom AMIs. Those AMIs should be re-created only when the installed software should be changed. Otherwise, they can be re-used, drastically reducing the time to have the EC2 instances ready, as they will just make configuration changes.
 

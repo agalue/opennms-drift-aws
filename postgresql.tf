@@ -39,7 +39,7 @@ resource "aws_instance" "postgresql" {
   }
 
   depends_on = [
-    "aws_route53_record.postgresql",
+    "aws_route53_record.postgresql_private",
   ]
 
   connection {
@@ -62,10 +62,22 @@ resource "aws_route53_record" "postgresql" {
   zone_id = "${aws_route53_zone.main.zone_id}"
   name    = "${element(keys(var.pg_ip_addresses),count.index)}.${var.dns_zone}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.pg_ip_addresses),count.index)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(aws_instance.postgresql.*.public_ip, count.index)}",
+  ]
 }
 
+resource "aws_route53_record" "postgresql_private" {
+  count   = "${length(var.pg_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.pg_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.pg_ip_addresses), count.index)}",
+  ]
+}
 output "postgresql" {
   value = "${join(",",aws_instance.postgresql.*.public_ip)}"
 }

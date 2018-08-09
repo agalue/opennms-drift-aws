@@ -9,7 +9,7 @@ data "template_file" "elasticsearch_data" {
     hostname        = "${element(keys(var.es_data_ip_addresses), count.index)}"
     domainname      = "${var.dns_zone}"
     es_cluster_name = "${lookup(var.settings, "cluster_name")}"
-    es_seed_name    = "${join(",",keys(var.es_master_ip_addresses))}"
+    es_seed_name    = "${join(",",aws_route53_record.elasticsearch_master_private.*.name)}"
     es_password     = "${lookup(var.settings, "elastic_password")}"
     es_role         = "data"
     es_xpack        = "true"
@@ -34,8 +34,7 @@ resource "aws_instance" "elasticsearch_data" {
   ]
 
   depends_on = [
-    "aws_instance.elasticsearch_master",
-    "aws_route53_record.elasticsearch_data",
+    "aws_route53_record.elasticsearch_data_private",
   ]
 
   root_block_device {
@@ -63,8 +62,21 @@ resource "aws_route53_record" "elasticsearch_data" {
   zone_id = "${aws_route53_zone.main.zone_id}"
   name    = "${element(keys(var.es_data_ip_addresses), count.index)}.${var.dns_zone}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.es_data_ip_addresses), count.index)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(aws_instance.elasticsearch_data.*.public_ip, count.index)}",
+  ]
+}
+
+resource "aws_route53_record" "elasticsearch_data_private" {
+  count   = "${length(var.es_data_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.es_data_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.es_data_ip_addresses), count.index)}",
+  ]
 }
 
 resource "aws_elb" "elasticsearch" {
@@ -97,6 +109,18 @@ resource "aws_elb_attachment" "elasticsearch" {
   count    = "${length(var.es_data_ip_addresses)}"
   elb      = "${aws_elb.elasticsearch.id}"
   instance = "${element(aws_instance.elasticsearch_data.*.id, count.index)}"
+}
+
+resource "aws_route53_record" "elasticsearch_elb" {
+  zone_id = "${data.aws_route53_zone.parent.zone_id}"
+  name    = "elasticsearch.${var.dns_zone}"
+  type    = "A"
+
+  alias {
+    name                   = "${aws_elb.elasticsearch.dns_name}"
+    zone_id                = "${aws_elb.elasticsearch.zone_id}"
+    evaluate_target_health = true
+  }
 }
 
 output "esdata" {

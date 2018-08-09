@@ -14,6 +14,7 @@
       "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
       "ami_name": "kafka-drift-{{ timestamp }}",
+      "ami_description": "{{ user `app_name` }} for {{ user `environment` }}",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",
         "Environment": "{{ user `environment` }}"

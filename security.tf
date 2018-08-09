@@ -294,7 +294,7 @@ resource "aws_security_group" "opennms" {
     to_port     = 8101
     protocol    = "tcp"
     description = "Karaf SSH"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -328,7 +328,7 @@ resource "aws_security_group" "sentinel" {
     to_port     = 8301
     protocol    = "tcp"
     description = "Karaf SSH"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -363,6 +363,14 @@ resource "aws_security_group" "opennms_ui" {
     protocol    = "tcp"
     description = "JMX"
     cidr_blocks = ["${var.vpc_cidr}"]
+  }
+
+  ingress {
+    from_port   = 8101
+    to_port     = 8101
+    protocol    = "tcp"
+    description = "Karaf SSH"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {

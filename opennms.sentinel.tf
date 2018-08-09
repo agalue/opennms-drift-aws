@@ -7,14 +7,13 @@ data "template_file" "opennms_sentinel" {
   vars {
     hostname               = "${element(keys(var.onms_sentinel_ip_addresses), count.index)}"
     domainname             = "${var.dns_zone}"
-    postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
-    kafka_servers          = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
-    cassandra_seed         = "${element(keys(var.cassandra_ip_addresses), 0)}"
-    elastic_url            = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
+    postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
+    kafka_servers          = "${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))}"
+    elastic_url            = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
     elastic_user           = "elastic"
     elastic_password       = "${lookup(var.settings, "elastic_password")}"
     elastic_index_strategy = "${lookup(var.settings, "elastic_flow_index_strategy")}"
-    opennms_url            = "http://${element(keys(var.onms_ip_addresses),0)}:8980/opennms"
+    opennms_url            = "http://${aws_route53_record.opennms_private.name}:8980/opennms"
     sentinel_location      = "AWS"
   }
 }
@@ -36,8 +35,7 @@ resource "aws_instance" "opennms_sentinel" {
   ]
 
   depends_on = [
-    "aws_instance.opennms",
-    "aws_route53_record.opennms_sentinel",
+    "aws_route53_record.opennms_sentinel_private",
   ]
 
   connection {
@@ -60,8 +58,21 @@ resource "aws_route53_record" "opennms_sentinel" {
   zone_id = "${aws_route53_zone.main.zone_id}"
   name    = "${element(keys(var.onms_sentinel_ip_addresses), count.index)}.${var.dns_zone}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.onms_sentinel_ip_addresses), count.index)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(aws_instance.opennms_sentinel.*.public_ip, count.index)}",
+  ]
+}
+
+resource "aws_route53_record" "opennms_sentinel_private" {
+  count   = "${length(var.onms_sentinel_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.onms_sentinel_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.onms_sentinel_ip_addresses), count.index)}",
+  ]
 }
 
 output "sentinel" {

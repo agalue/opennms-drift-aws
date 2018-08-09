@@ -27,15 +27,16 @@ sed -i -r "s|dataDir=.*|dataDir=$zoo_data|" $zoo_cfg
 
 cat <<EOF >> $zoo_cfg
 # Additional Settings
-tickTime=2000
+tickTime=10000
 initLimit=10
 syncLimit=5
 EOF
 
-# TODO Assuming hostname prefix. Make sure it is consistent with zookeeper_ip_addresses in vars.tf
+# Forcing internal domain
+name_prefix=$${hostname::-1}
 for i in `seq 1 $total_servers`;
 do
-  echo "server.$i=zookeeper$i:2888:3888" >> $zoo_cfg
+  echo "server.$i=$name_prefix$i.terraform.local:2888:3888" >> $zoo_cfg
 done
 
 password_file=/usr/java/latest/jre/lib/management/jmxremote.password

@@ -28,8 +28,7 @@ resource "aws_instance" "kibana" {
   ]
 
   depends_on = [
-    "aws_instance.elasticsearch_data",
-    "aws_route53_record.kibana",
+    "aws_route53_record.kibana_private",
   ]
 
   connection {
@@ -51,8 +50,21 @@ resource "aws_route53_record" "kibana" {
   zone_id = "${aws_route53_zone.main.zone_id}"
   name    = "${element(keys(var.kibana_ip_addresses),0)}.${var.dns_zone}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.kibana_ip_addresses),0)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${aws_instance.kibana.public_ip}",
+  ]
+}
+
+resource "aws_route53_record" "kibana_private" {
+  count   = "${length(var.kibana_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.kibana_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.kibana_ip_addresses), count.index)}",
+  ]
 }
 
 output "kibana" {

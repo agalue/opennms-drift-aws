@@ -109,9 +109,19 @@ variable "instance_types" {
 # This is a proof of concept, so everything will be on a single availability zone,
 # with direct internet access, so instances might have public IP addresses.
 
+variable "parent_dns_zone" {
+  description = "Parent DNS Zone Name"
+  default     = "opennms.org"
+}
+
 variable "dns_zone" {
-  description = "Internal DNS Zone Name"
-  default     = "terraform.opennms.local"
+  description = "DNS Zone Name"
+  default     = "aws.opennms.org"
+}
+
+variable "dns_ttl" {
+  description = "DNS TTL"
+  default     = 60
 }
 
 variable "vpc_cidr" {
@@ -157,7 +167,7 @@ variable "onms_ip_addresses" {
   type        = "map"
 
   default = {
-    opennms = "172.16.1.100"
+    onmscore = "172.16.1.100"
   }
 }
 

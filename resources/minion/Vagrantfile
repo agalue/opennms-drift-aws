@@ -8,7 +8,7 @@ minion = {
   :ip        => "192.168.205.142",
   :mem       => "1024",
   :cpu       => "2",
-  :onms_repo => "bleeding",
+  :onms_repo => "branches-features-sentinel",
   :onms_ver  => "-latest-",
   :location  => "Vagrant"
 }

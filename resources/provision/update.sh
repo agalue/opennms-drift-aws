@@ -1,7 +1,7 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
 
-server=${1-localhost:8980}
+server=${1-onmscore.aws.opennms.org:8980}
 requisition=${2-OpenNMS}
 
 echo "Updating and importing requisition $requisition on server $server ..."

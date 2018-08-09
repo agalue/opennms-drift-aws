@@ -83,8 +83,28 @@ resource "aws_vpc_dhcp_options_association" "main" {
   dhcp_options_id = "${aws_vpc_dhcp_options.main.id}"
 }
 
+data "aws_route53_zone" "parent" {
+  name = "${var.parent_dns_zone}"
+}
+
 resource "aws_route53_zone" "main" {
+  name = "${var.dns_zone}"
+}
+
+resource "aws_route53_record" "main-ns" {
+  zone_id = "${data.aws_route53_zone.parent.zone_id}"
   name    = "${var.dns_zone}"
-  vpc_id  = "${aws_vpc.default.id}"
-  comment = "Manabed by Terraform"
+  type    = "NS"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${aws_route53_zone.main.name_servers.0}",
+    "${aws_route53_zone.main.name_servers.1}",
+    "${aws_route53_zone.main.name_servers.2}",
+    "${aws_route53_zone.main.name_servers.3}",
+  ]
+}
+
+resource "aws_route53_zone" "private" {
+  name   = "terraform.local"
+  vpc_id = "${aws_vpc.default.id}"
 }

@@ -10,13 +10,12 @@ hostname="${hostname}"
 domainname="${domainname}"
 postgres_onms_url="${postgres_onms_url}"
 kafka_servers="${kafka_servers}"
-cassandra_seed="${cassandra_seed}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
 elastic_index_strategy="${elastic_index_strategy}"
-sentinel_location="${sentinel_location}"
 opennms_url="${opennms_url}"
+sentinel_location="${sentinel_location}"
 
 echo "### Configuring Hostname and Domain..."
 
@@ -30,21 +29,20 @@ echo "### Configuring Sentinel..."
 sentinel_home=/opt/sentinel
 sentinel_etc=$sentinel_home/etc
 
-sentinel_id=$(hostname -f)
-repository_version=23.0.0-SNAPSHOT
+project_version=$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' opennms-sentinel)
 cat <<EOF > $sentinel_home/deploy/features.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <features
-  name="opennms-\$${project.version}"
+  name="opennms-$project_version"
   xmlns="http://karaf.apache.org/xmlns/features/v1.4.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.4.0 http://karaf.apache.org/xmlns/features/v1.4.0"
 >
 
-  <feature name="autostart-sentinel-telemetry-flows" version="\$${project.version}" start-level="200" install="auto">
+  <feature name="autostart-sentinel-telemetry-flows" description="OpenNMS :: Features :: Sentinel :: Auto-Start" version="$project_version" start-level="200" install="auto">
     <config name="org.opennms.sentinel.controller">
       location = $sentinel_location
-      id = $sentinel_id
+      id = $hostname.$domainname
       http-url = $opennms_url
     </config>
     <config name="org.opennms.netmgt.distributed.datasource">
@@ -79,6 +77,9 @@ cat <<EOF > $sentinel_home/deploy/features.xml
 
 </features>
 EOF
+
+# Exposing Karaf Console
+sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $sentinel_etc/org.apache.karaf.shell.cfg
 
 # TODO Temporal fix
 sed -i -r "/^RUNAS=/s/sentinel/root/" /etc/init.d/sentinel

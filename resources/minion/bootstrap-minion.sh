@@ -5,8 +5,8 @@
 repo=${1-stable};
 version=${2--latest-};
 location=${3-Vagrant};
-opennms_url=${4-http://opennms1:8980/opennms};
-kafka_svr=${5-kafka1:9092,kafka2:9092,kafka3:9092};
+opennms_url=${4-http://onmscore.aws.opennms.org:8980/opennms};
+kafka_svr=${5-kafka1.aws.opennms.org:9092,kafka2.aws.opennms.org:9092,kafka3.aws.opennms.org:9092};
 timezone=${6-America/New_York};
 
 # Internal Variables
@@ -17,9 +17,6 @@ git_user_email="agalue@opennms.org"
 # Fix Network
 nmcli connection reload
 systemctl restart network
-
-# Update /etc/hosts
-cp -f /vagrant/hosts /etc/hosts
 
 # Install basic packages and dependencies
 if ! rpm -qa | grep -q wget; then

@@ -96,6 +96,10 @@ rm -f onmsjvm.txt
 features="opennms-es-rest, opennms-kafka-producer"
 sed -r -i "s/opennms-bundle-refresher.*/opennms-bundle-refresher, $features/" $opennms_etc/org.apache.karaf.features.cfg
 
+# Exposing Karaf Console
+
+sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $opennms_etc/org.apache.karaf.shell.cfg
+
 # External Kafka
 
 cat <<EOF > $opennms_etc/opennms.properties.d/kafka.properties
