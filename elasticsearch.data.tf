@@ -7,7 +7,7 @@ data "template_file" "elasticsearch_data" {
   vars {
     node_id         = "${count.index + length(var.es_master_ip_addresses)}"
     hostname        = "${element(keys(var.es_data_ip_addresses), count.index)}"
-    domainname      = "${var.dns_zone}"
+    domainname      = "${aws_route53_zone.private.name}"
     es_cluster_name = "${lookup(var.settings, "cluster_name")}"
     es_seed_name    = "${join(",",aws_route53_record.elasticsearch_master_private.*.name)}"
     es_password     = "${lookup(var.settings, "elastic_password")}"
@@ -60,7 +60,7 @@ resource "aws_instance" "elasticsearch_data" {
 resource "aws_route53_record" "elasticsearch_data" {
   count   = "${length(var.es_data_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.es_data_ip_addresses), count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.es_data_ip_addresses), count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = "${var.dns_ttl}"
   records = [
@@ -113,7 +113,7 @@ resource "aws_elb_attachment" "elasticsearch" {
 
 resource "aws_route53_record" "elasticsearch_elb" {
   zone_id = "${data.aws_route53_zone.parent.zone_id}"
-  name    = "elasticsearch.${var.dns_zone}"
+  name    = "elasticsearch.${aws_route53_zone.main.name}"
   type    = "A"
 
   alias {

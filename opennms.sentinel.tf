@@ -6,7 +6,7 @@ data "template_file" "opennms_sentinel" {
 
   vars {
     hostname               = "${element(keys(var.onms_sentinel_ip_addresses), count.index)}"
-    domainname             = "${var.dns_zone}"
+    domainname             = "${aws_route53_zone.private.name}"
     postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     kafka_servers          = "${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))}"
     elastic_url            = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
@@ -56,7 +56,7 @@ resource "aws_instance" "opennms_sentinel" {
 resource "aws_route53_record" "opennms_sentinel" {
   count   = "${length(var.onms_sentinel_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.onms_sentinel_ip_addresses), count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.onms_sentinel_ip_addresses), count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = "${var.dns_ttl}"
   records = [

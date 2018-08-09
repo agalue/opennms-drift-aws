@@ -115,8 +115,13 @@ variable "parent_dns_zone" {
 }
 
 variable "dns_zone" {
-  description = "DNS Zone Name"
+  description = "Public DNS Zone Name"
   default     = "aws.opennms.org"
+}
+
+variable "dns_zone_private" {
+  description = "Private DNS Zone Name"
+  default     = "terraform.local"
 }
 
 variable "dns_ttl" {

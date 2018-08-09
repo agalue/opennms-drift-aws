@@ -7,7 +7,7 @@ data "template_file" "cassandra" {
   vars {
     node_id      = "${count.index + 1}"
     hostname     = "${element(keys(var.cassandra_ip_addresses), count.index)}"
-    domainname   = "${var.dns_zone}"
+    domainname   = "${aws_route53_zone.private.name}"
     cluster_name = "${lookup(var.settings, "cluster_name")}"
     seed_name    = "${element(aws_route53_record.cassandra_private.*.name, 0)}"
     datacenter   = "${lookup(var.settings, "cassandra_datacenter")}"
@@ -58,7 +58,7 @@ resource "aws_instance" "cassandra" {
 resource "aws_route53_record" "cassandra" {
   count   = "${length(var.cassandra_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.cassandra_ip_addresses), count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.cassandra_ip_addresses), count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = "${var.dns_ttl}"
   records = [

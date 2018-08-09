@@ -70,7 +70,7 @@ resource "aws_route_table_association" "elb" {
 # DNS
 
 resource "aws_vpc_dhcp_options" "main" {
-  domain_name         = "${var.dns_zone}"
+  domain_name         = "${aws_route53_zone.private.name}"
   domain_name_servers = ["AmazonProvidedDNS"]
 
   tags {
@@ -93,7 +93,7 @@ resource "aws_route53_zone" "main" {
 
 resource "aws_route53_record" "main-ns" {
   zone_id = "${data.aws_route53_zone.parent.zone_id}"
-  name    = "${var.dns_zone}"
+  name    = "${aws_route53_zone.main.name}"
   type    = "NS"
   ttl     = "${var.dns_ttl}"
   records = [
@@ -105,6 +105,6 @@ resource "aws_route53_record" "main-ns" {
 }
 
 resource "aws_route53_zone" "private" {
-  name   = "terraform.local"
+  name   = "${var.dns_zone_private}"
   vpc_id = "${aws_vpc.default.id}"
 }

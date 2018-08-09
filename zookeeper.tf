@@ -8,7 +8,7 @@ data "template_file" "zookeeper" {
     node_id       = "${count.index + 1}"
     vpc_cidr      = "${var.vpc_cidr}"
     hostname      = "${element(keys(var.zookeeper_ip_addresses), count.index)}"
-    domainname    = "${var.dns_zone}"
+    domainname    = "${aws_route53_zone.private.name}"
     total_servers = "${length(var.zookeeper_ip_addresses)}"
   }
 }
@@ -56,7 +56,7 @@ resource "aws_instance" "zookeeper" {
 resource "aws_route53_record" "zookeeper" {
   count   = "${length(var.zookeeper_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.zookeeper_ip_addresses), count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.zookeeper_ip_addresses), count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = "${var.dns_ttl}"
   records = [

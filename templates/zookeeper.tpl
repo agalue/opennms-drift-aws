@@ -36,7 +36,7 @@ EOF
 name_prefix=$${hostname::-1}
 for i in `seq 1 $total_servers`;
 do
-  echo "server.$i=$name_prefix$i.terraform.local:2888:3888" >> $zoo_cfg
+  echo "server.$i=$name_prefix$i.$domainname:2888:3888" >> $zoo_cfg
 done
 
 password_file=/usr/java/latest/jre/lib/management/jmxremote.password

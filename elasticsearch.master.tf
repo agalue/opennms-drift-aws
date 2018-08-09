@@ -7,7 +7,7 @@ data "template_file" "elasticsearch_master" {
   vars {
     node_id         = "${count.index + 1}"
     hostname        = "${element(keys(var.es_master_ip_addresses), count.index)}"
-    domainname      = "${var.dns_zone}"
+    domainname      = "${aws_route53_zone.private.name}"
     es_cluster_name = "${lookup(var.settings, "cluster_name")}"
     es_seed_name    = "${join(",",keys(var.es_master_ip_addresses))}"
     es_password     = "${lookup(var.settings, "elastic_password")}"
@@ -55,7 +55,7 @@ resource "aws_instance" "elasticsearch_master" {
 resource "aws_route53_record" "elasticsearch_master" {
   count   = "${length(var.es_master_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.es_master_ip_addresses), count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.es_master_ip_addresses), count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = "${var.dns_ttl}"
   records = [

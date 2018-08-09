@@ -5,7 +5,7 @@ data "template_file" "kibana" {
 
   vars {
     hostname    = "${element(keys(var.kibana_ip_addresses),0)}"
-    domainname  = "${var.dns_zone}"
+    domainname  = "${aws_route53_zone.private.name}"
     es_url      = "http://${aws_elb.elasticsearch.dns_name}:9200"
     es_password = "${lookup(var.settings, "elastic_password")}"
     es_monsrv   = ""
@@ -48,7 +48,7 @@ resource "aws_instance" "kibana" {
 
 resource "aws_route53_record" "kibana" {
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.kibana_ip_addresses),0)}.${var.dns_zone}"
+  name    = "${element(keys(var.kibana_ip_addresses),0)}.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = "${var.dns_ttl}"
   records = [

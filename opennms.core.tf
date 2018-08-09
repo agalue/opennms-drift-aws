@@ -5,7 +5,7 @@ data "template_file" "opennms" {
 
   vars {
     hostname             = "${element(keys(var.onms_ip_addresses),0)}"
-    domainname           = "${var.dns_zone}"
+    domainname           = "${aws_route53_zone.private.name}"
     postgres_onms_url    = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     elastic_url          = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
     elastic_user         = "elastic"
@@ -61,7 +61,7 @@ resource "aws_instance" "opennms" {
 
 resource "aws_route53_record" "opennms" {
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.onms_ip_addresses),0)}.${var.dns_zone}"
+  name    = "${element(keys(var.onms_ip_addresses),0)}.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = "${var.dns_ttl}"
   records = [

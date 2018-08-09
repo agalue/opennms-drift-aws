@@ -6,7 +6,7 @@ data "template_file" "opennms_ui" {
 
   vars {
     hostname               = "${element(keys(var.onms_ui_ip_addresses), count.index)}"
-    domainname             = "${var.dns_zone}"
+    domainname             = "${aws_route53_zone.private.name}"
     redis_server           = ""
     postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     postgres_server        = "${element(aws_route53_record.postgresql_private.*.name, 0)}"
@@ -59,7 +59,7 @@ resource "aws_instance" "opennms_ui" {
 resource "aws_route53_record" "opennms_ui" {
   count   = "${length(var.onms_ui_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.onms_ui_ip_addresses), count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.onms_ui_ip_addresses), count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = "${var.dns_ttl}"
   records = [
@@ -118,7 +118,7 @@ resource "aws_lb_cookie_stickiness_policy" "opennms_ui" {
 
 resource "aws_route53_record" "opennms_ui_elb" {
   zone_id = "${data.aws_route53_zone.parent.zone_id}"
-  name    = "onmsui.${var.dns_zone}"
+  name    = "onmsui.${aws_route53_zone.main.name}"
   type    = "A"
 
   alias {

@@ -7,7 +7,7 @@ data "template_file" "kafka" {
   vars {
     node_id             = "${count.index + 1}"
     hostname            = "${element(keys(var.kafka_ip_addresses), count.index)}"
-    domainname          = "${var.dns_zone}"
+    domainname          = "${aws_route53_zone.private.name}"
     zookeeper_connect   = "${join(",",formatlist("%v:2181", aws_route53_record.zookeeper_private.*.name))}/kafka"
     num_partitions      = "${lookup(var.settings, "kafka_num_partitions")}"
     replication_factor  = "${lookup(var.settings, "kafka_replication_factor")}"
@@ -58,7 +58,7 @@ resource "aws_instance" "kafka" {
 resource "aws_route53_record" "kafka" {
   count   = "${length(var.kafka_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.kafka_ip_addresses), count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.kafka_ip_addresses), count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
   ttl     = "${var.dns_ttl}"
   records = [
