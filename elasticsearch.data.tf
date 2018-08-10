@@ -8,6 +8,7 @@ data "template_file" "elasticsearch_data" {
     node_id         = "${count.index + length(var.es_master_ip_addresses)}"
     hostname        = "${element(keys(var.es_data_ip_addresses), count.index)}"
     domainname      = "${aws_route53_zone.private.name}"
+    dependencies    = "${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_master_private.*.name))}"
     es_cluster_name = "${lookup(var.settings, "cluster_name")}"
     es_seed_name    = "${join(",",aws_route53_record.elasticsearch_master_private.*.name)}"
     es_password     = "${lookup(var.settings, "elastic_password")}"

@@ -6,6 +6,7 @@
 node_id="${node_id}"
 hostname="${hostname}"
 domainname="${domainname}"
+dependencies="${dependencies}"
 zookeeper_connect="${zookeeper_connect}"
 num_partitions="${num_partitions}"
 replication_factor="${replication_factor}"
@@ -61,7 +62,15 @@ chmod 400 $password_file
 
 echo "### Enabling and starting Kafka..."
 
-start_delay=$((60*(${node_id})))
+if [ "$dependencies" != "" ]; then
+  for service in $${dependencies//,/ }; do
+    data=($${service//:/ })
+    echo "Waiting for server $${data[0]} on port $${data[1]}..."
+    until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+  done
+fi
+
+start_delay=$((20*(${node_id})))
 echo "### Waiting $start_delay seconds prior starting Kafka..."
 sleep $start_delay
 

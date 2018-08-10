@@ -8,6 +8,7 @@ data "template_file" "kafka" {
     node_id             = "${count.index + 1}"
     hostname            = "${element(keys(var.kafka_ip_addresses), count.index)}"
     domainname          = "${aws_route53_zone.private.name}"
+    dependencies        = "${join(",",formatlist("%v:2181", aws_route53_record.zookeeper_private.*.name))}"
     zookeeper_connect   = "${join(",",formatlist("%v:2181", aws_route53_record.zookeeper_private.*.name))}/kafka"
     num_partitions      = "${lookup(var.settings, "kafka_num_partitions")}"
     replication_factor  = "${lookup(var.settings, "kafka_replication_factor")}"

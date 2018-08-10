@@ -5,6 +5,7 @@
 
 hostname="${hostname}"
 domainname="${domainname}"
+dependencies="${dependencies}"
 postgres_onms_url="${postgres_onms_url}"
 kafka_servers="${kafka_servers}"
 cassandra_seed="${cassandra_seed}"
@@ -250,7 +251,14 @@ fi
 
 echo "### Running OpenNMS install script..."
 
-sleep 60
+if [ "$dependencies" != "" ]; then
+  for service in $${dependencies//,/ }; do
+    data=($${service//:/ })
+    echo "Waiting for server $${data[0]} on port $${data[1]}..."
+    until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+  done
+fi
+
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 $opennms_home/bin/install -dis
 

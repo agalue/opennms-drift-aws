@@ -4,7 +4,7 @@
 
 variable "aws_key_name" {
   description = "AWS Key Name, to access EC2 instances through SSH"
-  default     = "agalue"                                            # For testing purposes only
+  default     = "agalue" # For testing purposes only
 }
 
 variable "aws_private_key" {
@@ -12,12 +12,34 @@ variable "aws_private_key" {
   default     = "/Users/agalue/.ssh/agalue.private.aws.us-east-2.pem" # For testing purposes only
 }
 
+# DNS
+
+variable "parent_dns_zone" {
+  description = "Parent DNS Zone Name"
+  default     = "opennms.org" # For testing purposes only
+}
+
+variable "dns_zone" {
+  description = "Public DNS Zone Name"
+  default     = "aws.opennms.org" # For testing purposes only
+}
+
+variable "dns_zone_private" {
+  description = "Private DNS Zone Name"
+  default     = "terraform.local"
+}
+
+variable "dns_ttl" {
+  description = "DNS TTL"
+  default     = 60
+}
+
 # Region and AMIs
 # Make sure to run Packer on the same region
 
 variable "aws_region" {
   description = "EC2 Region for the VPC"
-  default     = "us-east-2"              # For testing purposes only
+  default     = "us-east-2" # For testing purposes only
 }
 
 data "aws_ami" "cassandra" {
@@ -108,26 +130,6 @@ variable "instance_types" {
 
 # This is a proof of concept, so everything will be on a single availability zone,
 # with direct internet access, so instances might have public IP addresses.
-
-variable "parent_dns_zone" {
-  description = "Parent DNS Zone Name"
-  default     = "opennms.org"
-}
-
-variable "dns_zone" {
-  description = "Public DNS Zone Name"
-  default     = "aws.opennms.org"
-}
-
-variable "dns_zone_private" {
-  description = "Private DNS Zone Name"
-  default     = "terraform.local"
-}
-
-variable "dns_ttl" {
-  description = "DNS TTL"
-  default     = 60
-}
 
 variable "vpc_cidr" {
   description = "CIDR for the whole VPC"

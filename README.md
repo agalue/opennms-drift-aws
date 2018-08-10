@@ -27,7 +27,7 @@ aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 * Tweak the common settings on `vars.tf`, in particular:
 
   * `aws_key_name` and `aws_private_key`, to match the chosen region.
-  * `parent_dns_zone` and `dns_zone`, to match an existing Route53 Hosted Zone.
+  * `parent_dns_zone` and `dns_zone`, to match an existing Route 53 Hosted Zone.
 
   All the customizable settings are defined on `vars.tf`. Please do not change the other `.tf` files.
 
@@ -109,6 +109,8 @@ The architecture involves the following components:
 * A elastic load balancer for the OpenNMS UI instances.
 
 * Private DNS through Route 53 for all the instances.
+
+* Public DNS through Route 53 for all the instances, based on an existing Hosted Zone associated with a Public Domain.
 
 For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3.
 

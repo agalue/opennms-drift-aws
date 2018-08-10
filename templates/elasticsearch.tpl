@@ -6,6 +6,7 @@
 node_id="${node_id}"
 hostname="${hostname}"
 domainname="${domainname}"
+dependencies="${dependencies}"
 es_cluster_name="${es_cluster_name}"
 es_seed_name="${es_seed_name}"
 es_password="${es_password}"
@@ -175,6 +176,14 @@ EOF
 fi
 
 echo "### Checking cluster prior start..."
+
+if [ "$dependencies" != "" ]; then
+  for service in $${dependencies//,/ }; do
+    data=($${service//:/ })
+    echo "Waiting for server $${data[0]} on port $${data[1]}..."
+    until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+  done
+fi
 
 start_delay=$((30*($node_id-1)))
 if [[ $start_delay != 0 ]]; then

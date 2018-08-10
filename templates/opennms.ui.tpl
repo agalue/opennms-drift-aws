@@ -5,6 +5,7 @@
 
 hostname="${hostname}"
 domainname="${domainname}"
+dependencies="${dependencies}"
 redis_server="${redis_server}"
 postgres_onms_url="${postgres_onms_url}"
 postgres_server="${postgres_server}"
@@ -169,10 +170,15 @@ cp $security_cfg $security_cfg.bak
 sed -r -i 's/ROLE_ADMIN/ROLE_DISABLED/' $security_cfg
 sed -r -i 's/ROLE_PROVISION/ROLE_DISABLED/' $security_cfg
 
-echo "### Running OpenNMS install script..."
+echo "### Checking dependencies..."
 
-$opennms_home/bin/runjava -S /usr/java/latest/bin/java
-touch $opennms_etc/configured
+if [ "$dependencies" != "" ]; then
+  for service in $${dependencies//,/ }; do
+    data=($${service//:/ })
+    echo "Waiting for server $${data[0]} on port $${data[1]}..."
+    until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+  done
+fi
 
 echo "### Configurng Grafana..."
 
@@ -282,5 +288,7 @@ echo "### Enabling and starting OpenNMS..."
 
 sleep 180
 systemctl daemon-reload
+$opennms_home/bin/runjava -S /usr/java/latest/bin/java
+touch $opennms_etc/configured
 systemctl enable opennms
 systemctl start opennms

@@ -8,6 +8,7 @@
 
 hostname="${hostname}"
 domainname="${domainname}"
+dependencies="${dependencies}"
 postgres_onms_url="${postgres_onms_url}"
 kafka_servers="${kafka_servers}"
 elastic_url="${elastic_url}"
@@ -85,6 +86,14 @@ sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $sentinel_etc/org.apache.karaf.shell.c
 sed -i -r "/^RUNAS=/s/sentinel/root/" /etc/init.d/sentinel
 
 echo "### Enabling and starting Sentinel..."
+
+if [ "$dependencies" != "" ]; then
+  for service in $${dependencies//,/ }; do
+    data=($${service//:/ })
+    echo "Waiting for server $${data[0]} on port $${data[1]}..."
+    until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+  done
+fi
 
 systemctl daemon-reload
 systemctl enable sentinel
