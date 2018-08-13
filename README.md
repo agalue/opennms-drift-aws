@@ -20,7 +20,7 @@ aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 * Install Vagrant from [vagrantup.com](https://www.vagrantup.com)
 
-* Make sure the AMIs used for the Packer JSON files match your chosen region in AWS (Amazon Linux 2 for us-west-2 is the default).
+* Make sure the AMIs used for the Packer JSON files match your chosen region in AWS (Amazon Linux 2 for `us-east-2` is the default).
 
 * Tweak the versions on the packer initialization scripts located at `packer/scripts`.
 
@@ -56,8 +56,6 @@ terraform init
 terraform plan
 terraform apply
 ```
-
-* Generate the `/etc/hosts` file for the Minion system using `resources/minion/generate-hosts-files.pl`
 
 * Initialize the Minion VM using Vagrant:
 
