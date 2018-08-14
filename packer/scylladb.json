@@ -1,8 +1,8 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-8c122be9",
-    "app_name": "Apache Cassandra 3.11.x",
+    "source_ami": "ami-5e8bb23b",
+    "app_name": "ScyllaDB 2.3.x",
     "environment": "Drift"
   },
   "description": "{{ user `app_name` }} for {{ user `environment` }}",
@@ -12,8 +12,8 @@
       "region": "{{ user `region` }}",
       "source_ami": "{{ user `source_ami` }}",
       "instance_type": "t2.medium",
-      "ssh_username": "ec2-user",
-      "ami_name": "cassandra-drift-{{ timestamp }}",
+      "ssh_username": "ubuntu",
+      "ami_name": "scylladb-drift-{{ timestamp }}",
       "ami_description": "{{ user `app_name` }} for {{ user `environment` }}",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",
@@ -28,15 +28,11 @@
   "provisioners": [
     {
       "type": "shell",
-      "script": "./scripts/common.sh"
+      "script": "./scripts/kernel.sh"
     },
     {
       "type": "shell",
-      "script": "./scripts/java.sh"
-    },
-    {
-      "type": "shell",
-      "script": "./scripts/cassandra.sh"
+      "script": "./scripts/scylladb.sh"
     }
   ]
 }

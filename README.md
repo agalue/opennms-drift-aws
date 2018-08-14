@@ -84,7 +84,7 @@ Thanks to packer, all the required software will be part of the respective custo
 
 The architecture involves the following components:
 
-* A cluster of 3 EC2 instances for Cassandra/Newts.
+* A cluster of 3 EC2 instances for ScyllaDB/Newts.
 
 * A cluster of 3 EC2 instances for Zookeeper (required by Kafka). 
 
@@ -110,7 +110,7 @@ The architecture involves the following components:
 
 * Public DNS through Route 53 for all the instances, based on an existing Hosted Zone associated with a Public Domain.
 
-For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3.
+For scalability, the clusters for Kafka, ES Data, ScyllaDB and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3.
 
 **The way on which all the components should be configured relfect the best practices for production (except for the sizes of the EC2 instances).**
 

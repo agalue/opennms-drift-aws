@@ -47,7 +47,7 @@ data "aws_ami" "cassandra" {
 
   filter {
     name   = "name"
-    values = ["cassandra-*"]
+    values = ["scylladb-*"]
   }
 }
 

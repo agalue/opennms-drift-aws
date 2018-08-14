@@ -32,6 +32,10 @@
     },
     {
       "type": "shell",
+      "script": "./scripts/kernel.sh"
+    },
+    {
+      "type": "shell",
       "script": "./scripts/postgresql.sh"
     }
   ]

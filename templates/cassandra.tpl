@@ -18,74 +18,73 @@ hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
-echo "### Configuring Cassandra..."
+device=/dev/xvdb
 
-conf_dir=/etc/cassandra/conf
-conf_file=$conf_dir/cassandra.yaml
+echo "### Waiting on device $device..."
+while [ ! -e $device ]; do
+  printf '.'
+  sleep 1
+done
+
+(
+echo o
+echo n
+echo p
+echo 1
+echo
+echo
+echo w
+) | fdisk $device
+mkfs.xfs -f $device
+
+mount_point=/var/lib/scylla
+mv $mount_point $mount_point.empty
+mkdir $mount_point
+chown scylla:scylla $mount_point
+mount -t xfs $device $mount_point
+rsync -avr $mount_point.empty/ $mount_point/
+echo "$device $mount_point xfs defaults 0 0" >> /etc/fstab
+
+echo "### Configuring ScyllaDB..."
+
+scylla_io_setup
+
+conf_dir=/etc/scylla
+conf_file=$conf_dir/scylla.yaml
 conf_rackdc=$conf_dir/cassandra-rackdc.properties
 
 sed -r -i "/cluster_name/s/Test Cluster/$cluster_name/" $conf_file
 sed -r -i "/seeds/s/127.0.0.1/$seed_name/" $conf_file
 sed -r -i "/listen_address/s/localhost/$ip_address/" $conf_file
 sed -r -i "/rpc_address/s/localhost/$ip_address/" $conf_file
+sed -r -i "/api_address/s/127.0.0.1/$ip_address/" $conf_file
 sed -r -i "/endpoint_snitch/s/SimpleSnitch/GossipingPropertyFileSnitch/" $conf_file
+
+echo "dc=$datacenter" >> $conf_rackdc
+echo "rack=$rack" >> $conf_rackdc
 
 echo "### Configuring JMX..."
 
-env_file=$conf_dir/cassandra-env.sh
-jvm_file=$conf_dir/jvm.options
-
+env_file=$conf_dir/cassandra/cassandra-env.sh
+env_default=/etc/default/scylla-jmx
 jmx_passwd=/etc/cassandra/jmxremote.password
 jmx_access=/etc/cassandra/jmxremote.access
 
-total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-mem_in_mb=`expr $total_mem_in_mb / 2`
-if [ "$mem_in_mb" -gt "30720" ]; then
-  mem_in_mb="30720"
-fi
+sed -r -i "/SCYLLA_JMX_ADDR/s/^\#//" $env_default
+sed -r -i "/SCYLLA_JMX_ADDR/s/localhost/$ip_address/" $env_default
+sed -r -i "/SCYLLA_JMX_REMOTE/s/^\#//" $env_default
 
-# Update Rack Properties
-sed -r -i "s/dc1/$datacenter/" $conf_rackdc
-sed -r -i "s/rack1/$rack/" $conf_rackdc
-
-# Cassandra JVM Environment Configuration
 sed -r -i "/rmi.server.hostname/s/^\#//" $env_file
 sed -r -i "/rmi.server.hostname/s/.public name./$ip_address/" $env_file
-sed -r -i "/jmxremote.access/s/#//" $env_file
 sed -r -i "/LOCAL_JMX=/s/yes/no/" $env_file
-sed -r -i "s/^[#]?MAX_HEAP_SIZE=\".*\"/MAX_HEAP_SIZE=\"$${mem_in_mb}m\"/" $env_file
-sed -r -i "s/^[#]?HEAP_NEWSIZE=\".*\"/HEAP_NEWSIZE=\"$${mem_in_mb}m\"/" $env_file
 
-# Disable CMSGC
-sed -r -i "/UseParNewGC/s/-XX/#-XX/" $jvm_file
-sed -r -i "/UseConcMarkSweepGC/s/-XX/#-XX/" $jvm_file
-sed -r -i "/CMSParallelRemarkEnabled/s/-XX/#-XX/" $jvm_file
-sed -r -i "/SurvivorRatio/s/-XX/#-XX/" $jvm_file
-sed -r -i "/MaxTenuringThreshold/s/-XX/#-XX/" $jvm_file
-sed -r -i "/CMSInitiatingOccupancyFraction/s/-XX/#-XX/" $jvm_file
-sed -r -i "/UseCMSInitiatingOccupancyOnly/s/-XX/#-XX/" $jvm_file
-sed -r -i "/CMSWaitDuration/s/-XX/#-XX/" $jvm_file
-sed -r -i "/CMSParallelInitialMarkEnabled/s/-XX/#-XX/" $jvm_file
-sed -r -i "/CMSEdenChunksRecordAlways/s/-XX/#-XX/" $jvm_file
-sed -r -i "/CMSClassUnloadingEnabled/s/-XX/#-XX/" $jvm_file
-
-# Enable G1GC
-sed -r -i "/UseG1GC/s/#-XX/-XX/" $jvm_file
-sed -r -i "/G1RSetUpdatingPauseTimePercent/s/#-XX/-XX/" $jvm_file
-sed -r -i "/MaxGCPauseMillis/s/#-XX/-XX/" $jvm_file
-sed -r -i "/InitiatingHeapOccupancyPercent/s/#-XX/-XX/" $jvm_file
-sed -r -i "/ParallelGCThreads/s/#-XX/-XX/" $jvm_file
-
-# JMX Auth: passwords
 cat <<EOF > $jmx_passwd
 monitorRole QED
 controlRole R&D
 cassandra cassandra
 EOF
 chmod 0400 $jmx_passwd
-chown cassandra:cassandra $jmx_passwd
 
-# JMX Auth: access
 cat <<EOF > $jmx_access
 monitorRole   readonly
 cassandra     readwrite
@@ -94,9 +93,11 @@ controlRole   readwrite \
               unregister
 EOF
 chmod 0400 $jmx_access
-chown cassandra:cassandra $jmx_access
 
-chown cassandra:cassandra $conf_dir/*
+echo "### Fixing permissions on $conf_dir..."
+
+chown -R scylla $conf_dir
+chown -R scylla /etc/cassandra
 
 echo "### Checking cluster prior start..."
 
@@ -106,11 +107,11 @@ if [[ $start_delay != 0 ]]; then
     echo "### $seed_name is unavailable - sleeping"
     sleep 5
   done
-  echo "### Waiting $start_delay seconds prior starting Cassandra..."
+  echo "### Waiting $start_delay seconds prior starting ScyllaDB..."
   sleep $start_delay
 fi
 
-echo "### Enabling and starting Cassandra..."
+echo "### Enabling and starting ScyllaDB..."
 
-systemctl enable cassandra
-systemctl start cassandra
+systemctl enable scylla-server
+systemctl start scylla-server

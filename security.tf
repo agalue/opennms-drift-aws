@@ -161,6 +161,14 @@ resource "aws_security_group" "cassandra" {
     cidr_blocks = ["${var.vpc_cidr}"]
   }
 
+  ingress {
+    from_port   = 10000
+    to_port     = 10000
+    protocol    = "tcp"
+    description = "Scylla ReST"
+    cidr_blocks = ["${var.vpc_cidr}"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
