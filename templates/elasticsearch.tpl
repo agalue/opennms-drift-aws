@@ -10,6 +10,7 @@ dependencies="${dependencies}"
 es_cluster_name="${es_cluster_name}"
 es_seed_name="${es_seed_name}"
 es_password="${es_password}"
+es_license="${es_license}"
 es_role="${es_role}"
 es_xpack="${es_xpack}"
 es_monsrv="${es_monsrv}"
@@ -72,8 +73,10 @@ fi
 
 # X-Pack
 
-echo >> $es_yaml
-echo "xpack.license.self_generated.type: basic" >> $es_yaml
+cat <<EOF >> $es_yaml
+
+xpack.license.self_generated.type: $es_license
+EOF
 
 if [ "$es_xpack" == "true" ]; then
   echo $es_password | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x 'bootstrap.password'
@@ -94,7 +97,7 @@ fi
 
 # CORS (Required to use Grafana Plugin)
 
-echo <<EOF >> $es_yaml
+cat <<EOF >> $es_yaml
 
 http.cors.enabled: true
 http.cors.allow-origin: "*"
@@ -105,7 +108,7 @@ EOF
 if [ "$es_role" == "master" ]; then
   echo "### Configuring Curator..."
 
-  echo <<EOF > /etc/elasticsearch-curator/config.yml
+  cat <<EOF > /etc/elasticsearch-curator/config.yml
 client:
   host:
     - $es_seed_name
@@ -127,7 +130,7 @@ logging:
   blacklist: ['elasticsearch', 'urllib3']
 EOF
 
-  echo <<EOF > /etc/elasticsearch-curator/delete_indices.yml
+  cat <<EOF > /etc/elasticsearch-curator/delete_indices.yml
 actions:
   1:
     action: delete_indices
