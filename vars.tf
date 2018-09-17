@@ -291,6 +291,7 @@ variable "settings" {
     postgresql_version_family    = "10-2"
     postgresql_max_connections   = 300
     elastic_password             = "opennms"
+    elastic_license              = "trial"
     elastic_flow_index_strategy  = "hourly"
     onms_use_30sec_frequency     = "true"
   }
