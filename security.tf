@@ -50,7 +50,7 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 2181
     protocol    = "tcp"
     description = "Clients"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.vpc_cidr}"]
   }
 
   ingress {
@@ -74,7 +74,7 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 9998
     protocol    = "tcp"
     description = "JMX"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.vpc_cidr}"]
   }
 
   egress {
@@ -108,7 +108,7 @@ resource "aws_security_group" "kafka" {
     to_port     = 9999
     protocol    = "tcp"
     description = "JMX"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.vpc_cidr}"]
   }
 
   egress {
@@ -210,7 +210,7 @@ resource "aws_security_group" "elasticsearch" {
     to_port     = 9200
     protocol    = "tcp"
     description = "HTTP"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.vpc_cidr}"]
   }
 
   ingress {

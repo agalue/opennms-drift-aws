@@ -6,8 +6,13 @@ repo=${1-stable};
 version=${2--latest-};
 location=${3-Vagrant};
 opennms_url=${4-http://onmscore.aws.opennms.org:8980/opennms};
-kafka_svr=${5-kafka1.aws.opennms.org:9092,kafka2.aws.opennms.org:9092,kafka3.aws.opennms.org:9092};
-timezone=${6-America/New_York};
+kafka_servers=${5-kafka1.aws.opennms.org:9092,kafka2.aws.opennms.org:9092,kafka3.aws.opennms.org:9092};
+kafka_security_protocol=${6-SASL_PLAINTEXT};
+kafka_security_mechanism=${7-PLAIN};
+kafka_security_module=${8-org.apache.kafka.common.security.plain.PlainLoginModule};
+kafka_user_name=${9-opennms}
+kafka_user_password=${10-0p3nNMS};
+timezone=${11-America/New_York};
 
 # Internal Variables
 java_url="http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jdk-8u181-linux-x64.rpm"
@@ -146,13 +151,19 @@ http-url=$opennms_url
 EOF
 
   cat <<EOF > org.opennms.core.ipc.sink.kafka.cfg
-bootstrap.servers=$kafka_svr
+bootstrap.servers=$kafka_servers
 acks=1
+security.protocol=$kafka_security_protocol
+sasl.mechanism=$kafka_security_mechanism
+sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
 EOF
 
   cat <<EOF > org.opennms.core.ipc.rpc.kafka.cfg
-bootstrap.servers=$kafka_svr
+bootstrap.servers=$kafka_servers
 acks=1
+security.protocol=$kafka_security_protocol
+sasl.mechanism=$kafka_security_mechanism
+sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
 EOF
 
   cat <<EOF > org.opennms.netmgt.trapd.cfg

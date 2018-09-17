@@ -154,6 +154,12 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
 
-* Minimize/Eliminate the wait times by waiting on actual applications to be ready.
-
 * Make the bootstrap scripts reusable (i.e. to be able to execute them multiple times without side effects, in case the bootstrap process was wrong).
+
+* Enable security every where with passwords, SSL/TLS, or other mechanisms.
+  * SSL Certificates might be required, so [Let's Encrypt](https://letsencrypt.org/) can help.
+  * Proper configuration of X-Pack is required for Elasticsearch (at least the trial license).
+  * Use MD5 password authentication for PostgreSQL.
+  * For Kafka, SASL/Kerberos is recommended, so we might need a Kerberos Server (at least from Interface facing perspective, as OpenNMS Core and Sentinels can use PLAINTEXT without issues).
+  * Enable SSL/TLS for Kafka (Internet facing, i.e. for Minions).
+  * Only expose through Security Groups what's required to be accessed and nothing else.

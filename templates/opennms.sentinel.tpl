@@ -11,6 +11,11 @@ domainname="${domainname}"
 dependencies="${dependencies}"
 postgres_onms_url="${postgres_onms_url}"
 kafka_servers="${kafka_servers}"
+kafka_security_protocol="${kafka_security_protocol}"
+kafka_security_module="${kafka_security_module}"
+kafka_client_mechanism="${kafka_client_mechanism}"
+kafka_user_name="${kafka_user_name}"
+kafka_user_password="${kafka_user_password}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
@@ -62,15 +67,18 @@ cat <<EOF > $sentinel_home/deploy/features.xml
     </config>
     <config name="org.opennms.features.flows.persistence.elastic">
       elasticUrl = $elastic_url
-      elasticGlobalUser=$elastic_user
-      elasticGlobalPassword=$elastic_password
-      elasticIndexStrategy=$elastic_index_strategy
-      settings.index.number_of_shards=6
-      settings.index.number_of_replicas=1
+      elasticGlobalUser = $elastic_user
+      elasticGlobalPassword = $elastic_password
+      elasticIndexStrategy = $elastic_index_strategy
+      settings.index.number_of_shards = 6
+      settings.index.number_of_replicas = 1
     </config>
     <config name="org.opennms.core.ipc.sink.kafka.consumer">
       group.id = Sentinel
       bootstrap.servers = $kafka_servers
+      security.protocol = $kafka_security_protocol
+      sasl.mechanism = $kafka_client_mechanism
+      sasl.jaas.config = $kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
     </config>
     <feature>sentinel-kafka</feature>
     <feature>sentinel-flows</feature>

@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="branches-features-sentinel"
+onms_repo="branches-jira-HZN-1387"
 onms_version="-latest-"
 grafana_version="5.2.2"
 

@@ -12,7 +12,7 @@ data "template_file" "opennms_ui" {
     postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     postgres_server        = "${element(aws_route53_record.postgresql_private.*.name, 0)}"
     cassandra_seed         = "${element(aws_route53_record.cassandra_private.*.name, 0)}"
-    elastic_url            = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
+    elastic_url            = "http://${element(aws_route53_record.elasticsearch_data_private.*.name, 0)}:9200"
     elastic_user           = "elastic"
     elastic_password       = "${lookup(var.settings, "elastic_password")}"
     elastic_index_strategy = "${lookup(var.settings, "elastic_flow_index_strategy")}"

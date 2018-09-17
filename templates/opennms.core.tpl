@@ -7,7 +7,13 @@ hostname="${hostname}"
 domainname="${domainname}"
 dependencies="${dependencies}"
 postgres_onms_url="${postgres_onms_url}"
+activemq_url="${activemq_url}"
 kafka_servers="${kafka_servers}"
+kafka_security_protocol="${kafka_security_protocol}"
+kafka_security_module="${kafka_security_module}"
+kafka_client_mechanism="${kafka_client_mechanism}"
+kafka_user_name="${kafka_user_name}"
+kafka_user_password="${kafka_user_password}"
 cassandra_seed="${cassandra_seed}"
 cassandra_datacenter="${cassandra_datacenter}"
 cassandra_repfactor="${cassandra_repfactor}"
@@ -69,6 +75,8 @@ sed -i -r "/JAVA_HEAP_SIZE/s/=1024/=$mem_in_mb/" $opennms_etc/opennms.conf
 sed -i -r "/GCThreads/s/=2/=$half_of_cores/" $opennms_etc/opennms.conf
 sed -i -r "/rmi.server.hostname/s/=0.0.0.0/=$hostname/" $opennms_etc/opennms.conf
 
+# JMX Polling/Collection Settings
+
 IFS=',' read -r -a ip_list <<< "$opennms_ui_servers"
 ip_list+=($ip_address)
 echo "<jmx-config>" > $opennms_etc/jmx-config.xml
@@ -101,19 +109,42 @@ sed -r -i "s/opennms-bundle-refresher.*/opennms-bundle-refresher, $features/" $o
 
 sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $opennms_etc/org.apache.karaf.shell.cfg
 
-# External Kafka
+# Sink Pattern with Kafka
 
-cat <<EOF > $opennms_etc/opennms.properties.d/kafka.properties
-# Sink
+cat <<EOF > $opennms_etc/opennms.properties.d/kafka-sink.properties
 org.opennms.core.ipc.sink.initialSleepTime=60000
 org.opennms.core.ipc.sink.strategy=kafka
 org.opennms.core.ipc.sink.kafka.bootstrap.servers=$kafka_servers
 org.opennms.core.ipc.sink.kafka.group.id=OpenNMS
-# RPC
+org.opennms.core.ipc.sink.kafka.security.protocol=$kafka_security_protocol
+org.opennms.core.ipc.sink.kafka.sasl.mechanism=$kafka_client_mechanism
+org.opennms.core.ipc.sink.kafka.sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
+EOF
+
+# RPC Pattern
+
+if [ "$activemq_url" != "" ]; then
+  if [ "$activemq_url" == "127.0.0.1" ]; then
+    sed -r -i '/0.0.0.0:61616/s/[<][!]--//' $opennms_etc/opennms-activemq.xml
+    sed -r -i '/0.0.0.0:61616/s/--[>]//' $opennms_etc/opennms-activemq.xml
+  else
+cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
+org.opennms.activemq.broker.disable=true
+org.opennms.activemq.broker.url=$activemq_url
+org.opennms.activemq.broker.username=admin
+org.opennms.activemq.broker.password=admin
+EOF
+  fi
+else
+  cat <<EOF > $opennms_etc/opennms.properties.d/kafka-rpc.properties
 org.opennms.core.ipc.rpc.strategy=kafka
 org.opennms.core.ipc.rpc.kafka.bootstrap.servers=$kafka_servers
 org.opennms.core.ipc.rpc.kafka.ttl=30000
+org.opennms.core.ipc.rpc.kafka.security.protocol=$kafka_security_protocol
+org.opennms.core.ipc.rpc.kafka.sasl.mechanism=$kafka_client_mechanism
+org.opennms.core.ipc.rpc.kafka.sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
 EOF
+fi
 
 # Kafka Producer
 
@@ -189,11 +220,11 @@ EOF
 
 sed -r -i 's/pathOutageEnabled="false"/pathOutageEnabled="true"/' $opennms_etc/poller-configuration.xml
 
-# Fix PostgreSQL service
+# Fix PostgreSQL service (to be consistent with Collectd)
 
 sed -r -i 's/"Postgres"/"PostgreSQL"/g' $opennms_etc/poller-configuration.xml 
 
-# Default Foreign Source
+# Updating the Default Foreign Source
 
 cat <<EOF > $opennms_etc/default-foreign-source.xml
 <foreign-source xmlns="http://xmlns.opennms.org/xsd/config/foreign-source" name="default" date-stamp="2018-01-01T00:00:00.000-05:00">
@@ -206,7 +237,7 @@ cat <<EOF > $opennms_etc/default-foreign-source.xml
 </foreign-source>
 EOF
 
-# Logging
+# Updating Logging to provide more context for Pollerd and Collectd
 
 cat <<EOF > logging.txt
         <Route key="collectd">
@@ -233,8 +264,8 @@ EOF
 sed -r -i '/Routes pattern=/r logging.txt' $opennms_etc/log4j2.xml
 rm -f logging.txt
 
-# WARNING: For testing purposes only
-# Lab collection and polling interval (30 seconds)
+# WARNING: The following section is for testing purposes only
+# Change collection and polling interval to 30 seconds
 
 if [ "$use_30sec_frequency" == "true" ]; then
   sed -r -i 's/step="300"/step="30"/g' $opennms_etc/telemetryd-configuration.xml 
@@ -249,7 +280,7 @@ if [ "$use_30sec_frequency" == "true" ]; then
   done
 fi
 
-echo "### Running OpenNMS install script..."
+echo "### Waiting for OpenNMS dependencies to be ready..."
 
 if [ "$dependencies" != "" ]; then
   for service in $${dependencies//,/ }; do
@@ -259,10 +290,13 @@ if [ "$dependencies" != "" ]; then
   done
 fi
 
+echo "### Running OpenNMS install script..."
+
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 $opennms_home/bin/install -dis
 
 echo "### Initializing Newts keyspace..."
+
 newts=$opennms_etc/newts.cql
 sed -r -i "s/'DC1' : 2/'$cassandra_datacenter' : $cassandra_repfactor/" $newts
 cqlsh -f $newts $cassandra_seed 

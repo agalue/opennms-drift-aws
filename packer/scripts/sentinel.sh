@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-sentinel_repo="branches-features-sentinel"
+sentinel_repo="branches-jira-HZN-1387"
 sentinel_version="-latest-"
 
 ########################################

@@ -13,6 +13,11 @@ data "template_file" "kafka" {
     num_partitions      = "${lookup(var.settings, "kafka_num_partitions")}"
     replication_factor  = "${lookup(var.settings, "kafka_replication_factor")}"
     min_insync_replicas = "${lookup(var.settings, "kafka_min_insync_replicas")}"
+    security_protocol   = "${lookup(var.settings, "kafka_security_protocol")}"
+    security_mechanisms = "${lookup(var.settings, "kafka_security_mechanisms")}"
+    admin_password      = "${lookup(var.settings, "kafka_admin_password")}"
+    user_name           = "${lookup(var.settings, "kafka_user_name")}"
+    user_password       = "${lookup(var.settings, "kafka_user_password")}"
   }
 }
 
