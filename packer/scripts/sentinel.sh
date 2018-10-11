@@ -14,14 +14,14 @@ tmp_file=/tmp/_onms_temp_file
 
 echo "### Installing Common Packages..."
 
-sudo yum -y -q install haveged redis httpd
+sudo yum -y -q install haveged
 sudo systemctl enable haveged
 
-echo "### Installing OpenNMS..."
-
-echo "### Installing OpenNMSS $sentinel_repo Repository..."
+echo "### Installing Sentinel $sentinel_repo Repository..."
 sudo yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-$sentinel_repo-rhel7.noarch.rpm
 sudo rpm --import /etc/yum.repos.d/opennms-repo-$sentinel_repo-rhel7.gpg
+
+echo "### Installing Sentinel Packages..."
 sudo yum install -y -q opennms-sentinel*
 
 echo "### Initializing GIT at $sentinel_etc..."
