@@ -9,7 +9,7 @@ data "template_file" "opennms" {
     dependencies         = "${join(",",formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))},${join(",",formatlist("%v:9042", aws_route53_record.cassandra_private.*.name))},${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))},${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
     postgres_onms_url    = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     elastic_url          = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
-    elastic_user         = "elastic"
+    elastic_user         = "${lookup(var.settings, "elastic_user")}"
     elastic_password     = "${lookup(var.settings, "elastic_password")}"
     kafka_servers        = "${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))}"
     cassandra_datacenter = "${lookup(var.settings, "cassandra_datacenter")}"

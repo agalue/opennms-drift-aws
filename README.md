@@ -102,10 +102,6 @@ The architecture involves the following components:
 
 * An EC2 instance for Kibana.
 
-* A elastic load balancer for the Elasticsearch instances.
-
-* A elastic load balancer for the OpenNMS UI instances.
-
 * Private DNS through Route 53 for all the instances.
 
 * Public DNS through Route 53 for all the instances, based on an existing Hosted Zone associated with a Public Domain.

@@ -7,16 +7,16 @@ data "template_file" "opennms_ui" {
   vars {
     hostname               = "${element(keys(var.onms_ui_ip_addresses), count.index)}"
     domainname             = "${aws_route53_zone.private.name}"
+    domainname_public      = "${aws_route53_zone.main.name}"
     redis_server           = ""
     dependencies           = "${join(",",formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))},${join(",",formatlist("%v:9042", aws_route53_record.cassandra_private.*.name))},${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
     postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     postgres_server        = "${element(aws_route53_record.postgresql_private.*.name, 0)}"
     cassandra_seed         = "${element(aws_route53_record.cassandra_private.*.name, 0)}"
     elastic_url            = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
-    elastic_user           = "elastic"
+    elastic_user           = "${lookup(var.settings, "elastic_user")}"
     elastic_password       = "${lookup(var.settings, "elastic_password")}"
     elastic_index_strategy = "${lookup(var.settings, "elastic_flow_index_strategy")}"
-    webui_endpoint         = "${aws_elb.opennms_ui.dns_name}"
     use_30sec_frequency    = "${lookup(var.settings, "onms_use_30sec_frequency")}"
   }
 }

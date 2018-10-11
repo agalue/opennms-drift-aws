@@ -79,7 +79,7 @@ xpack.license.self_generated.type: $es_license
 EOF
 
 if [ "$es_xpack" == "true" ]; then
-  echo $es_password | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x 'bootstrap.password'
+  echo $es_password | /usr/share/elasticsearch/bin/elasticsearch-keystore add --stdin 'bootstrap.password'
 
   if [ "$es_monsrv" != "" ]; then
     echo "xpack.monitoring.exporters:" >> $es_yaml

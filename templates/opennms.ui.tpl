@@ -5,8 +5,10 @@
 
 hostname="${hostname}"
 domainname="${domainname}"
+domainname_public="${domainname_public}"
 dependencies="${dependencies}"
 redis_server="${redis_server}"
+grafana_server=${grafana_server}
 postgres_onms_url="${postgres_onms_url}"
 postgres_server="${postgres_server}"
 cassandra_seed="${cassandra_seed}"
@@ -160,7 +162,7 @@ EOF
 
 # Configuring Deep Dive Tool
 cat <<EOF > $opennms_etc/org.opennms.netmgt.flows.rest.cfg
-flowGraphUrl=http://$webui_endpoint/grafana/dashboard/flows?node=\$nodeId&interface=\$ifIndex
+flowGraphUrl=http://$hostname.$domainname_public:3000/dashboard/flows?node=\$nodeId&interface=\$ifIndex
 EOF
 
 echo "### Forcing OpenNMS to be read-only in terms of administrative changes..."

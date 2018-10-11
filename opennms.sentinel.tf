@@ -7,11 +7,11 @@ data "template_file" "opennms_sentinel" {
   vars {
     hostname               = "${element(keys(var.onms_sentinel_ip_addresses), count.index)}"
     domainname             = "${aws_route53_zone.private.name}"
-    dependencies         = "${join(",",formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))},${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))},${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
+    dependencies           = "${join(",",formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))},${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))},${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
     postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     kafka_servers          = "${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))}"
     elastic_url            = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
-    elastic_user           = "elastic"
+    elastic_user           = "${lookup(var.settings, "elastic_user")}"
     elastic_password       = "${lookup(var.settings, "elastic_password")}"
     elastic_index_strategy = "${lookup(var.settings, "elastic_flow_index_strategy")}"
     opennms_url            = "http://${aws_route53_record.opennms_private.name}:8980/opennms"

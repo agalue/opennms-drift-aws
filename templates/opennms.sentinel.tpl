@@ -2,7 +2,7 @@
 # Author: Alejandro Galue <agalue@opennms.org>
 #
 # Guide:
-# https://github.com/OpenNMS/opennms/blob/jira/HZN-1338/opennms-doc/guide-admin/src/asciidoc/text/sentinel/sentinel.adoc
+# https://github.com/OpenNMS/opennms/blob/develop/opennms-doc/guide-admin/src/asciidoc/text/sentinel/sentinel.adoc
 
 # AWS Template Variables
 

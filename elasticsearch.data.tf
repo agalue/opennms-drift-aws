@@ -81,50 +81,6 @@ resource "aws_route53_record" "elasticsearch_data_private" {
   ]
 }
 
-resource "aws_elb" "elasticsearch" {
-  name            = "elasticsearch"
-  internal        = false
-  subnets         = ["${aws_subnet.elb.id}"]
-  security_groups = ["${aws_security_group.elasticsearch.id}"]
-
-  listener {
-    instance_port     = 9200
-    instance_protocol = "tcp"
-    lb_port           = 9200
-    lb_protocol       = "tcp"
-  }
-
-  health_check {
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    timeout             = 3
-    target              = "TCP:9200"
-    interval            = 30
-  }
-
-  tags {
-    Name = "Terraform Elasticsearch ELB"
-  }
-}
-
-resource "aws_elb_attachment" "elasticsearch" {
-  count    = "${length(var.es_data_ip_addresses)}"
-  elb      = "${aws_elb.elasticsearch.id}"
-  instance = "${element(aws_instance.elasticsearch_data.*.id, count.index)}"
-}
-
-resource "aws_route53_record" "elasticsearch_elb" {
-  zone_id = "${data.aws_route53_zone.parent.zone_id}"
-  name    = "elasticsearch.${aws_route53_zone.main.name}"
-  type    = "A"
-
-  alias {
-    name                   = "${aws_elb.elasticsearch.dns_name}"
-    zone_id                = "${aws_elb.elasticsearch.zone_id}"
-    evaluate_target_health = true
-  }
-}
-
 output "esdata" {
   value = "${join(",",aws_instance.elasticsearch_data.*.public_ip)}"
 }
