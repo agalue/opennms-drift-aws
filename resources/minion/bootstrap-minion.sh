@@ -2,7 +2,7 @@
 # Author: Alejandro Galue <agalue@opennms.org>
 
 # External variables with defaults
-repo=${1-stable};
+repo=${1-develop};
 version=${2--latest-};
 location=${3-Vagrant};
 opennms_url=${4-http://onmscore.aws.opennms.org:8980/opennms};
