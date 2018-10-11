@@ -3,9 +3,9 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="branches-features-sentinel"
+onms_repo="develop"
 onms_version="-latest-"
-grafana_version="5.2.2"
+grafana_version="5.2.4"
 
 ########################################
 
@@ -28,7 +28,6 @@ sudo sed -r -i '/name=Amazon Linux 2/a exclude=rrdtool-*' /etc/yum.repos.d/amzn2
 sudo yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel7.noarch.rpm
 sudo rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel7.gpg
 sudo yum install -y -q jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Twig)'
-sudo yum install -y -q opennms-helm
 
 echo "### Installing OpenNMS..."
 
@@ -47,6 +46,7 @@ else
   suffix="-$onms_version"
 fi
 sudo yum install -y -q opennms-core$suffix opennms-webapp-jetty$suffix opennms-webapp-hawtio$suffix
+sudo yum install -y -q opennms-helm
 
 echo "### Initializing GIT at $opennms_etc..."
 

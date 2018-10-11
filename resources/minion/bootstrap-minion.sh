@@ -185,6 +185,18 @@ class-name=org.opennms.netmgt.telemetry.listeners.flow.netflow9.UdpListener
 listener.port=4729
 EOF
 
+  cat <<EOF > system.properties
+
+# Adding SNMP4J Options:
+org.snmp4j.smisyntaxes=opennms-snmp4j-smisyntaxes.properties
+org.opennms.snmp.snmp4j.forwardRuntimeExceptions=false
+snmp4j.LogFactory=org.snmp4j.log.Log4jLogFactory
+org.opennms.snmp.workarounds.allow64BitIpAddress=true
+org.opennms.snmp.workarounds.allowZeroLengthIpAddress=true
+org.opennms.snmp.snmp4j.noGetBulk=false
+org.opennms.snmp.snmp4j.allowSNMPv2InV1=false
+EOF
+
   systemctl enable minion
   systemctl start minion
 fi

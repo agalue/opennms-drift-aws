@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-sentinel_repo="branches-features-sentinel"
+sentinel_repo="develop"
 sentinel_version="-latest-"
 
 ########################################
