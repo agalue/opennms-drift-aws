@@ -146,10 +146,12 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 ## Future enhancements
 
+* Enable authentication for all services.
+
+* Add cron jobs to OpenNMS to apply the constraints for the RPC Topics on Kafka, as default retention/storage is not required in this particular case, but unfortunately this cannot be configured within OpenNMS.
+
 * Improve the Elasticsearch cluster architecture to have a dedicated monitoring cluster (assuming X-Pack will be used).
 
 * Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
-
-* Minimize/Eliminate the wait times by waiting on actual applications to be ready.
 
 * Make the bootstrap scripts reusable (i.e. to be able to execute them multiple times without side effects, in case the bootstrap process was wrong).
