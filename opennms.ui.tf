@@ -78,56 +78,6 @@ resource "aws_route53_record" "opennms_ui_private" {
     "${element(values(var.onms_ui_ip_addresses), count.index)}",
   ]
 }
-resource "aws_elb" "opennms_ui" {
-  name            = "opennms"
-  internal        = false
-  subnets         = ["${aws_subnet.elb.id}"]
-  security_groups = ["${aws_security_group.opennms_ui.id}"]
-
-  listener {
-    instance_port     = 80
-    instance_protocol = "http"
-    lb_port           = 80
-    lb_protocol       = "http"
-  }
-
-  health_check {
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    timeout             = 3
-    target              = "HTTP:80/opennms/login.jsp"
-    interval            = 30
-  }
-
-  tags {
-    Name = "Terraform OpenNMS UI ELB"
-  }
-}
-
-resource "aws_elb_attachment" "opennms_ui" {
-  count    = "${length(var.onms_ui_ip_addresses)}"
-  elb      = "${aws_elb.opennms_ui.id}"
-  instance = "${element(aws_instance.opennms_ui.*.id, count.index)}"
-}
-
-resource "aws_lb_cookie_stickiness_policy" "opennms_ui" {
-  name                     = "opennms-ui-policy"
-  load_balancer            = "${aws_elb.opennms_ui.id}"
-  lb_port                  = 80
-  cookie_expiration_period = 86400
-}
-
-resource "aws_route53_record" "opennms_ui_elb" {
-  zone_id = "${data.aws_route53_zone.parent.zone_id}"
-  name    = "onmsui.${aws_route53_zone.main.name}"
-  type    = "A"
-
-  alias {
-    name                   = "${aws_elb.opennms_ui.dns_name}"
-    zone_id                = "${aws_elb.opennms_ui.zone_id}"
-    evaluate_target_health = true
-  }
-}
 
 output "onmsui" {
   value = "${join(",",aws_instance.opennms_ui.*.public_ip)}"

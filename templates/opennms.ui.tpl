@@ -8,11 +8,9 @@ domainname="${domainname}"
 domainname_public="${domainname_public}"
 dependencies="${dependencies}"
 redis_server="${redis_server}"
-grafana_server=${grafana_server}
 postgres_onms_url="${postgres_onms_url}"
 postgres_server="${postgres_server}"
 cassandra_seed="${cassandra_seed}"
-webui_endpoint="${webui_endpoint}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
@@ -162,7 +160,7 @@ EOF
 
 # Configuring Deep Dive Tool
 cat <<EOF > $opennms_etc/org.opennms.netmgt.flows.rest.cfg
-flowGraphUrl=http://$hostname.$domainname_public:3000/dashboard/flows?node=\$nodeId&interface=\$ifIndex
+flowGraphUrl=http://$hostname.$domainname_public/grafana/dashboard/flows?node=\$nodeId&interface=\$ifIndex
 EOF
 
 echo "### Forcing OpenNMS to be read-only in terms of administrative changes..."
@@ -186,7 +184,7 @@ echo "### Configurng Grafana..."
 
 grafana_cfg=/etc/grafana/grafana.ini
 cp $grafana_cfg $grafana_cfg.bak
-sed -r -i "s/;domain = localhost/domain = $webui_endpoint/" $grafana_cfg
+sed -r -i "s/;domain = localhost/domain = $hostname.$domainname_public/" $grafana_cfg
 sed -r -i "s/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s:\/grafana/" $grafana_cfg
 sed -r -i "s/;type = sqlite3/type = postgres/" $grafana_cfg
 sed -r -i "s/;host = 127.0.0.1:3306/host = $postgres_server:5432/" $grafana_cfg
@@ -199,10 +197,10 @@ sed -r -i "s/;provider_config = sessions/provider_config = user=grafana password
 echo "### Configurng PostgreSQL database for Grafana..."
 echo "### WARNING - Grafana doesn't support multi-host database configuration..."
 
-PGHOST=$postgres_server
-PGPORT=5432
-PGUSER=postgres
-PGPASSWORD=postgres
+export PGHOST="$postgres_server"
+export PGPORT=5432
+export PGUSER=postgres
+export PGPASSWORD=postgres
 
 if ! psql -lqt | cut -d \| -f 1 | grep -qw grafana; then
   echo "Creating grafana user and database in PostgreSQL..."
@@ -222,7 +220,7 @@ grafana_key=`curl -X POST -H "Content-Type: application/json" -d '{"name":"openn
 if [ "$grafana_key" != "null" ]; then
   cat <<EOF > $opennms_etc/opennms.properties.d/grafana.properties
 org.opennms.grafanaBox.show=true
-org.opennms.grafanaBox.hostname=$webui_endpoint
+org.opennms.grafanaBox.hostname=$hostname.$domainname_public
 org.opennms.grafanaBox.port=80
 org.opennms.grafanaBox.basePath=/grafana
 org.opennms.grafanaBox.apiKey=$grafana_key
@@ -288,7 +286,6 @@ systemctl start httpd
 
 echo "### Enabling and starting OpenNMS..."
 
-sleep 180
 systemctl daemon-reload
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 touch $opennms_etc/configured
