@@ -24,7 +24,7 @@ kb_yaml=$kb_dir/kibana.yml
 sed -i -r "s/[#]server.host:.*/server.host: $hostname/" $kb_yaml
 sed -i -r "s/[#]server.name:.*/server.name: $hostname/"  $kb_yaml
 sed -i -r "s|[#]elasticsearch.url:.*|elasticsearch.url: $es_url|" $kb_yaml
-sed -i -r "s/[#]elasticsearch.username:.*/elasticsearch.username: kibana/" $kb_yaml
+sed -i -r "s/[#]elasticsearch.username:.*/elasticsearch.username: elastic/" $kb_yaml
 sed -i -r "s/[#]elasticsearch.password:.*/elasticsearch.password: $es_password/" $kb_yaml
 
 if [[ "$es_monsrv" != "" ]]; then
