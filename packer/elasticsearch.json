@@ -1,7 +1,7 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-8c122be9",
+    "source_ami": "ami-0cf31d971a3ca20d6",
     "app_name": "Elasticsearch 6.2.x",
     "environment": "Drift"
   },

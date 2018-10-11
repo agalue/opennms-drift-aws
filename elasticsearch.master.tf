@@ -12,6 +12,7 @@ data "template_file" "elasticsearch_master" {
     es_cluster_name = "${lookup(var.settings, "cluster_name")}"
     es_seed_name    = "${join(",",keys(var.es_master_ip_addresses))}"
     es_password     = "${lookup(var.settings, "elastic_password")}"
+    es_license      = "${lookup(var.settings, "elastic_license")}"
     es_role         = "master"
     es_xpack        = "true"
     es_monsrv       = ""
