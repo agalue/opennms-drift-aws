@@ -24,7 +24,7 @@ kb_yaml=$kb_dir/kibana.yml
 
 sed -i -r "s/[#]?server.host:.*/server.host: \"$hostname\"/" $kb_yaml
 sed -i -r "s/[#]?server.name:.*/server.name: \"$hostname\"/"  $kb_yaml
-sed -i -r "s|[#]?elasticsearch.url:.*|elasticsearch.url: \"$http://127.0.0.1:9200\"|" $kb_yaml
+sed -i -r "s|[#]?elasticsearch.url:.*|elasticsearch.url: \"http://127.0.0.1:9200\"|" $kb_yaml
 sed -i -r "s/[#]?elasticsearch.username:.*/elasticsearch.username: \"$es_user\"/" $kb_yaml
 sed -i -r "s/[#]?elasticsearch.password:.*/elasticsearch.password: \"$es_password\"/" $kb_yaml
 
