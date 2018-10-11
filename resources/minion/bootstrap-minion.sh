@@ -185,7 +185,8 @@ class-name=org.opennms.netmgt.telemetry.listeners.flow.netflow9.UdpListener
 listener.port=4729
 EOF
 
-  cat <<EOF > system.properties
+  # Append the same relaxed SNMP4J options that OpenNMS has to make sure that broken SNMP devices still work with Minions.
+  cat <<EOF >> system.properties
 
 # Adding SNMP4J Options:
 org.snmp4j.smisyntaxes=opennms-snmp4j-smisyntaxes.properties
