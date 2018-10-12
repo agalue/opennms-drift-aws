@@ -1,20 +1,22 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+#
+# WARNING: Running as non-root is doable, not not fully supported by this script.
 
 # External variables with defaults
-repo=${1-develop};
+repo=${1-stable};
 version=${2--latest-};
 location=${3-Vagrant};
-opennms_url=${4-http://onmscore.aws.opennms.org:8980/opennms};
-kafka_svr=${5-kafka1.aws.opennms.org:9092,kafka2.aws.opennms.org:9092,kafka3.aws.opennms.org:9092};
-timezone=${6-America/New_York};
+timezone=${4-America/New_York};
+opennms_url=${5-http://onmscore.aws.opennms.org:8980/opennms};
+kafka_svr=${6-kafka1.aws.opennms.org:9092,kafka2.aws.opennms.org:9092,kafka3.aws.opennms.org:9092};
 
 # Internal Variables
 java_url="http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jdk-8u181-linux-x64.rpm"
 git_user_name="Alejandro Galue"
 git_user_email="agalue@opennms.org"
 
-# Fix Network
+# Fix Network (verify if this still necessary with latest CentOS 7, and latest VirtualBox)
 nmcli connection reload
 systemctl restart network
 
@@ -52,6 +54,11 @@ disable monitor
 EOF
 systemctl enable ntpd
 systemctl start ntpd
+
+# Kernel changes to run as non-root
+icmp_cmd=/etc/sysctl.d/99-zzz-non-root-icmp.conf
+echo "net.ipv4.ping_group_range=0 429496729" > $icmp_cmd
+sysctl -p $icmp_cmd
 
 # Calculated variables
 ip_address=`ifconfig eth1 | grep "inet " | awk '{print $2}'`
@@ -155,12 +162,14 @@ bootstrap.servers=$kafka_svr
 acks=1
 EOF
 
+  # WARNING: non-root requires a different port, and some iptables magic.
   cat <<EOF > org.opennms.netmgt.trapd.cfg
 trapd.listen.interface=0.0.0.0
 trapd.listen.port=162
 trapd.queue.size=100000
 EOF
 
+  # WARNING: non-root requires a different port, and some iptables magic.
   cat <<EOF > org.opennms.netmgt.syslog.cfg
 syslog.listen.interface=0.0.0.0
 syslog.listen.port=514
@@ -170,32 +179,56 @@ EOF
   cat <<EOF > org.opennms.features.telemetry.listeners-udp-50001.cfg
 name=NXOS
 class-name=org.opennms.netmgt.telemetry.listeners.udp.UdpListener
+host=0.0.0.0
 listener.port=50001
+maxPacketSize=16192
 EOF
 
   cat <<EOF > org.opennms.features.telemetry.listeners-udp-8877.cfg
 name=Netflow-5
 class-name=org.opennms.netmgt.telemetry.listeners.udp.UdpListener
+host=0.0.0.0
 listener.port=8877
+maxPacketSize=8096
 EOF
 
   cat <<EOF > org.opennms.features.telemetry.listeners-udp-4729.cfg
 name=Netflow-9
 class-name=org.opennms.netmgt.telemetry.listeners.flow.netflow9.UdpListener
+host=0.0.0.0
 listener.port=4729
+maxPacketSize=8096
+templateTimeout=1800000
+EOF
+
+  cat <<EOF > org.opennms.features.telemetry.listeners-udp-6343.cfg
+name=SFlow
+class-name=org.opennms.netmgt.telemetry.listeners.sflow.Listener
+host=0.0.0.0
+listener.port=6343
+maxPacketSize=8096
+EOF
+
+  cat <<EOF > org.opennms.features.telemetry.listeners-udp-4738.cfg
+name=IPFIX
+class-name=org.opennms.netmgt.telemetry.listeners.flow.ipfix.UdpListener
+host=0.0.0.0
+listener.port=4738
+maxPacketSize=8096
+templateTimeout=1800000
 EOF
 
   # Append the same relaxed SNMP4J options that OpenNMS has to make sure that broken SNMP devices still work with Minions.
   cat <<EOF >> system.properties
 
 # Adding SNMP4J Options:
-org.snmp4j.smisyntaxes=opennms-snmp4j-smisyntaxes.properties
-org.opennms.snmp.snmp4j.forwardRuntimeExceptions=false
 snmp4j.LogFactory=org.snmp4j.log.Log4jLogFactory
+org.snmp4j.smisyntaxes=opennms-snmp4j-smisyntaxes.properties
+org.opennms.snmp.snmp4j.allowSNMPv2InV1=false
+org.opennms.snmp.snmp4j.forwardRuntimeExceptions=false
+org.opennms.snmp.snmp4j.noGetBulk=false
 org.opennms.snmp.workarounds.allow64BitIpAddress=true
 org.opennms.snmp.workarounds.allowZeroLengthIpAddress=true
-org.opennms.snmp.snmp4j.noGetBulk=false
-org.opennms.snmp.snmp4j.allowSNMPv2InV1=false
 EOF
 
   systemctl enable minion

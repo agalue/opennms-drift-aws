@@ -128,24 +128,25 @@ EOF
   sed -r -i "s/[#]?shared_preload_libraries =.*/shared_preload_libraries = 'repmgr'/" $pg_conf
 
   echo "### Starting PostgreSQL..."
-
   systemctl enable postgresql-$pg_version
   systemctl start postgresql-$pg_version
 
+  echo "### Waiting for local PostgreSQL..."
   until pg_isready; do
     sleep 5
   done
 
   echo "### Configuring repmgr..."
-
   sudo -u postgres psql -c "CREATE USER repmgr SUPERUSER REPLICATION LOGIN ENCRYPTED PASSWORD 'repmgr';"
   sudo -u postgres psql -c "CREATE DATABASE repmgr OWNER repmgr;"
   sudo -u postgres psql -c "ALTER USER postgres WITH ENCRYPTED PASSWORD 'postgres';"
 
   echo "### Registering master node through repmgr..."
-
   sudo -u postgres $repmgr_bin -f $repmgr_cfg -v master register
   sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
+
+  echo "### Starting repmgrd..."
+  systemctl start repmgr$pg_family
 
 else
 
@@ -155,32 +156,35 @@ else
   until pg_isready -h $pg_master_server; do
     sleep 5
   done
+  sleep 20
 
-  sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W --dry-run standby clone
-  if [ $? -eq 0 ]; then
-    echo "### Cloning data from master node..."
+  while [ ! -f ~/.pg_configured ]; do
+    sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W --dry-run standby clone
+    if [ $? -eq 0 ]; then
+      echo "### Cloning data from master node..."
 
-    sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W standby clone
+      sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W standby clone
 
-    echo "### Starting PostgreSQL..."
+      echo "### Starting PostgreSQL..."
+      systemctl enable postgresql-$pg_version
+      systemctl start postgresql-$pg_version
 
-    systemctl enable postgresql-$pg_version
-    systemctl start postgresql-$pg_version
+      echo "### Waiting for local PostgreSQL..."
+      until pg_isready; do
+        sleep 5
+      done
 
-    until pg_isready; do
-      sleep 5
-    done
+      echo "### Registering slave node through repmgr..."
+      sudo -u postgres $repmgr_bin -f $repmgr_cfg -v standby register
+      sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
 
-    echo "### Registering slave node through repmgr..."
+      echo "### Starting repmgrd..."
+      systemctl start repmgr$pg_family
 
-    sudo -u postgres $repmgr_bin -f $repmgr_cfg -v standby register
-    sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
-  else
-    echo "### ERROR: There was a problem and repmgr was not able to setup the standby server $hostname ..."
-  fi
+      touch ~/.pg_configured
+    else
+      echo "### ERROR: There was a problem and repmgr was not able to setup the standby server $hostname ..."
+    fi
+  done
 
 fi
-
-echo "### Starting repmgrd..."
-
-systemctl start repmgr$pg_family

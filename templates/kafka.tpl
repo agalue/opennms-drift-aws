@@ -70,7 +70,7 @@ if [ "$dependencies" != "" ]; then
   done
 fi
 
-start_delay=$((20*(${node_id})))
+start_delay=$((15*(${node_id})))
 echo "### Waiting $start_delay seconds prior starting Kafka..."
 sleep $start_delay
 

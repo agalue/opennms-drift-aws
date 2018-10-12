@@ -5,7 +5,7 @@ data "template_file" "elasticsearch_data" {
   template = "${file("${path.module}/templates/elasticsearch.tpl")}"
 
   vars {
-    node_id         = "${count.index + length(var.es_master_ip_addresses)}"
+    node_id         = "${count.index + 1 + length(var.es_master_ip_addresses)}"
     hostname        = "${element(keys(var.es_data_ip_addresses), count.index)}"
     domainname      = "${aws_route53_zone.private.name}"
     dependencies    = "${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_master_private.*.name))}"

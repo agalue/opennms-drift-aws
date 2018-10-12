@@ -48,9 +48,17 @@ cat <<EOF > $sentinel_home/deploy/features.xml
     </config>
     <config name="org.opennms.netmgt.distributed.datasource">
       datasource.url = $postgres_onms_url
-      datasource.username = postgres
-      datasource.password = postgres
+      datasource.username = opennms
+      datasource.password = opennms
       datasource.databaseName = opennms
+    </config>
+    <config name="org.opennms.features.telemetry.adapters-sflow">
+      name = SFlow
+      class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowAdapter
+    </config>
+    <config name="org.opennms.features.telemetry.adapters-ipfix">
+      name = IPFIX
+      class-name = org.opennms.netmgt.telemetry.adapters.netflow.ipfix.IpfixAdapter
     </config>
     <config name="org.opennms.features.telemetry.adapters-netflow5">
       name = Netflow-5
@@ -62,11 +70,11 @@ cat <<EOF > $sentinel_home/deploy/features.xml
     </config>
     <config name="org.opennms.features.flows.persistence.elastic">
       elasticUrl = $elastic_url
-      elasticGlobalUser=$elastic_user
-      elasticGlobalPassword=$elastic_password
-      elasticIndexStrategy=$elastic_index_strategy
-      settings.index.number_of_shards=6
-      settings.index.number_of_replicas=1
+      elasticGlobalUser = $elastic_user
+      elasticGlobalPassword = $elastic_password
+      elasticIndexStrategy = $elastic_index_strategy
+      settings.index.number_of_shards = 6
+      settings.index.number_of_replicas = 1
     </config>
     <config name="org.opennms.core.ipc.sink.kafka.consumer">
       group.id = Sentinel
@@ -82,9 +90,6 @@ EOF
 # Exposing Karaf Console
 sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $sentinel_etc/org.apache.karaf.shell.cfg
 
-# TODO Temporal fix
-sed -i -r "/^RUNAS=/s/sentinel/root/" /etc/init.d/sentinel
-
 echo "### Enabling and starting Sentinel..."
 
 if [ "$dependencies" != "" ]; then
@@ -98,3 +103,11 @@ fi
 systemctl daemon-reload
 systemctl enable sentinel
 systemctl start sentinel
+
+# Workaround for failed initializations
+sleep 20
+bundles=$(sshpass -p admin ssh -o StrictHostKeyChecking=no -p 8301 admin@localhost list 2>/dev/null | wc -l)
+if [ "$bundles" -lt "170" ]; then
+  echo "### Restarting Sentinel, as it doesn't look it was initialized correctly"
+  systemctl restart sentinel
+fi

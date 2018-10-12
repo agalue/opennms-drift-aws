@@ -106,6 +106,8 @@ The architecture involves the following components:
 
 * Public DNS through Route 53 for all the instances, based on an existing Hosted Zone associated with a Public Domain.
 
+* Outside AWS, there is a Vagrant script to setup 2 Minions, pointing to the AWS environment through the external DNS.
+
 For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3.
 
 **The way on which all the components should be configured relfect the best practices for production (except for the sizes of the EC2 instances).**
