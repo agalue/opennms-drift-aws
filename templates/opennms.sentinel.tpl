@@ -40,6 +40,12 @@ cat <<EOF > $sentinel_home/deploy/features.xml
   xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.4.0 http://karaf.apache.org/xmlns/features/v1.4.0"
 >
 
+  <repository>mvn:io.hawt/hawtio-karaf/2.0.0/xml/features</repository>
+
+  <feature name="autostart-hawtio" description="Hawtio :: Auto-Start" version="2.0.0" start-level="200" install="auto">
+    <feature>hawtio-offline</feature>
+  </feature>
+
   <feature name="autostart-sentinel-telemetry-flows" description="OpenNMS :: Features :: Sentinel :: Auto-Start" version="$project_version" start-level="200" install="auto">
     <config name="org.opennms.sentinel.controller">
       location = $sentinel_location
