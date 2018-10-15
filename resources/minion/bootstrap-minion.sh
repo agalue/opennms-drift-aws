@@ -134,6 +134,8 @@ if [ ! -f "/opt/minion/etc/.git" ]; then
   git add .
   git commit -m "Default Minion configuration for repository $repo version $version."
 
+  sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' org.apache.karaf.shell.cfg
+
   cat <<EOF > featuresBoot.d/hawtio.boot
 hawtio-offline
 EOF
