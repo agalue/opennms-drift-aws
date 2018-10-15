@@ -292,7 +292,7 @@ variable "settings" {
     postgresql_max_connections   = 300
     elastic_user                 = "elastic" # This is the default user, do not change it
     elastic_password             = "opennms"
-    elastic_license              = "basic" # Use 'basic' or 'trial'. The last one requires proper authentication configured.
+    elastic_license              = "trial" # Use 'basic' or 'trial'. The last one requires proper authentication configured.
     elastic_flow_index_strategy  = "hourly"
     onms_use_30sec_frequency     = "true"
   }

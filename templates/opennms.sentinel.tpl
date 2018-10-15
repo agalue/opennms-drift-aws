@@ -76,8 +76,8 @@ cat <<EOF > $sentinel_home/deploy/features.xml
     </config>
     <config name="org.opennms.features.flows.persistence.elastic">
       elasticUrl = $elastic_url
-      elasticGlobalUser = $elastic_user
-      elasticGlobalPassword = $elastic_password
+      globalElasticUser = $elastic_user
+      globalElasticPassword = $elastic_password
       elasticIndexStrategy = $elastic_index_strategy
       settings.index.number_of_shards = 6
       settings.index.number_of_replicas = 1

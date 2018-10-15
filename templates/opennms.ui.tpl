@@ -77,8 +77,8 @@ fi
 # External Elasticsearch for Flows
 cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
 elasticUrl=$elastic_url
-elasticGlobalUser=$elastic_user
-elasticGlobalPassword=$elastic_password
+globalElasticUser=$elastic_user
+globalElasticPassword=$elastic_password
 elasticIndexStrategy=$elastic_index_strategy
 EOF
 

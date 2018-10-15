@@ -182,8 +182,8 @@ sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
 cat <<EOF > $opennms_etc/org.opennms.plugin.elasticsearch.rest.forwarder.cfg
 elasticUrl=$elastic_url
-elasticGlobalUser=$elastic_user
-elasticGlobalPassword=$elastic_password
+globalElasticUser=$elastic_user
+globalElasticPassword=$elastic_password
 archiveRawEvents=true
 archiveAlarms=true
 archiveAlarmChangeEvents=false
