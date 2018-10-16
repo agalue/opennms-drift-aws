@@ -90,7 +90,7 @@ zk_servers=($${zookeeper_connect//,/ })
 
 echo "### Enabling and starting Kafka..."
 
-start_delay=$((20*(${node_id})))
+start_delay=$((15*(${node_id})))
 echo "### Waiting $start_delay seconds prior starting Kafka..."
 sleep $start_delay
 

@@ -1,5 +1,8 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+#
+# TODO: Create/Update users using API:
+# https://www.elastic.co/guide/en/elasticsearch/reference/6.4/security-api-change-password.html
 
 # AWS Template Variables
 
@@ -54,45 +57,48 @@ fi
 echo >> $es_yaml
 
 if [ "$es_role" == "master" ]; then
-  echo "node.master: true" >> $es_yaml
-  echo "node.data: false" >> $es_yaml
-  echo "node.ingest: false" >> $es_yaml
+  cat <<EOF >> $es_yaml
+node.master: true
+node.data: false
+node.ingest: false
+EOF
 fi
 
 if [ "$es_role" == "data" ]; then
-  echo "node.master: false" >> $es_yaml
-  echo "node.data: true" >> $es_yaml
-  echo "node.ingest: true" >> $es_yaml
+  cat <<EOF >> $es_yaml
+node.master: false
+node.data: true
+node.ingest: true
+EOF
 fi
 
 if [ "$es_role" == "coordinator" ]; then
-  echo "node.master: false" >> $es_yaml
-  echo "node.data: false" >> $es_yaml
-  echo "node.ingest: false" >> $es_yaml
+  cat <<EOF >> $es_yaml
+node.master: false
+node.data: false
+node.ingest: false
+EOF
 fi
 
 # X-Pack
 
-cat <<EOF >> $es_yaml
+if [ "$es_xpack" == "true" ]; then
+  echo $es_password | /usr/share/elasticsearch/bin/elasticsearch-keystore add --stdin 'bootstrap.password'
+  cat <<EOF >> $es_yaml
 
 xpack.license.self_generated.type: $es_license
 EOF
-
-if [ "$es_xpack" == "true" ]; then
-  echo $es_password | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x 'bootstrap.password'
-
   if [ "$es_monsrv" != "" ]; then
-    echo "xpack.monitoring.exporters:" >> $es_yaml
-    echo "  remote: " >> $es_yaml
-    echo "    type: http" >> $es_yaml
-    echo "    host: [ $es_monsrv ]" >> $es_yaml
-    echo "    connection:" >> $es_yaml
-    echo "      timeout: 6s" >> $es_yaml
-    echo "      read_timeout: 60s" >> $es_yaml
+    cat <<EOF >> $es_yaml
+xpack.monitoring.exporters:
+  remote:
+    type: http
+    host: [ $es_monsrv ]
+    connection:
+      timeout: 6s
+      read_timeout: 60s
+EOF
   fi
-else
-  echo "xpack.security.enabled=false" >> $es_yaml
-  echo "xpack.monitoring.enabled=false" >> $es_yaml
 fi
 
 # CORS (Required to use Grafana Plugin)
@@ -151,7 +157,7 @@ actions:
         unit_count: 720
 EOF
 
-cat <<EOF > /etc/elasticsearch-curator/forcemerge_indices.yml
+  cat <<EOF > /etc/elasticsearch-curator/forcemerge_indices.yml
 actions:
   1:
     action: forcemerge
@@ -188,7 +194,7 @@ if [ "$dependencies" != "" ]; then
   done
 fi
 
-start_delay=$((30*($node_id-1)))
+start_delay=$((15*($node_id-1)))
 if [[ $start_delay != 0 ]]; then
   echo "### Waiting $start_delay seconds prior starting Elasticsearch..."
   sleep $start_delay

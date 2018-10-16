@@ -100,7 +100,7 @@ chown cassandra:cassandra $conf_dir/*
 
 echo "### Checking cluster prior start..."
 
-start_delay=$((60*($node_id-1)))
+start_delay=$((45*($node_id-1)))
 if [[ $start_delay != 0 ]]; then
   until echo -n > /dev/tcp/$seed_name/9042; do
     echo "### $seed_name is unavailable - sleeping"

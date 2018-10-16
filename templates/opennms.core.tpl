@@ -100,6 +100,13 @@ EOF
 sed -r -i '/service name="OpenNMS-JVM"/r onmsjvm.txt' $opennms_etc/poller-configuration.xml
 rm -f onmsjvm.txt
 
+cat <<EOF > es.txt
+         <parameter key="user" value="$elastic_user"/>
+         <parameter key="password" value="$elastic_password"/>
+EOF
+sed -r -i '/service name="Elasticsearch"/r es.txt' $opennms_etc/poller-configuration.xml
+rm -f es.txt
+
 # Adding additional Karaf Features
 
 features="opennms-es-rest, opennms-kafka-producer"
@@ -223,7 +230,7 @@ sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/poller-configuration.x
 sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/collectd-configuration.xml 
 sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/collectd-configuration.xml 
 
-# Enable NX-OS
+# Enable NX-OS Telemetry
 
 sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
@@ -231,8 +238,8 @@ sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
 cat <<EOF > $opennms_etc/org.opennms.plugin.elasticsearch.rest.forwarder.cfg
 elasticUrl=$elastic_url
-elasticGlobalUser=$elastic_user
-elasticGlobalPassword=$elastic_password
+globalElasticUser=$elastic_user
+globalElasticPassword=$elastic_password
 archiveRawEvents=true
 archiveAlarms=true
 archiveAlarmChangeEvents=false

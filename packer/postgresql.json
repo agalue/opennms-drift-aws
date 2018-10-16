@@ -1,7 +1,7 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-8c122be9",
+    "source_ami": "ami-0303c7b2e7066b60d",
     "app_name": "PostgreSQL 10",
     "environment": "Drift"
   },

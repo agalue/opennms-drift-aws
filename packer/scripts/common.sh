@@ -19,7 +19,7 @@ echo "### Installing common packages..."
 
 sudo yum -y -q update
 sudo yum -y -q install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-sudo yum -y -q install jq unzip net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat tree
+sudo yum -y -q install jq unzip net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat tree sshpass
 
 echo "### Configuring Net-SNMP..."
 

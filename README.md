@@ -102,13 +102,11 @@ The architecture involves the following components:
 
 * An EC2 instance for Kibana.
 
-* A elastic load balancer for the Elasticsearch instances.
-
-* A elastic load balancer for the OpenNMS UI instances.
-
 * Private DNS through Route 53 for all the instances.
 
 * Public DNS through Route 53 for all the instances, based on an existing Hosted Zone associated with a Public Domain.
+
+* Outside AWS, there is a Vagrant script to setup 2 Minions, pointing to the AWS environment through the external DNS.
 
 For scalability, the clusters for Kafka, ES Data, Cassandra and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3.
 
@@ -150,9 +148,17 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 ## Future enhancements
 
+* Enable authentication for all services.
+
+* Add an instance for Kafka Manager to avoid exposing JMX to the public.
+
+* Tune the security groups to only expose what Minions need.
+
+* Add cron jobs to OpenNMS to apply the constraints for the RPC Topics on Kafka, as default retention/storage is not required in this particular case, but unfortunately this cannot be configured within OpenNMS.
+
 * Improve the Elasticsearch cluster architecture to have a dedicated monitoring cluster (assuming X-Pack will be used).
 
-* Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
+* Create a simple NGinx LoadBalancer for the OpenNMS WebUI (on a tiny EC2 instance to avoid an ELB).
 
 * Make the bootstrap scripts reusable (i.e. to be able to execute them multiple times without side effects, in case the bootstrap process was wrong).
 
