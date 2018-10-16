@@ -15,7 +15,7 @@ security_protocol="${security_protocol}"
 security_mechanisms="${security_mechanisms}"
 admin_password="${admin_password}"
 user_name="${user_name}"
-user_password="${$user_password}"
+user_password="${user_password}"
 
 echo "### Configuring Hostname and Domain..."
 

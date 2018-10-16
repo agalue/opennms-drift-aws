@@ -12,6 +12,7 @@ data "template_file" "opennms" {
     kafka_servers           = "${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))}"
     kafka_security_protocol = "${lookup(var.settings, "kafka_security_protocol")}"
     kafka_security_module   = "${lookup(var.settings, "kafka_security_module")}"
+    kafka_client_mechanism  = "${lookup(var.settings, "kafka_client_mechanism")}"
     kafka_user_name         = "${lookup(var.settings, "kafka_user_name")}"
     kafka_user_password     = "${lookup(var.settings, "kafka_user_password")}"
     cassandra_datacenter    = "${lookup(var.settings, "cassandra_datacenter")}"
