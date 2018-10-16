@@ -1,5 +1,8 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+#
+# TODO: Create/Update users using API:
+# https://www.elastic.co/guide/en/elasticsearch/reference/6.4/security-api-change-password.html
 
 # AWS Template Variables
 
