@@ -121,21 +121,44 @@ org.opennms.core.ipc.sink.kafka.sasl.mechanism=$kafka_client_mechanism
 org.opennms.core.ipc.sink.kafka.sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
 EOF
 
+# RPC Threads
+
+cat <<EOF > $opennms_etc/opennms.properties.d/rpc.properties
+org.opennms.jms.timeout=60000
+org.opennms.ipc.rpc.threads=1
+org.opennms.ipc.rpc.queue.max=50000
+org.opennms.ipc.rpc.threads.max=100
+EOF
+
 # RPC Pattern
 
 if [ "$activemq_url" != "" ]; then
   if [ "$activemq_url" == "127.0.0.1" ]; then
-    sed -r -i '/0.0.0.0:61616/s/[<][!]--//' $opennms_etc/opennms-activemq.xml
-    sed -r -i '/0.0.0.0:61616/s/--[>]//' $opennms_etc/opennms-activemq.xml
+    amq_file=$opennms_etc/opennms-activemq.xml
+    sed -r -i '/0.0.0.0:61616/s/[<][!]--//' $amq_file
+    sed -r -i '/0.0.0.0:61616/s/--[>]//' $amq_file
+    sed -r -i '/memoryUsage limit/s/=".*"/="512 mb"/' $amq_file
+    sed -r -i '/tempUsage limit/s/=".*"/="512 mb"/' $amq_file
   else
-cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
+    cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
 org.opennms.activemq.broker.disable=true
 org.opennms.activemq.broker.url=$activemq_url
 org.opennms.activemq.broker.username=admin
 org.opennms.activemq.broker.password=admin
 EOF
   fi
+  cat <<EOF >> $opennms_etc/opennms.properties.d/amq.properties
+# For pooledConnectionFactory from applicationContext-daemon.xml
+org.opennms.activemq.client.max-connections=8
+org.opennms.activemq.client.idle-timeout=30000
+org.opennms.activemq.client.reconnect-on-exception=true
+org.opennms.activemq.client.concurrent-consumers=10
+EOF
 else
+  # TODO: Verify if this is possible, to avoid waste resources if ActiveMQ won't be used 
+  cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
+org.opennms.activemq.broker.disable=true
+EOF
   cat <<EOF > $opennms_etc/opennms.properties.d/kafka-rpc.properties
 org.opennms.core.ipc.rpc.strategy=kafka
 org.opennms.core.ipc.rpc.kafka.bootstrap.servers=$kafka_servers
@@ -150,6 +173,8 @@ fi
 
 cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.client.cfg
 bootstrap.servers=$kafka_servers
+sasl.mechanism=$kafka_client_mechanism
+sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
 EOF
 
 cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.cfg
