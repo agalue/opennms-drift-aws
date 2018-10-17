@@ -31,8 +31,8 @@ pg_master_server="${pg_master_server}"
 
 # Internal Variables
 
-pg_version=`echo $pg_version_family | sed 's/-.//'`
-pg_family=`echo $pg_version | sed 's/\.//'`
+pg_version=$(echo $pg_version_family | sed 's/-.//')
+pg_family=$(echo $pg_version | sed 's/\.//')
 repmgr_cfg=/etc/repmgr/$pg_version/repmgr.conf
 repmgr_bin=/usr/pgsql-$pg_version/bin/repmgr
 data_dir=/var/lib/pgsql/$pg_version/data
@@ -47,7 +47,7 @@ source /etc/profile.d/postgresql.sh
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -97,7 +97,7 @@ if [ "$pg_role" == "master" ]; then
 
   echo "### Configuring Master Server..."
 
-  pgsetup=`find /usr/pgsql-$pg_version/bin/ -name postgresql*setup`
+  pgsetup=$(find /usr/pgsql-$pg_version/bin/ -name postgresql*setup)
   $pgsetup initdb
 
   sed -r -i "s/(peer|ident)/trust/g" $hba_conf

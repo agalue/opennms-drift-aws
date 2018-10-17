@@ -1,6 +1,7 @@
 
 The following can be used to send netflow 5 data to the Minion itself:
 
-ip_address=`ifconfig eth1 | grep "inet " | awk '{print $2}'`
+#!/bin/bash
+ip_address=$(ifconfig eth1 | grep "inet " | awk '{print $2}')
 /vagrant/softflowd -i eth1 -v 5 -n $ip_address:8877
 

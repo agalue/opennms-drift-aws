@@ -20,7 +20,7 @@ es_monsrv="${es_monsrv}"
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -33,8 +33,8 @@ es_jvm=$es_dir/jvm.options
 
 # JVM Memory
 
-total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-mem_in_mb=`expr $total_mem_in_mb / 2`
+total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
+mem_in_mb=$(expr $total_mem_in_mb / 2)
 if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
@@ -191,6 +191,7 @@ if [ "$dependencies" != "" ]; then
     data=($${service//:/ })
     echo "Waiting for server $${data[0]} on port $${data[1]}..."
     until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+    echo " ok"
   done
 fi
 
