@@ -12,7 +12,7 @@ es_monsrv="${es_monsrv}"
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -39,6 +39,7 @@ for server in $${es_servers//,/ }; do
   data=($${server//:/ })
   echo "Waiting for server $${data[0]} on port $${data[1]}..."
   until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+  echo " ok"
 done
 
 echo "### Creating a NGinx load balancer for Elasticsearch..."

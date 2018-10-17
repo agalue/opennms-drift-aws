@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-sentinel_repo="develop"
+sentinel_repo="branches-release-23.0.0"
 sentinel_version="-latest-"
 
 ########################################

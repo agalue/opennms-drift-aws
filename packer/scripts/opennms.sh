@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="develop"
+onms_repo="branches-release-23.0.0"
 onms_version="-latest-"
 grafana_version="5.2.4"
 

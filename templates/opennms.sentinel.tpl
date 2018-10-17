@@ -3,6 +3,8 @@
 #
 # Guide:
 # https://github.com/OpenNMS/opennms/blob/develop/opennms-doc/guide-admin/src/asciidoc/text/sentinel/sentinel.adoc
+#
+# TODO: Add support for NX-OS Telemetry (with Cassandra)
 
 # AWS Template Variables
 
@@ -20,7 +22,7 @@ sentinel_location="${sentinel_location}"
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -29,9 +31,10 @@ echo "### Configuring Sentinel..."
 
 sentinel_home=/opt/sentinel
 sentinel_etc=$sentinel_home/etc
+features=$sentinel_home/deploy/features.xml
 
 project_version=$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' opennms-sentinel)
-cat <<EOF > $sentinel_home/deploy/features.xml
+cat <<EOF > $features
 <?xml version="1.0" encoding="UTF-8"?>
 <features
   name="opennms-$project_version"
@@ -92,6 +95,7 @@ cat <<EOF > $sentinel_home/deploy/features.xml
 
 </features>
 EOF
+chown sentinel:sentinel $features
 
 # Exposing Karaf Console
 sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $sentinel_etc/org.apache.karaf.shell.cfg
@@ -103,6 +107,7 @@ if [ "$dependencies" != "" ]; then
     data=($${service//:/ })
     echo "Waiting for server $${data[0]} on port $${data[1]}..."
     until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+    echo " ok"
   done
 fi
 

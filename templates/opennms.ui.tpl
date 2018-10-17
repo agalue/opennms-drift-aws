@@ -19,7 +19,7 @@ use_30sec_frequency="${use_30sec_frequency}"
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -30,17 +30,17 @@ opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
 
 # Database connections
-postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
-onms_url=`echo $postgres_onms_url | sed 's|[&]|\\\\&|'`
-tmpl_url=`echo $postgres_tmpl_url | sed 's|[&]|\\\\&|'`
+postgres_tmpl_url=$(echo $postgres_onms_url | sed 's|/opennms|/template1|')
+onms_url=$(echo $postgres_onms_url | sed 's|[&]|\\&|')
+tmpl_url=$(echo $postgres_tmpl_url | sed 's|[&]|\\&|')
 sed -r -i "/jdbc.*opennms/s|url=\".*\"|url=\"$onms_url\"|" $opennms_etc/opennms-datasources.xml
 sed -r -i "/jdbc.*template1/s|url=\".*\"|url=\"$tmpl_url\"|" $opennms_etc/opennms-datasources.xml
 
 # JVM Settings
-num_of_cores=`cat /proc/cpuinfo | grep "^processor" | wc -l`
-half_of_cores=`expr $num_of_cores / 2`
-total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-mem_in_mb=`expr $total_mem_in_mb / 2`
+num_of_cores=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
+half_of_cores=$(expr $num_of_cores / 2)
+total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
+mem_in_mb=$(expr $total_mem_in_mb / 2)
 if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
@@ -177,6 +177,7 @@ if [ "$dependencies" != "" ]; then
     data=($${service//:/ })
     echo "Waiting for server $${data[0]} on port $${data[1]}..."
     until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+    echo " ok"
   done
 fi
 
@@ -216,7 +217,7 @@ systemctl enable grafana-server
 systemctl start grafana-server
 sleep 10
 
-grafana_key=`curl -X POST -H "Content-Type: application/json" -d '{"name":"opennms-ui", "role": "Viewer"}' http://admin:admin@localhost:3000/api/auth/keys 2>/dev/null | jq .key - | sed 's/"//g'`
+grafana_key=$(curl -X POST -H "Content-Type: application/json" -d '{"name":"opennms-ui", "role": "Viewer"}' http://admin:admin@localhost:3000/api/auth/keys 2>/dev/null | jq .key - | sed 's/"//g')
 if [ "$grafana_key" != "null" ]; then
   cat <<EOF > $opennms_etc/opennms.properties.d/grafana.properties
 org.opennms.grafanaBox.show=true
@@ -230,7 +231,7 @@ fi
 echo "### Enabling Helm..."
 
 helm_url="http://localhost:3000/api/plugins/opennms-helm-app/settings"
-helm_enabled=`curl -u admin:admin "$helm_url" 2>/dev/null | jq '.enabled'`
+helm_enabled=$(curl -u admin:admin "$helm_url" 2>/dev/null | jq '.enabled')
 if [ "$helm_enabled" != "true" ]; then
   curl -u admin:admin -XPOST "$helm_url" -d "id=opennms-helm-app&enabled=true" 2>/dev/null
   cat <<EOF > data.json

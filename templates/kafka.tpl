@@ -14,7 +14,7 @@ min_insync_replicas="${min_insync_replicas}"
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -24,14 +24,14 @@ echo "### Configuring Kafka..."
 kafka_data=/data/kafka
 mkdir -p $kafka_data
 
-total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-mem_in_mb=`expr $total_mem_in_mb / 2`
+total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
+mem_in_mb=$(expr $total_mem_in_mb / 2)
 if [ "$mem_in_mb" -gt "8192" ]; then
   mem_in_mb="8192"
 fi
 sed -i -r "/KAFKA_HEAP_OPTS/s/1g/$${mem_in_mb}m/g" /etc/systemd/system/kafka.service
 
-listener_name=`curl http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null`
+listener_name=$(curl http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null)
 kafka_cfg=/opt/kafka/config/server.properties
 
 sed -i -r "/^broker.id/s/0/$node_id/" $kafka_cfg
@@ -67,6 +67,7 @@ if [ "$dependencies" != "" ]; then
     data=($${service//:/ })
     echo "Waiting for server $${data[0]} on port $${data[1]}..."
     until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+    echo " ok"
   done
 fi
 
