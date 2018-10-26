@@ -14,7 +14,7 @@
       "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
       "ami_name": "opennms-horizon-23-drift-{{ timestamp }}",
-      "ami_description": "{{ user `app_name` }} for {{ user `environment` }} from the features/sentinel branch on GitHub",
+      "ami_description": "{{ user `app_name` }} for {{ user `environment` }}",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",
         "Environment": "{{ user `environment` }}"
@@ -26,6 +26,11 @@
     }
   ],
   "provisioners": [
+    {
+      "type": "file",
+      "source": "./configs/opennms/",
+      "destination": "/tmp/sources"
+    },
     {
       "type": "shell",
       "script": "./scripts/common.sh"
@@ -41,11 +46,6 @@
     {
       "type": "shell",
       "script": "./scripts/cassandra.sh"
-    },
-    {
-      "type": "file",
-      "source": "./configs/opennms/",
-      "destination": "/tmp/sources"
     },
     {
       "type": "shell",

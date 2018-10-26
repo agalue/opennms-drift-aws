@@ -193,7 +193,12 @@ if [ ! -f "/opt/minion/etc/.git" ]; then
   git add .
   git commit -m "Default Minion configuration for repository $repo version $version."
 
-  sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' org.apache.karaf.shell.cfg
+  # Exposing Karaf Console
+  sed -r -i "/^sshHost/s/=.*/= 0.0.0.0/" org.apache.karaf.shell.cfg
+
+  # Expose the RMI registry and server
+  sed -r -i "/^rmiRegistryHost/s/=.*/= 0.0.0.0/" org.apache.karaf.management.cfg
+  sed -r -i "/^rmiServerHost/s/=.*/= 0.0.0.0/" org.apache.karaf.management.cfg
 
   cat <<EOF > featuresBoot.d/hawtio.boot
 hawtio-offline
