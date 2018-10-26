@@ -5,7 +5,7 @@
 
 onms_repo="branches-release-23.0.1"
 onms_version="-latest-"
-grafana_version="5.2.4"
+grafana_version="5.3.2"
 
 ########################################
 
@@ -47,6 +47,7 @@ else
 fi
 sudo yum install -y -q opennms-core$suffix opennms-webapp-jetty$suffix opennms-webapp-hawtio$suffix
 sudo yum install -y -q opennms-helm
+sudo yum clean all
 
 echo "### Initializing GIT at $opennms_etc..."
 
