@@ -5,7 +5,7 @@
 opts = {
   :mem       => "1024",
   :cpu       => "1",
-  :onms_repo => "branches-release-23.0.0",
+  :onms_repo => "branches-release-23.0.1",
   :onms_ver  => "-latest-",
   :location  => "Vagrant",
   :timezone  => "America/New_York"
