@@ -5,8 +5,9 @@ data "template_file" "kibana" {
 
   vars {
     hostname    = "${element(keys(var.kibana_ip_addresses),0)}"
-    domainname  = "${var.dns_zone}"
-    es_url      = "http://${aws_elb.elasticsearch.dns_name}:9200"
+    domainname  = "${aws_route53_zone.private.name}"
+    es_servers  = "${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
+    es_user     = "${lookup(var.settings, "elastic_user")}"
     es_password = "${lookup(var.settings, "elastic_password")}"
     es_monsrv   = ""
   }
@@ -28,8 +29,7 @@ resource "aws_instance" "kibana" {
   ]
 
   depends_on = [
-    "aws_instance.elasticsearch_data",
-    "aws_route53_record.kibana",
+    "aws_route53_record.kibana_private",
   ]
 
   connection {
@@ -49,10 +49,23 @@ resource "aws_instance" "kibana" {
 
 resource "aws_route53_record" "kibana" {
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.kibana_ip_addresses),0)}.${var.dns_zone}"
+  name    = "${element(keys(var.kibana_ip_addresses),0)}.${aws_route53_zone.main.name}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.kibana_ip_addresses),0)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${aws_instance.kibana.public_ip}",
+  ]
+}
+
+resource "aws_route53_record" "kibana_private" {
+  count   = "${length(var.kibana_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.kibana_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.kibana_ip_addresses), count.index)}",
+  ]
 }
 
 output "kibana" {

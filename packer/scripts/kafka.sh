@@ -4,7 +4,7 @@
 ######### CUSTOMIZED VARIABLES #########
 
 scala_version="2.11"
-kafka_version="1.1.0"
+kafka_version="2.0.0"
 
 ########################################
 

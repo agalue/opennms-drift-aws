@@ -4,21 +4,26 @@ data "template_file" "opennms" {
   template = "${file("${path.module}/templates/opennms.core.tpl")}"
 
   vars {
-    hostname               = "${element(keys(var.onms_ip_addresses),0)}"
-    domainname             = "${var.dns_zone}"
-    postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", keys(var.pg_ip_addresses)))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
-    activemq_url           = "failover:(${join(",",formatlist("tcp://%v:61616", keys(var.amq_ip_addresses)))})?randomize=false"
-    elastic_url            = "${join(",",formatlist("http://%v:9200", keys(var.es_data_ip_addresses)))}"
-    elastic_user           = "elastic"
-    elastic_index_strategy = "${lookup(var.settings, "elastic_flow_index_strategy")}"
-    elastic_password       = "${lookup(var.settings, "elastic_password")}"
-    kafka_servers          = "${join(",",formatlist("%v:9092", keys(var.kafka_ip_addresses)))}"
-    cassandra_datacenter   = "${lookup(var.settings, "cassandra_datacenter")}"
-    cassandra_seed         = "${element(keys(var.cassandra_ip_addresses), 0)}"
-    cassandra_repfactor    = "${lookup(var.settings, "cassandra_replication_factor")}"
-    opennms_ui_servers     = "${join(",", values(var.onms_ui_ip_addresses))}"
-    use_redis              = "false"
-    use_30sec_frequency    = "${lookup(var.settings, "onms_use_30sec_frequency")}"
+    hostname                = "${element(keys(var.onms_ip_addresses),0)}"
+    domainname              = "${aws_route53_zone.private.name}"
+    dependencies            = "${join(",",formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))},${join(",",formatlist("%v:9042", aws_route53_record.cassandra_private.*.name))},${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))},${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
+    postgres_onms_url       = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
+    activemq_url            = "" # All communication with Minions will be managed by Kafka
+    kafka_servers           = "${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))}"
+    kafka_security_protocol = "${lookup(var.settings, "kafka_security_protocol")}"
+    kafka_security_module   = "${lookup(var.settings, "kafka_security_module")}"
+    kafka_client_mechanism  = "${lookup(var.settings, "kafka_client_mechanism")}"
+    kafka_user_name         = "${lookup(var.settings, "kafka_user_name")}"
+    kafka_user_password     = "${lookup(var.settings, "kafka_user_password")}"
+    cassandra_datacenter    = "${lookup(var.settings, "cassandra_datacenter")}"
+    cassandra_seed          = "${element(aws_route53_record.cassandra_private.*.name, 0)}"
+    cassandra_repfactor     = "${lookup(var.settings, "cassandra_replication_factor")}"
+    opennms_ui_servers      = "${join(",", values(var.onms_ui_ip_addresses))}"
+    elastic_url             = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
+    elastic_user            = "${lookup(var.settings, "elastic_user")}"
+    elastic_password        = "${lookup(var.settings, "elastic_password")}"
+    use_redis               = "false"
+    use_30sec_frequency     = "${lookup(var.settings, "onms_use_30sec_frequency")}"
   }
 }
 
@@ -38,12 +43,7 @@ resource "aws_instance" "opennms" {
   ]
 
   depends_on = [
-    "aws_instance.postgresql",
-    "aws_instance.activemq",
-    "aws_instance.kafka",
-    "aws_instance.cassandra",
-    "aws_instance.elasticsearch_data",
-    "aws_route53_record.opennms",
+    "aws_route53_record.opennms_private",
   ]
 
   provisioner "file" {
@@ -68,12 +68,25 @@ resource "aws_instance" "opennms" {
 
 resource "aws_route53_record" "opennms" {
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.onms_ip_addresses),0)}.${var.dns_zone}"
+  name    = "${element(keys(var.onms_ip_addresses),0)}.${aws_route53_zone.main.name}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.onms_ip_addresses),0)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${aws_instance.opennms.public_ip}",
+  ]
 }
 
-output "opennms" {
+resource "aws_route53_record" "opennms_private" {
+  count   = "${length(var.onms_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.onms_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.onms_ip_addresses), count.index)}",
+  ]
+}
+
+output "onmscore" {
   value = "${aws_instance.opennms.public_ip}"
 }

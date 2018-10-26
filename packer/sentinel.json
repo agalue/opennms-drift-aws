@@ -1,8 +1,8 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-8c122be9",
-    "app_name": "Apache ActiveMQ 5.x",
+    "source_ami": "ami-0303c7b2e7066b60d",
+    "app_name": "OpenNMS Sentinel",
     "environment": "Drift"
   },
   "description": "{{ user `app_name` }} for {{ user `environment` }}",
@@ -11,9 +11,10 @@
       "type": "amazon-ebs",
       "region": "{{ user `region` }}",
       "source_ami": "{{ user `source_ami` }}",
-      "instance_type": "t2.micro",
+      "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
-      "ami_name": "activemq-drift-{{ timestamp }}",
+      "ami_name": "opennms-sentinel-drift-{{ timestamp }}",
+      "ami_description": "{{ user `app_name` }} for {{ user `environment` }}",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",
         "Environment": "{{ user `environment` }}"
@@ -35,7 +36,7 @@
     },
     {
       "type": "shell",
-      "script": "./scripts/activemq.sh"
+      "script": "./scripts/sentinel.sh"
     }
   ]
 }

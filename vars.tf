@@ -1,33 +1,47 @@
 # @author: Alejandro Galue <agalue@opennms.org>
 
+# Region
+
+variable "aws_region" {
+  description = "EC2 Region for the VPC"
+  default     = "us-east-2" # For testing purposes only (should be changed)
+}
+
 # Access (make sure to use your own keys)
 
 variable "aws_key_name" {
   description = "AWS Key Name, to access EC2 instances through SSH"
-  default     = "agalue"                                            # For testing purposes only
+  default     = "agalue" # For testing purposes only (should be changed, based on aws_region)
 }
 
 variable "aws_private_key" {
   description = "AWS Private Key Full Path"
-  default     = "/Users/agalue/.ssh/agalue.private.aws.us-east-2.pem" # For testing purposes only
+  default     = "/Users/agalue/.ssh/agalue.private.aws.us-east-2.pem" # For testing purposes only (should be changed, based on aws_region)
 }
 
-# Region and AMIs
+# DNS
+
+variable "parent_dns_zone" {
+  description = "Parent DNS Zone Name"
+  default     = "opennms.org" # For testing purposes only (should be changed)
+}
+
+variable "dns_zone" {
+  description = "Public DNS Zone Name"
+  default     = "aws.opennms.org" # For testing purposes only (should be changed, based on parent_dns_zone)
+}
+
+variable "dns_zone_private" {
+  description = "Private DNS Zone Name"
+  default     = "terraform.local"
+}
+
+variable "dns_ttl" {
+  description = "DNS TTL"
+  default     = 60
+}
+
 # Make sure to run Packer on the same region
-
-variable "aws_region" {
-  description = "EC2 Region for the VPC"
-  default     = "us-east-2"              # For testing purposes only
-}
-
-data "aws_ami" "activemq" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["activemq-*"]
-  }
-}
 
 data "aws_ami" "cassandra" {
   most_recent = true
@@ -70,7 +84,16 @@ data "aws_ami" "opennms" {
 
   filter {
     name   = "name"
-    values = ["opennms-horizon-22-*"]
+    values = ["opennms-horizon-23-*"]
+  }
+}
+
+data "aws_ami" "sentinel" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["opennms-sentinel-*"]
   }
 }
 
@@ -91,16 +114,16 @@ variable "instance_types" {
   type        = "map"
 
   default = {
-    onms_core  = "t2.large"
-    onms_ui    = "t2.medium"
-    postgresql = "t2.medium"
-    es_master  = "t2.small"
-    es_data    = "t2.medium"
-    kibana     = "t2.medium"
-    activemq   = "t2.medium"
-    kafka      = "t2.medium"
-    zookeeper  = "t2.medium"
-    cassandra  = "t2.medium"
+    onms_core      = "t2.large"
+    onms_sentinel  = "t2.large"
+    onms_ui        = "t2.medium"
+    postgresql     = "t2.medium"
+    es_master      = "t2.small"
+    es_data        = "t2.medium"
+    kibana         = "t2.medium"
+    kafka          = "t2.medium"
+    zookeeper      = "t2.medium"
+    cassandra      = "t2.medium"
   }
 }
 
@@ -108,11 +131,6 @@ variable "instance_types" {
 
 # This is a proof of concept, so everything will be on a single availability zone,
 # with direct internet access, so instances might have public IP addresses.
-
-variable "dns_zone" {
-  description = "Internal DNS Zone Name"
-  default     = "terraform.opennms.local"
-}
 
 variable "vpc_cidr" {
   description = "CIDR for the whole VPC"
@@ -131,6 +149,7 @@ variable "elb_subnet_cidr" {
 
 # Application IP Addresses
 
+# This is a master/slave configuration, so change this carefully.
 variable "pg_ip_addresses" {
   description = "PostgreSQL Servers Private IPs"
   type        = "map"
@@ -141,6 +160,7 @@ variable "pg_ip_addresses" {
   }
 }
 
+# This is a master/slave configuration, so change this carefully.
 variable "pg_roles" {
   description = "PostgreSQL server roles: master or slave"
   type        = "list"
@@ -152,12 +172,23 @@ variable "pg_roles" {
   ]
 }
 
+# There should be only one OpenNMS server
 variable "onms_ip_addresses" {
   description = "OpenNMS Servers Private IPs"
   type        = "map"
 
   default = {
-    opennms = "172.16.1.100"
+    onmscore = "172.16.1.100"
+  }
+}
+
+variable "onms_sentinel_ip_addresses" {
+  description = "OpenNMS Sentinel Servers Private IPs"
+  type        = "map"
+
+  default = {
+    sentinel1 = "172.16.1.81"
+    sentinel2 = "172.16.1.82"
   }
 }
 
@@ -171,27 +202,7 @@ variable "onms_ui_ip_addresses" {
   }
 }
 
-variable "amq_ip_addresses" {
-  description = "ActiveMQ IP Pair: 2 instances working on a Network of Brokers config, for failover"
-  type        = "map"
-
-  default = {
-    activemq1 = "172.16.1.11"
-    activemq2 = "172.16.1.12"
-  }
-}
-
-variable "amq_siblings" {
-  description = "ActiveMQ IP Sibling Pair: the inverse of amq_ip_addresses"
-  type        = "list"
-
-  # Declare the sibling based on the key order defined for amq_ip_addresses
-  default = [
-    "activemq2",
-    "activemq1",
-  ]
-}
-
+# There should be only 3 Zookeeper servers
 variable "zookeeper_ip_addresses" {
   description = "Zookeeper Servers Private IPs"
   type        = "map"
@@ -225,6 +236,7 @@ variable "cassandra_ip_addresses" {
   }
 }
 
+# There should be only 3 ES master servers
 variable "es_master_ip_addresses" {
   description = "Elasticsearch Master Servers Private IPs"
   type        = "map"
@@ -277,14 +289,25 @@ variable "settings" {
 
   default = {
     cluster_name                 = "OpenNMS-Cluster"
-    kafka_num_partitions         = 16
+    kafka_num_partitions         = 32
     kafka_replication_factor     = 2
     kafka_min_insync_replicas    = 1
+    kafka_security_protocol      = "SASL_PLAINTEXT" # To disable SASL, use "PLAINTEXT"
+    kafka_security_mechanisms    = "PLAIN,SCRAM-SHA-256"
+    kafka_client_mechanism       = "PLAIN" # SCRAM-SHA-256
+    kafka_security_module        = "org.apache.kafka.common.security.plain.PlainLoginModule" # org.apache.kafka.common.security.scram.ScramLoginModule
+    kafka_admin_password         = "0p3nNMS"
+    kafka_user_name              = "opennms"
+    kafka_user_password          = "0p3nNMS"
     cassandra_datacenter         = "AWS"
     cassandra_replication_factor = 2
     postgresql_version_family    = "10-2"
-    postgresql_max_connections   = 200
+    postgresql_max_connections   = 300
+    postgresql_password          = "0p3nNMS"
+    postgresql_opennms_password  = "0p3nNMS"
+    elastic_user                 = "elastic" # This is the default user, do not change it
     elastic_password             = "opennms"
+    elastic_license              = "trial" # Use 'basic' or 'trial'. The last one requires proper authentication configured.
     elastic_flow_index_strategy  = "hourly"
     onms_use_30sec_frequency     = "true"
   }
@@ -296,9 +319,8 @@ variable "disk_space" {
 
   default = {
     elasticsearch = "100"
-    activemq      = "100"
     kafka         = "100"
-    zookeeper     = "8"
+    zookeeper     = "20"
     postgresql    = "100"
     cassandra     = "100"
   }

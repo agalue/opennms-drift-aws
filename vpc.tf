@@ -34,16 +34,6 @@ resource "aws_subnet" "public" {
   }
 }
 
-resource "aws_subnet" "elb" {
-  vpc_id            = "${aws_vpc.default.id}"
-  cidr_block        = "${var.elb_subnet_cidr}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-
-  tags {
-    Name = "Terraform ELB Subnet"
-  }
-}
-
 resource "aws_route_table" "gw" {
   vpc_id = "${aws_vpc.default.id}"
 
@@ -62,15 +52,10 @@ resource "aws_route_table_association" "public" {
   route_table_id = "${aws_route_table.gw.id}"
 }
 
-resource "aws_route_table_association" "elb" {
-  subnet_id      = "${aws_subnet.elb.id}"
-  route_table_id = "${aws_route_table.gw.id}"
-}
-
 # DNS
 
 resource "aws_vpc_dhcp_options" "main" {
-  domain_name         = "${var.dns_zone}"
+  domain_name         = "${aws_route53_zone.private.name}"
   domain_name_servers = ["AmazonProvidedDNS"]
 
   tags {
@@ -83,8 +68,28 @@ resource "aws_vpc_dhcp_options_association" "main" {
   dhcp_options_id = "${aws_vpc_dhcp_options.main.id}"
 }
 
+data "aws_route53_zone" "parent" {
+  name = "${var.parent_dns_zone}"
+}
+
 resource "aws_route53_zone" "main" {
-  name    = "${var.dns_zone}"
-  vpc_id  = "${aws_vpc.default.id}"
-  comment = "Manabed by Terraform"
+  name = "${var.dns_zone}"
+}
+
+resource "aws_route53_record" "main-ns" {
+  zone_id = "${data.aws_route53_zone.parent.zone_id}"
+  name    = "${aws_route53_zone.main.name}"
+  type    = "NS"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${aws_route53_zone.main.name_servers.0}",
+    "${aws_route53_zone.main.name_servers.1}",
+    "${aws_route53_zone.main.name_servers.2}",
+    "${aws_route53_zone.main.name_servers.3}",
+  ]
+}
+
+resource "aws_route53_zone" "private" {
+  name   = "${var.dns_zone_private}"
+  vpc_id = "${aws_vpc.default.id}"
 }

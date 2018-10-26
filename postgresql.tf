@@ -8,7 +8,7 @@ data "template_file" "postgresql" {
     node_id            = "${count.index + 1}"
     vpc_cidr           = "${var.vpc_cidr}"
     hostname           = "${element(keys(var.pg_ip_addresses), count.index)}"
-    domainname         = "${var.dns_zone}"
+    domainname         = "${aws_route53_zone.private.name}"
     pg_max_connections = "${lookup(var.settings, "postgresql_max_connections")}"
     pg_version_family  = "${lookup(var.settings, "postgresql_version_family")}"
     pg_role            = "${element(var.pg_roles, count.index)}"
@@ -39,7 +39,7 @@ resource "aws_instance" "postgresql" {
   }
 
   depends_on = [
-    "aws_route53_record.postgresql",
+    "aws_route53_record.postgresql_private",
   ]
 
   connection {
@@ -60,12 +60,24 @@ resource "aws_instance" "postgresql" {
 resource "aws_route53_record" "postgresql" {
   count   = "${length(var.pg_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.pg_ip_addresses),count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.pg_ip_addresses),count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.pg_ip_addresses),count.index)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(aws_instance.postgresql.*.public_ip, count.index)}",
+  ]
 }
 
+resource "aws_route53_record" "postgresql_private" {
+  count   = "${length(var.pg_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.pg_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.pg_ip_addresses), count.index)}",
+  ]
+}
 output "postgresql" {
   value = "${join(",",aws_instance.postgresql.*.public_ip)}"
 }

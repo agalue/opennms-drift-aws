@@ -7,10 +7,12 @@ data "template_file" "elasticsearch_master" {
   vars {
     node_id         = "${count.index + 1}"
     hostname        = "${element(keys(var.es_master_ip_addresses), count.index)}"
-    domainname      = "${var.dns_zone}"
+    domainname      = "${aws_route53_zone.private.name}"
+    dependencies    = ""
     es_cluster_name = "${lookup(var.settings, "cluster_name")}"
     es_seed_name    = "${join(",",keys(var.es_master_ip_addresses))}"
     es_password     = "${lookup(var.settings, "elastic_password")}"
+    es_license      = "${lookup(var.settings, "elastic_license")}"
     es_role         = "master"
     es_xpack        = "true"
     es_monsrv       = ""
@@ -34,7 +36,7 @@ resource "aws_instance" "elasticsearch_master" {
   ]
 
   depends_on = [
-    "aws_route53_record.elasticsearch_master",
+    "aws_route53_record.elasticsearch_master_private",
   ]
 
   connection {
@@ -55,12 +57,24 @@ resource "aws_instance" "elasticsearch_master" {
 resource "aws_route53_record" "elasticsearch_master" {
   count   = "${length(var.es_master_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.es_master_ip_addresses), count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.es_master_ip_addresses), count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.es_master_ip_addresses), count.index)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(aws_instance.elasticsearch_master.*.public_ip, count.index)}",
+  ]
 }
 
+resource "aws_route53_record" "elasticsearch_master_private" {
+  count   = "${length(var.es_master_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.es_master_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.es_master_ip_addresses), count.index)}",
+  ]
+}
 output "esmaster" {
   value = "${join(",",aws_instance.elasticsearch_master.*.public_ip)}"
 }

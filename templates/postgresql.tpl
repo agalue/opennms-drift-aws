@@ -5,13 +5,17 @@
 # - At the very least, max_val_senders should equal the number of replicas you intend to have.
 # - repmgr is doing automatic promotion, but keep in mind that this could lead to split-brain situations.
 #
-# synchronous_commin="off" (async replication)
+# synchronous_commit="off" (async replication)
 # - It is the most performant option.
 # - It does carry the risk of data lost in the event of a system crash.
 # - Could cause inconsistencies between read queries on the primary and the replica.
 #
-# synchronous_commin!="off" (sync replication)
+# synchronous_commit!="off" (sync replication)
 # - More than 1 replica is required, and the solution should be configured as quorum, to avoid hanging the primary.
+#
+# TODO
+# - Port the recommendations based on hardware from https://pgtune.leopard.in.ua/#/
+#   Source: https://github.com/le0pard/pgtune/blob/master/webpack/selectors/configuration.js
 
 # AWS Template Variables
 
@@ -27,8 +31,8 @@ pg_master_server="${pg_master_server}"
 
 # Internal Variables
 
-pg_version=`echo $pg_version_family | sed 's/-.//'`
-pg_family=`echo $pg_version | sed 's/\.//'`
+pg_version=$(echo $pg_version_family | sed 's/-.//')
+pg_family=$(echo $pg_version | sed 's/\.//')
 repmgr_cfg=/etc/repmgr/$pg_version/repmgr.conf
 repmgr_bin=/usr/pgsql-$pg_version/bin/repmgr
 data_dir=/var/lib/pgsql/$pg_version/data
@@ -43,7 +47,7 @@ source /etc/profile.d/postgresql.sh
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -93,7 +97,7 @@ if [ "$pg_role" == "master" ]; then
 
   echo "### Configuring Master Server..."
 
-  pgsetup=`find /usr/pgsql-$pg_version/bin/ -name postgresql*setup`
+  pgsetup=$(find /usr/pgsql-$pg_version/bin/ -name postgresql*setup)
   $pgsetup initdb
 
   sed -r -i "s/(peer|ident)/trust/g" $hba_conf
@@ -124,48 +128,63 @@ EOF
   sed -r -i "s/[#]?shared_preload_libraries =.*/shared_preload_libraries = 'repmgr'/" $pg_conf
 
   echo "### Starting PostgreSQL..."
-
   systemctl enable postgresql-$pg_version
   systemctl start postgresql-$pg_version
-  sleep 10
+
+  echo "### Waiting for local PostgreSQL..."
+  until pg_isready; do
+    sleep 5
+  done
 
   echo "### Configuring repmgr..."
-
   sudo -u postgres psql -c "CREATE USER repmgr SUPERUSER REPLICATION LOGIN ENCRYPTED PASSWORD 'repmgr';"
   sudo -u postgres psql -c "CREATE DATABASE repmgr OWNER repmgr;"
   sudo -u postgres psql -c "ALTER USER postgres WITH ENCRYPTED PASSWORD 'postgres';"
 
   echo "### Registering master node through repmgr..."
-
   sudo -u postgres $repmgr_bin -f $repmgr_cfg -v master register
   sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
+
+  echo "### Starting repmgrd..."
+  systemctl start repmgr$pg_family
 
 else
 
   echo "### Configuring Slave Server..."
-  sleep 30
 
-  sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W --dry-run standby clone
-  if [ $? -eq 0 ]; then
-    echo "### Cloning data from master node..."
+  echo "### Waiting for $pg_master_server to be ready..."
+  until pg_isready -h $pg_master_server; do
+    sleep 5
+  done
+  sleep 20
 
-    sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W standby clone
+  while [ ! -f ~/.pg_configured ]; do
+    sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W --dry-run standby clone
+    if [ $? -eq 0 ]; then
+      echo "### Cloning data from master node..."
 
-    echo "### Starting PostgreSQL..."
+      sudo -u postgres $repmgr_bin -h $pg_master_server -U repmgr -d repmgr -f $repmgr_cfg -W standby clone
 
-    systemctl start postgresql-$pg_version
-    sleep 10
+      echo "### Starting PostgreSQL..."
+      systemctl enable postgresql-$pg_version
+      systemctl start postgresql-$pg_version
 
-    echo "### Registering slave node through repmgr..."
+      echo "### Waiting for local PostgreSQL..."
+      until pg_isready; do
+        sleep 5
+      done
 
-    sudo -u postgres $repmgr_bin -f $repmgr_cfg -v standby register
-    sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
-  else
-    echo "### ERROR: There was a problem and repmgr was not able to setup the standby server $hostname ..."
-  fi
+      echo "### Registering slave node through repmgr..."
+      sudo -u postgres $repmgr_bin -f $repmgr_cfg -v standby register
+      sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
+
+      echo "### Starting repmgrd..."
+      systemctl start repmgr$pg_family
+
+      touch ~/.pg_configured
+    else
+      echo "### ERROR: There was a problem and repmgr was not able to setup the standby server $hostname ..."
+    fi
+  done
 
 fi
-
-echo "### Starting repmgrd..."
-
-systemctl start repmgr$pg_family

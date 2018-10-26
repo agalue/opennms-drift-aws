@@ -8,7 +8,7 @@ data "template_file" "zookeeper" {
     node_id       = "${count.index + 1}"
     vpc_cidr      = "${var.vpc_cidr}"
     hostname      = "${element(keys(var.zookeeper_ip_addresses), count.index)}"
-    domainname    = "${var.dns_zone}"
+    domainname    = "${aws_route53_zone.private.name}"
     total_servers = "${length(var.zookeeper_ip_addresses)}"
   }
 }
@@ -29,14 +29,14 @@ resource "aws_instance" "zookeeper" {
     "${aws_security_group.zookeeper.id}",
   ]
 
+  depends_on = [
+    "aws_route53_record.zookeeper_private",
+  ]
+
   root_block_device {
     volume_type = "gp2"
     volume_size = "${lookup(var.disk_space, "zookeeper")}"
   }
-
-  depends_on = [
-    "aws_route53_record.zookeeper",
-  ]
 
   connection {
     user        = "ec2-user"
@@ -56,10 +56,23 @@ resource "aws_instance" "zookeeper" {
 resource "aws_route53_record" "zookeeper" {
   count   = "${length(var.zookeeper_ip_addresses)}"
   zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "${element(keys(var.zookeeper_ip_addresses), count.index)}.${var.dns_zone}"
+  name    = "${element(keys(var.zookeeper_ip_addresses), count.index)}.${aws_route53_zone.main.name}"
   type    = "A"
-  ttl     = "300"
-  records = ["${element(values(var.zookeeper_ip_addresses), count.index)}"]
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(aws_instance.zookeeper.*.public_ip, count.index)}",
+  ]
+}
+
+resource "aws_route53_record" "zookeeper_private" {
+  count   = "${length(var.zookeeper_ip_addresses)}"
+  zone_id = "${aws_route53_zone.private.zone_id}"
+  name    = "${element(keys(var.zookeeper_ip_addresses), count.index)}.${aws_route53_zone.private.name}"
+  type    = "A"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${element(values(var.zookeeper_ip_addresses), count.index)}",
+  ]
 }
 
 output "zookeeper" {
