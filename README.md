@@ -59,7 +59,7 @@ terraform plan
 terraform apply
 ```
 
-* Initialize the Minion VM using Vagrant:
+* Initialize the Minion VMs using Vagrant:
 
 ```SHELL
 cd resources/minion
@@ -70,7 +70,7 @@ vagrant up
 
 ## Requirements
 
-* OpenNMS Horizon version 23 or newer is required. Currently, the RPMs from the `features/sentinel` branch are being used in order to test Sentinel.
+* OpenNMS Horizon version 23.0.1 or newer is required. Currently, the RPMs from the `release-23.0.1` branch are being used in order to test Sentinels and Minions, all with SASL Auth for Kafka.
 
 * Time synchronization is mandatory on every single device (including monitored devices). AWS guarrantees that, meaning the Minion and the Flow Exporters should also be synchronized prior start using this lab (either by using NTP or manual sync).
 
