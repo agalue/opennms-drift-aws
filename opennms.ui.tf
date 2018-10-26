@@ -9,7 +9,7 @@ data "template_file" "opennms_ui" {
     domainname             = "${aws_route53_zone.private.name}"
     domainname_public      = "${aws_route53_zone.main.name}"
     redis_server           = ""
-    dependencies           = "${join(",",formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))},${join(",",formatlist("%v:9042", aws_route53_record.cassandra_private.*.name))},${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
+    dependencies           = "${aws_route53_record.opennms_private.name}:8980" # To make sure that the DB was initialized, and the rest of the dependencies are available
     postgres_onms_url      = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
     postgres_server        = "${element(aws_route53_record.postgresql_private.*.name, 0)}"
     cassandra_seed         = "${element(aws_route53_record.cassandra_private.*.name, 0)}"

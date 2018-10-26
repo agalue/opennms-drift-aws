@@ -38,6 +38,15 @@ sentinel_home=/opt/sentinel
 sentinel_etc=$sentinel_home/etc
 features=$sentinel_home/deploy/features.xml
 
+sasl_security = "";
+if [[ $kafka_security_protocol == *"SASL"* ]]; then
+  read -r -d '' sasl_security <<- EOF
+      security.protocol = $kafka_security_protocol
+      sasl.mechanism = $kafka_client_mechanism
+      sasl.jaas.config = $kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
+EOF
+fi
+
 project_version=$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' opennms-sentinel)
 cat <<EOF > $features
 <?xml version="1.0" encoding="UTF-8"?>
@@ -93,9 +102,7 @@ cat <<EOF > $features
     <config name="org.opennms.core.ipc.sink.kafka.consumer">
       group.id = Sentinel
       bootstrap.servers = $kafka_servers
-      security.protocol = $kafka_security_protocol
-      sasl.mechanism = $kafka_client_mechanism
-      sasl.jaas.config = $kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
+      $sasl_security
     </config>
     <feature>sentinel-kafka</feature>
     <feature>sentinel-flows</feature>

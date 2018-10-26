@@ -218,9 +218,6 @@ EOF
     cat <<EOF > $kafka_file
 bootstrap.servers=$kafka_servers
 acks=1
-security.protocol=$kafka_security_protocol
-sasl.mechanism=$kafka_security_mechanism
-sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
 EOF
     if [[ $kafka_security_protocol == *"SASL"* ]]; then
       cat <<EOF >> $kafka_file

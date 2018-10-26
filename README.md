@@ -2,6 +2,8 @@
 
 ![diagram](resources/diagram.png)
 
+> IMPORTANT: This deployment uses Kafka SASL authentication by default. For this reason Horizon 23.0.1 is required. In order to use an older version, SASL authentication for Kafka has to be disabled.
+
 ## Installation and usage
 
 * Make sure you have your AWS credentials on `~/.aws/credentials`, for example:
