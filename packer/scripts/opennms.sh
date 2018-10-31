@@ -11,7 +11,6 @@ grafana_version="5.3.2"
 
 opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
-tmp_file=/tmp/_onms_temp_file
 
 echo "### Installing Common Packages..."
 
