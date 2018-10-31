@@ -8,7 +8,6 @@ max_files="100000"
 
 ########################################
 
-tmp_file=/tmp/_temp.tmp
 mkdir -p /tmp/sources/
 
 echo "### Configuring Timezone..."
@@ -19,7 +18,7 @@ echo "### Installing common packages..."
 
 sudo yum -y -q update
 sudo yum -y -q install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-sudo yum -y -q install jq unzip net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat tree sshpass
+sudo yum -y -q install jq unzip net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat tree sshpass tmux
 
 echo "### Configuring Net-SNMP..."
 
