@@ -60,7 +60,7 @@ vm.zone_reclaim_mode=0
 vm.max_map_count=1048575
 EOF
 
-cat <<EOF > | sudo tee -a /etc/security/limits.d/application.conf
+cat <<EOF | sudo tee -a /etc/security/limits.d/application.conf
 * soft nofile $max_files
 * hard nofile $max_files
 EOF
