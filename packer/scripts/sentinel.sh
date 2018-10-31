@@ -10,7 +10,6 @@ sentinel_version="-latest-"
 
 sentinel_home=/opt/sentinel
 sentinel_etc=$sentinel_home/etc
-tmp_file=/tmp/_onms_temp_file
 
 echo "### Installing Common Packages..."
 

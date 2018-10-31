@@ -27,11 +27,6 @@
   ],
   "provisioners": [
     {
-      "type": "file",
-      "source": "./configs/opennms/",
-      "destination": "/tmp/sources"
-    },
-    {
       "type": "shell",
       "script": "./scripts/common.sh"
     },
@@ -46,6 +41,11 @@
     {
       "type": "shell",
       "script": "./scripts/cassandra.sh"
+    },
+    {
+      "type": "file",
+      "source": "./configs/opennms/",
+      "destination": "/tmp/sources"
     },
     {
       "type": "shell",
