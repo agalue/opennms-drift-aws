@@ -3,8 +3,6 @@
 #
 # Guide:
 # https://github.com/OpenNMS/opennms/blob/develop/opennms-doc/guide-admin/src/asciidoc/text/sentinel/sentinel.adoc
-#
-# TODO: Add support for NX-OS Telemetry (with Cassandra)
 
 # AWS Template Variables
 
@@ -18,6 +16,7 @@ kafka_security_module="${kafka_security_module}"
 kafka_client_mechanism="${kafka_client_mechanism}"
 kafka_user_name="${kafka_user_name}"
 kafka_user_password="${kafka_user_password}"
+cassandra_servers="${cassandra_servers}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
@@ -33,6 +32,8 @@ echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Sentinel..."
+
+num_of_cores=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
 
 sentinel_home=/opt/sentinel
 sentinel_etc=$sentinel_home/etc
@@ -75,9 +76,34 @@ cat <<EOF > $features
       datasource.password = opennms
       datasource.databaseName = opennms
     </config>
-    <config name="org.opennms.features.telemetry.adapters-sflow">
-      name = SFlow
-      class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowAdapter
+    <config name="org.opennms.newts.config">
+      hostname = $cassandra_servers
+      keyspace = newts
+      port = 9042
+      read_consistency = ONE
+      write_consistency = ANY
+      resource_shard = 604800
+      ttl = 31540000
+      writer_threads = $num_of_cores
+      ring_buffer_size = 131072
+      cache.max_entries = 131072
+    </config>
+    <config name="org.opennms.features.telemetry.adapters-sflow-telemetry">
+      adapters.1.name = SFlow
+      adapters.1.class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowAdapter
+      adapters.2.name = SFlow-Telemetry
+      adapters.2.class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowTelemetryAdapter
+      adapters.2.parameters.script = /opt/sentinel/etc/telemetryd-adapters/sflow-host.groovy
+    </config>
+    <config name="org.opennms.features.telemetry.adapters-nxos">
+      name = NXOS
+      class-name = org.opennms.netmgt.telemetry.adapters.nxos.NxosGpbAdapter
+      parameters.script = /opt/sentinel/etc/telemetryd-adapters/cisco-nxos-telemetry-interface.groovy
+    </config>
+    <config name="org.opennms.features.telemetry.adapters-jti">
+      name = JTI
+      class-name = org.opennms.netmgt.telemetry.adapters.jti.JtiGpbAdapter
+      parameters.script = /opt/sentinel/etc/telemetryd-adapters/junos-telemetry-interface.groovy
     </config>
     <config name="org.opennms.features.telemetry.adapters-ipfix">
       name = IPFIX
@@ -106,6 +132,9 @@ cat <<EOF > $features
     </config>
     <feature>sentinel-kafka</feature>
     <feature>sentinel-flows</feature>
+    <feature>sentinel-newts</feature>
+    <feature>sentinel-telemetry-nxos</feature>
+    <feature>sentinel-telemetry-jti</feature>
   </feature>
 
 </features>
@@ -113,7 +142,11 @@ EOF
 chown sentinel:sentinel $features
 
 # Exposing Karaf Console
-sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $sentinel_etc/org.apache.karaf.shell.cfg
+sed -r -i "/^sshHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.shell.cfg
+
+# Expose the RMI registry and server
+sed -r -i "/^rmiRegistryHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.management.cfg
+sed -r -i "/^rmiServerHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.management.cfg
 
 echo "### Enabling and starting Sentinel..."
 

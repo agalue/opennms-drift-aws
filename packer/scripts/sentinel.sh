@@ -32,3 +32,9 @@ sudo git init .
 sudo git add .
 sudo git commit -m "Sentinel Installed."
 cd
+
+echo "### Copying external configuration files..."
+
+src_dir=/tmp/sources
+sudo chown -R root:root $src_dir/
+sudo rsync -avr $src_dir/ $sentinel_etc/

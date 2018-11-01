@@ -15,6 +15,7 @@ data "template_file" "opennms_sentinel" {
     kafka_client_mechanism  = "${lookup(var.settings, "kafka_client_mechanism")}"
     kafka_user_name         = "${lookup(var.settings, "kafka_user_name")}"
     kafka_user_password     = "${lookup(var.settings, "kafka_user_password")}"
+    cassandra_servers       = "${element(aws_route53_record.cassandra_private.*.name, 0)}"
     elastic_url             = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
     elastic_user            = "${lookup(var.settings, "elastic_user")}"
     elastic_password        = "${lookup(var.settings, "elastic_password")}"
