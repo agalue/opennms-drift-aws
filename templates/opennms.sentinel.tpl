@@ -157,6 +157,13 @@ sed -r -i "/^sshHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.shell.cfg
 sed -r -i "/^rmiRegistryHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.management.cfg
 sed -r -i "/^rmiServerHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.management.cfg
 
+# The following should match OpenNMS in order to properly store telemetry metrics on Cassandra
+cat <<EOF >> $sentinel_etc/system.properties 
+
+org.opennms.rrd.storeByGroup=true
+org.opennms.rrd.storeByForeignSource=true
+EOF
+
 chown -R sentinel:sentinel $features
 chown -R sentinel:sentinel $sentinel_etc
 
