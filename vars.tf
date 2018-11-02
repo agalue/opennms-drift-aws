@@ -183,7 +183,7 @@ variable "onms_sentinel_ip_addresses" {
 
   default = {
     sentinel1 = "172.16.1.81"
-    sentinel2 = "172.16.1.82"
+#   sentinel2 = "172.16.1.82"
   }
 }
 
@@ -192,8 +192,8 @@ variable "onms_ui_ip_addresses" {
   type        = "map"
 
   default = {
-    onmsui1 = "172.16.1.71"
-    onmsui2 = "172.16.1.72"
+#    onmsui1 = "172.16.1.71"
+#    onmsui2 = "172.16.1.72"
   }
 }
 
@@ -287,7 +287,7 @@ variable "settings" {
     kafka_num_partitions         = 32
     kafka_replication_factor     = 2
     kafka_min_insync_replicas    = 1
-    kafka_security_protocol      = "SASL_PLAINTEXT" # To disable SASL, use "PLAINTEXT"
+    kafka_security_protocol      = "PLAINTEXT" # To disable SASL, use "PLAINTEXT"
     kafka_security_mechanisms    = "PLAIN,SCRAM-SHA-256"
     kafka_client_mechanism       = "PLAIN" # SCRAM-SHA-256
     kafka_security_module        = "org.apache.kafka.common.security.plain.PlainLoginModule" # org.apache.kafka.common.security.scram.ScramLoginModule

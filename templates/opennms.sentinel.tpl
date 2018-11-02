@@ -61,6 +61,7 @@ cat <<EOF > $features
 >
 
   <repository>mvn:io.hawt/hawtio-karaf/2.0.0/xml/features</repository>
+  <repository>mvn:org.opennms.oce/oce-karaf-features/1.0.0-SNAPSHOT/xml</repository>
 
   <feature name="autostart-hawtio" description="Hawtio :: Auto-Start" version="2.0.0" start-level="200" install="auto">
     <feature>hawtio-offline</feature>
@@ -138,6 +139,25 @@ cat <<EOF > $features
     <feature>sentinel-newts</feature>
     <feature>sentinel-telemetry-nxos</feature>
     <feature>sentinel-telemetry-jti</feature>
+  </feature>
+
+  <feature name="autostart-sentinel-oce" description="OpenNMS Correlation Engine" version="1.0.0-SNAPSHOT" start-level="200" install="auto">
+    <config name="org.opennms.oce.datasource.opennms.kafka.streams">
+      bootstrap.servers = $kafka_servers
+      commit.interval.ms = 5000
+      $sasl_security
+    </config>
+    <config name="org.opennms.oce.datasource.opennms.kafka.producer">
+      bootstrap.servers = $kafka_servers
+      nodeTopic=OpenNMS.Nodes
+      alarmTopic=OpenNMS.Alarms
+      eventSinkTopic=OpenNMS.Events
+      $sasl_security
+    </config>
+    <feature>oce-datasource-opennms-kafka</feature>
+    <feature>oce-engine-cluster</feature>
+    <feature>oce-processor-standalone</feature>
+    <feature>oce-driver-main</feature>
   </feature>
 
 </features>

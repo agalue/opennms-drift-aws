@@ -15,6 +15,7 @@
     <asset name="state" value="OH"/>
     <asset name="country" value="US"/>    
   </node>
+  <!--
   <node building="AWS" foreign-id="sentinel2" node-label="sentinel-02-server">
     <interface descr="eth0" ip-addr="172.16.1.82" status="1" snmp-primary="P"/>
     <asset name="city" value="Columbus"/>
@@ -37,6 +38,7 @@
     <asset name="state" value="OH"/>
     <asset name="country" value="US"/>    
   </node>
+  -->
   <node building="AWS" foreign-id="postgresql1" node-label="postgresql1-server">
     <interface descr="eth0" ip-addr="172.16.1.101" status="1" snmp-primary="P">
       <monitored-service service-name="PostgreSQL"/>
