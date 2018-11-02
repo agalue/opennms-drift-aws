@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="develop"
+onms_repo="bleeding"
 onms_version="-latest-"
 grafana_version="5.3.2"
 

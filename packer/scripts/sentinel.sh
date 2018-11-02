@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-sentinel_repo="develop"
+sentinel_repo="bleeding"
 sentinel_version="-latest-"
 
 ########################################
