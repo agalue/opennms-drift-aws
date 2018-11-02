@@ -117,7 +117,10 @@ if ! rpm -qa | grep -q jdk1.8; then
     echo "FATAL: Cannot download Java from $java_url. Using OpenNMS default ..."
     yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel7.noarch.rpm
     rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel7.gpg
-    yum install -y -q jdk1.8.0_144
+    jdk_list=($(yum -q list jdk1.8* | grep fcs | aws '{print $2}' | sort -u))
+    jdk_rpm=${jdk_list[-1]}
+    echo "### Installing $jdk_rpm..."
+    yum install -y -q $jdk_rpm
     yum erase -y -q opennms-repo-stable
   else
     yum install -y -q $java_rpm

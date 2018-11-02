@@ -126,7 +126,7 @@ org.opennms.core.ipc.sink.kafka.group.id=OpenNMS
 EOF
 
 if [[ $kafka_security_protocol == *"SASL"* ]]; then
-  cat <<EOF > $opennms_etc/opennms.properties.d/kafka-sink.properties
+  cat <<EOF >> $opennms_etc/opennms.properties.d/kafka-sink.properties
 org.opennms.core.ipc.sink.kafka.security.protocol=$kafka_security_protocol
 org.opennms.core.ipc.sink.kafka.sasl.mechanism=$kafka_client_mechanism
 org.opennms.core.ipc.sink.kafka.sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
@@ -177,7 +177,7 @@ org.opennms.core.ipc.rpc.kafka.bootstrap.servers=$kafka_servers
 org.opennms.core.ipc.rpc.kafka.ttl=30000
 EOF
   if [[ $kafka_security_protocol == *"SASL"* ]]; then
-    cat <<EOF > $opennms_etc/opennms.properties.d/kafka-rpc.properties
+    cat <<EOF >> $opennms_etc/opennms.properties.d/kafka-rpc.properties
 org.opennms.core.ipc.rpc.kafka.security.protocol=$kafka_security_protocol
 org.opennms.core.ipc.rpc.kafka.sasl.mechanism=$kafka_client_mechanism
 org.opennms.core.ipc.rpc.kafka.sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
@@ -192,7 +192,7 @@ bootstrap.servers=$kafka_servers
 EOF
 
 if [[ $kafka_security_protocol == *"SASL"* ]]; then
-  cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.client.cfg
+  cat <<EOF >> $opennms_etc/org.opennms.features.kafka.producer.client.cfg
 security.protocol=$kafka_security_protocol
 sasl.mechanism=$kafka_client_mechanism
 sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
