@@ -9,7 +9,7 @@ data "template_file" "opennms_sentinel" {
     domainname              = "${aws_route53_zone.private.name}"
     dependencies            = "${aws_route53_record.opennms_private.name}:8980" # To make sure that the DB was initialized, and the rest of the dependencies are available
     postgres_onms_url       = "jdbc:postgresql://${join(",", formatlist("%v:5432", aws_route53_record.postgresql_private.*.name))}/opennms?targetServerType=master&amp;loadBalanceHosts=false"
-    kafka_servers           = "${join(",",formatlist("%v:9092", aws_route53_record.kafka_private.*.name))}"
+    kafka_servers           = "${element(aws_route53_record.kafka_private.*.name, 0)}:9092"
     kafka_security_protocol = "${lookup(var.settings, "kafka_security_protocol")}"
     kafka_security_module   = "${lookup(var.settings, "kafka_security_module")}"
     kafka_client_mechanism  = "${lookup(var.settings, "kafka_client_mechanism")}"

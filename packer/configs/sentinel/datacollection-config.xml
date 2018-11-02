@@ -7,5 +7,6 @@
          <rra>RRA:MAX:0.5:288:366</rra>
          <rra>RRA:MIN:0.5:288:366</rra>
       </rrd>
+      <include-collection dataCollectionGroup="MIB2"/>
    </snmp-collection>
 </datacollection-config>

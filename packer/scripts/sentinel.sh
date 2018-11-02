@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-sentinel_repo="branches-release-23.0.1"
+sentinel_repo="develop"
 sentinel_version="-latest-"
 
 ########################################
@@ -38,3 +38,4 @@ echo "### Copying external configuration files..."
 src_dir=/tmp/sources
 sudo chown -R root:root $src_dir/
 sudo rsync -avr $src_dir/ $sentinel_etc/
+sudo chown sentinel:sentinel $sentinel_etc

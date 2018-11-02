@@ -202,7 +202,7 @@ fi
 cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.cfg
 nodeTopic=OpenNMS.Nodes
 alarmTopic=OpenNMS.Alarms
-eventTopic=
+eventTopic=OpenNMS.Events
 metricTopic=OpenNMS.Metrics
 forward.metrics=true
 nodeRefreshTimeoutMs=300000

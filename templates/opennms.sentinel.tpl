@@ -48,6 +48,8 @@ if [[ $kafka_security_protocol == *"SASL"* ]]; then
 EOF
 fi
 
+telemedry_dir=/opt/sentinel/etc/telemetryd-adapters
+
 project_version=$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' opennms-sentinel)
 cat <<EOF > $features
 <?xml version="1.0" encoding="UTF-8"?>
@@ -87,23 +89,24 @@ cat <<EOF > $features
       writer_threads = $num_of_cores
       ring_buffer_size = 131072
       cache.max_entries = 131072
+      cache.strategy = org.opennms.netmgt.newts.support.GuavaSearchableResourceMetadataCache
     </config>
     <config name="org.opennms.features.telemetry.adapters-sflow-telemetry">
       adapters.1.name = SFlow
       adapters.1.class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowAdapter
       adapters.2.name = SFlow-Telemetry
       adapters.2.class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowTelemetryAdapter
-      adapters.2.parameters.script = /opt/sentinel/etc/telemetryd-adapters/sflow-host.groovy
+      adapters.2.parameters.script = $telemedry_dir/sflow-host.groovy
     </config>
     <config name="org.opennms.features.telemetry.adapters-nxos">
       name = NXOS
       class-name = org.opennms.netmgt.telemetry.adapters.nxos.NxosGpbAdapter
-      parameters.script = /opt/sentinel/etc/telemetryd-adapters/cisco-nxos-telemetry-interface.groovy
+      parameters.script = $telemedry_dir/cisco-nxos-telemetry-interface.groovy
     </config>
     <config name="org.opennms.features.telemetry.adapters-jti">
       name = JTI
       class-name = org.opennms.netmgt.telemetry.adapters.jti.JtiGpbAdapter
-      parameters.script = /opt/sentinel/etc/telemetryd-adapters/junos-telemetry-interface.groovy
+      parameters.script = $telemedry_dir/junos-telemetry-interface.groovy
     </config>
     <config name="org.opennms.features.telemetry.adapters-ipfix">
       name = IPFIX
@@ -126,7 +129,7 @@ cat <<EOF > $features
       settings.index.number_of_replicas = 1
     </config>
     <config name="org.opennms.core.ipc.sink.kafka.consumer">
-      group.id = Sentinel
+      group.id = OpenNMS
       bootstrap.servers = $kafka_servers
       $sasl_security
     </config>
@@ -139,7 +142,13 @@ cat <<EOF > $features
 
 </features>
 EOF
-chown sentinel:sentinel $features
+
+# Workaround annoying harmless error associated with Kafka Consumer
+cat <<EOF >> $sentinel_etc/org.ops4j.pax.logging.cfg
+
+log4j2.logger.kafka_scala.name = kafka.consumer
+log4j2.logger.kafka_scala.level = ERROR
+EOF
 
 # Exposing Karaf Console
 sed -r -i "/^sshHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.shell.cfg
@@ -147,6 +156,9 @@ sed -r -i "/^sshHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.shell.cfg
 # Expose the RMI registry and server
 sed -r -i "/^rmiRegistryHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.management.cfg
 sed -r -i "/^rmiServerHost/s/=.*/= 0.0.0.0/" $sentinel_etc/org.apache.karaf.management.cfg
+
+chown -R sentinel:sentinel $features
+chown -R sentinel:sentinel $sentinel_etc
 
 echo "### Enabling and starting Sentinel..."
 
