@@ -35,6 +35,11 @@
       "script": "./scripts/java.sh"
     },
     {
+      "type": "file",
+      "source": "./configs/sentinel/",
+      "destination": "/tmp/sources"
+    },
+    {
       "type": "shell",
       "script": "./scripts/sentinel.sh"
     }

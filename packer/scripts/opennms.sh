@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="branches-release-23.0.1"
+onms_repo="bleeding"
 onms_version="-latest-"
 grafana_version="5.3.2"
 

@@ -202,7 +202,7 @@ fi
 cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.cfg
 nodeTopic=OpenNMS.Nodes
 alarmTopic=OpenNMS.Alarms
-eventTopic=
+eventTopic=OpenNMS.Events
 metricTopic=OpenNMS.Metrics
 forward.metrics=true
 nodeRefreshTimeoutMs=300000
@@ -244,10 +244,6 @@ sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/poller-configuration.x
 sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/poller-configuration.xml 
 sed -r -i 's/cassandra-username/cassandra/g' $opennms_etc/collectd-configuration.xml 
 sed -r -i 's/cassandra-password/cassandra/g' $opennms_etc/collectd-configuration.xml 
-
-# Enable NX-OS Telemetry
-
-sed -r -i '/"NXOS"/s/false/true/' $opennms_etc/telemetryd-configuration.xml
 
 # Configure Elasticsearch forwarder
 
@@ -315,7 +311,6 @@ rm -f logging.txt
 # Change collection and polling interval to 30 seconds
 
 if [ "$use_30sec_frequency" == "true" ]; then
-  sed -r -i 's/step="300"/step="30"/g' $opennms_etc/telemetryd-configuration.xml 
   sed -r -i 's/interval="300000"/interval="30000"/g' $opennms_etc/collectd-configuration.xml 
   sed -r -i 's/interval="300000" user/interval="30000" user/g' $opennms_etc/poller-configuration.xml 
   sed -r -i 's/step="300"/step="30"/g' $opennms_etc/poller-configuration.xml 

@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-sentinel_repo="branches-release-23.0.1"
+sentinel_repo="bleeding"
 sentinel_version="-latest-"
 
 ########################################
@@ -32,3 +32,10 @@ sudo git init .
 sudo git add .
 sudo git commit -m "Sentinel Installed."
 cd
+
+echo "### Copying external configuration files..."
+
+src_dir=/tmp/sources
+sudo chown -R root:root $src_dir/
+sudo rsync -avr $src_dir/ $sentinel_etc/
+sudo chown sentinel:sentinel $sentinel_etc
