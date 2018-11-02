@@ -107,7 +107,6 @@ cat <<EOF > $opennms_etc/eventconf.xml
   <event-file>events/opennms.internal.events.xml</event-file>
   <event-file>events/opennms.linkd.events.xml</event-file>
   <event-file>events/opennms.mib.events.xml</event-file>
-  <event-file>events/opennms.ncs-component.events.xml</event-file>
   <event-file>events/opennms.pollerd.events.xml</event-file>
   <event-file>events/opennms.provisioning.events.xml</event-file>
   <event-file>events/opennms.minion.events.xml</event-file>

@@ -23,7 +23,10 @@ sudo yum -y -q install jq unzip net-snmp net-snmp-utils git pytz dstat htop syss
 echo "### Configuring Net-SNMP..."
 
 snmp_cfg=/etc/snmp/snmpd.conf
-sudo cp $snmp_cfg $snmp_cfg.original
+if [ ! -f $snmp_cfg.original ]; then
+  sudo mv $snmp_cfg $snmp_cfg.original
+fi
+sudo rm -f $snmp_cfg
 cat <<EOF | sudo tee -a $snmp_cfg
 rocommunity public default
 syslocation AWS
