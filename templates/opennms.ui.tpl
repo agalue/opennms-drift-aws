@@ -44,7 +44,7 @@ mem_in_mb=$(expr $total_mem_in_mb / 2)
 if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
-sed -i -r "/JAVA_HEAP_SIZE/s/=1024/=$mem_in_mb/" $opennms_etc/opennms.conf
+sed -i -r "/JAVA_HEAP_SIZE/s/=.*/=$mem_in_mb/" $opennms_etc/opennms.conf
 sed -i -r "/GCThreads/s/=2/=$half_of_cores/" $opennms_etc/opennms.conf
 sed -i -r "/rmi.server.hostname/s/=0.0.0.0/=$hostname/" $opennms_etc/opennms.conf
 

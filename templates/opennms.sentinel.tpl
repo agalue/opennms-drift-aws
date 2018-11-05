@@ -39,7 +39,7 @@ sentinel_home=/opt/sentinel
 sentinel_etc=$sentinel_home/etc
 features=$sentinel_home/deploy/features.xml
 
-sasl_security = "";
+sasl_security=""
 if [[ $kafka_security_protocol == *"SASL"* ]]; then
   read -r -d '' sasl_security <<- EOF
       security.protocol = $kafka_security_protocol
@@ -47,6 +47,28 @@ if [[ $kafka_security_protocol == *"SASL"* ]]; then
       sasl.jaas.config = $kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
 EOF
 fi
+
+total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
+mem_in_mb=$(expr $total_mem_in_mb / 2)
+if [ "$mem_in_mb" -gt "30720" ]; then
+  mem_in_mb="30720"
+fi
+
+sysconfig=/etc/sysconfig/sentinel
+sed -r -i '/JAVA_MAX_MEM/s/^# //' $sysconfig
+sed -i -r "/JAVA_MAX_MEM/s/=.*/=$${mem_in_mb}M/" $sysconfig
+
+sed -r -i '/JAVA_OPTS/i ADDITIONAL_MANAGER_OPTIONS="-d64" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -Djava.net.preferIPv4Stack=true" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+PrintGCTimeStamps -XX:+PrintGCDetails" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -Xloggc:/opt/sentinel/data/log/gc.log" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+UseGCLogFileRotation" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:NumberOfGCLogFiles=10" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:GCLogFileSize=10M" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+UseStringDeduplication" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC"' $sysconfig
+sed -r -i "/JAVA_OPTS/s/^# //" $sysconfig
+sed -i -r "/JAVA_OPTS/s/=.*/=\$ADDITIONAL_MANAGER_OPTIONS/" $sysconfig
 
 telemedry_dir=/opt/sentinel/etc/telemetryd-adapters
 
@@ -149,12 +171,10 @@ cat <<EOF > $features
     </config>
     <config name="org.opennms.oce.datasource.opennms.kafka.producer">
       bootstrap.servers = $kafka_servers
-      nodeTopic=OpenNMS.Nodes
-      alarmTopic=OpenNMS.Alarms
-      eventSinkTopic=OpenNMS.Events
       $sasl_security
     </config>
     <feature>oce-datasource-opennms-kafka</feature>
+    <feature>oce-datasource-shell</feature>
     <feature>oce-engine-cluster</feature>
     <feature>oce-processor-standalone</feature>
     <feature>oce-driver-main</feature>

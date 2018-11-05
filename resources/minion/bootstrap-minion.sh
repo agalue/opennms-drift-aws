@@ -189,6 +189,28 @@ fi
 if [ ! -f "/opt/minion/etc/.git" ]; then
   echo "### Configuring OpenNMS Minion..."
 
+  total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
+  mem_in_mb=$(expr $total_mem_in_mb / 2)
+  if [ "$mem_in_mb" -gt "30720" ]; then
+    mem_in_mb="30720"
+  fi
+
+  sysconfig=/etc/sysconfig/minion
+  sed -r -i '/JAVA_MAX_MEM/s/^# //' $sysconfig
+  sed -i -r "/JAVA_MAX_MEM/s/=.*/=$${mem_in_mb}M/" $sysconfig
+
+  sed -r -i '/JAVA_OPTS/i ADDITIONAL_MANAGER_OPTIONS="-d64" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -Djava.net.preferIPv4Stack=true" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+PrintGCTimeStamps -XX:+PrintGCDetails" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -Xloggc:/opt/minion/data/log/gc.log" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+UseGCLogFileRotation" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:NumberOfGCLogFiles=10" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:GCLogFileSize=10M" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+UseStringDeduplication" \
+ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC"' $sysconfig
+  sed -r -i "/JAVA_OPTS/s/^# //" $sysconfig
+  sed -i -r "/JAVA_OPTS/s/=.*/=\$ADDITIONAL_MANAGER_OPTIONS/" $sysconfig
+
   cd /opt/minion/etc
   git config --global user.name "$git_user_name"
   git config --global user.email "$git_user_email"
