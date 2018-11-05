@@ -41,6 +41,10 @@
     },
     {
       "type": "shell",
+      "script": "./scripts/oce.sh"
+    },
+    {
+      "type": "shell",
       "script": "./scripts/sentinel.sh"
     }
   ]

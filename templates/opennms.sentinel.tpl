@@ -3,6 +3,7 @@
 #
 # Guide:
 # https://github.com/OpenNMS/opennms/blob/develop/opennms-doc/guide-admin/src/asciidoc/text/sentinel/sentinel.adoc
+# https://github.com/OpenNMS/oce/blob/master/INSTALL.md
 
 # AWS Template Variables
 
@@ -37,7 +38,13 @@ num_of_cores=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
 
 sentinel_home=/opt/sentinel
 sentinel_etc=$sentinel_home/etc
+features_cfg=$sentinel_etc/org.apache.karaf.features.cfg
 features=$sentinel_home/deploy/features.xml
+sysconfig=/etc/sysconfig/sentinel
+
+sed -i -r '/deployer/s/[)]//' $features_cfg
+sed -i -r '/scv/d' $features_cfg
+sed -r -i 's|kar/4.1.5|kar/4.1.5), scv/24.0.0-SNAPSHOT|' $features_cfg
 
 sasl_security=""
 if [[ $kafka_security_protocol == *"SASL"* ]]; then
@@ -54,7 +61,6 @@ if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
 
-sysconfig=/etc/sysconfig/sentinel
 sed -r -i '/JAVA_MAX_MEM/s/^# //' $sysconfig
 sed -i -r "/JAVA_MAX_MEM/s/=.*/=$${mem_in_mb}M/" $sysconfig
 
@@ -178,6 +184,7 @@ cat <<EOF > $features
     <feature>oce-engine-cluster</feature>
     <feature>oce-processor-standalone</feature>
     <feature>oce-driver-main</feature>
+    <feature>oce-features-graph-shell</feature>
   </feature>
 
 </features>

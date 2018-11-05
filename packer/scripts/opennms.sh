@@ -77,3 +77,10 @@ webxml=$opennms_home/jetty-webapps/opennms/WEB-INF/web.xml
 sudo cp $webxml $webxml.bak
 sudo sed -r -i '/[<][!]--/{$!{N;s/[<][!]--\n  ([<]filter-mapping)/\1/}}' $webxml
 sudo sed -r -i '/nrt/{$!{N;N;s/(nrt.*\n  [<]\/filter-mapping[>])\n  --[>]/\1/}}' $webxml
+
+echo "### Install OpenNMS Correlation Engine (OCE)..."
+
+for rpm in $(find ~/oce/assembly/opennms-rpm -name *.rpm); do
+  echo "Installing $rpm..."
+  sudo yum -y -q install $rpm
+done

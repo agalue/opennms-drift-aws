@@ -109,12 +109,18 @@ rm -f es.txt
 
 # Adding additional Karaf Features
 
-features="opennms-es-rest, opennms-kafka-producer"
+features="opennms-es-rest, opennms-kafka-producer, opennms-oce-plugin"
+sed -r -i "/^featuresRepositories/a mvn:org.opennms.oce/oce-karaf-features/1.0.0-SNAPSHOT/xml/features \\\\" $opennms_etc/org.apache.karaf.features.cfg
 sed -r -i "s/opennms-bundle-refresher.*/opennms-bundle-refresher, $features/" $opennms_etc/org.apache.karaf.features.cfg
 
 # Exposing Karaf Console
 
 sed -r -i '/sshHost/s/127.0.0.1/0.0.0.0/' $opennms_etc/org.apache.karaf.shell.cfg
+
+# Enable Syslogd
+
+ex -s +'/OpenNMS:Name=Syslogd/-1 s/ enabled="false"// | x' $opennms_etc/service-configuration.xml
+sed -i -r 's/CustomSyslogParser/RadixTreeSyslogParser/' $opennms_etc/syslogd-configuration.xml
 
 # Sink Pattern with Kafka
 
@@ -201,9 +207,12 @@ fi
 
 cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.cfg
 forward.metrics=true
+suppressIncrementalAlarms=false
 nodeRefreshTimeoutMs=300000
 alarmSyncIntervalMs=300000
 EOF
+
+echo 'org.opennms.netmgt.eventd.sink.enable=true' > "$opennms_etc/opennms.properties.d/event-sink.properties"
 
 # External Cassandra
 
