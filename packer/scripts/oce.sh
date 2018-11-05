@@ -7,7 +7,9 @@ maven_version="3.6.0"
 
 ########################################
 
-sudo yum install -y rpm-build
+echo "### Installing Dependencies..."
+
+sudo yum install -y -q rpm-build
 
 echo "### Installing Maven version $maven_version..."
 
