@@ -42,9 +42,10 @@ features_cfg=$sentinel_etc/org.apache.karaf.features.cfg
 features=$sentinel_home/deploy/features.xml
 sysconfig=/etc/sysconfig/sentinel
 
-sed -i -r '/deployer/s/[)]//' $features_cfg
-sed -i -r '/scv/d' $features_cfg
-sed -r -i 's|kar/4.1.5|kar/4.1.5), scv/24.0.0-SNAPSHOT|' $features_cfg
+# Not necessary when KAR is not involved.
+#sed -i -r '/deployer/s/[)]//' $features_cfg
+#sed -i -r '/scv/d' $features_cfg
+#sed -r -i 's|kar/4.1.5|kar/4.1.5), scv/24.0.0-SNAPSHOT|' $features_cfg
 
 sasl_security=""
 if [[ $kafka_security_protocol == *"SASL"* ]]; then
