@@ -95,7 +95,7 @@ cat <<EOF > $features
     <feature>hawtio-offline</feature>
   </feature>
 
-  <feature name="autostart-sentinel-telemetry-flows" description="OpenNMS :: Features :: Sentinel :: Auto-Start" version="$project_version" start-level="200" install="auto">
+  <feature name="autostart-sentinel-telemetry-flows" description="OpenNMS :: Features :: Sentinel :: Telemetry/Flow :: Auto-Start" version="$project_version" start-level="200" install="auto">
     <config name="org.opennms.sentinel.controller">
       location = $sentinel_location
       id = $hostname.$domainname
@@ -169,7 +169,7 @@ cat <<EOF > $features
     <feature>sentinel-telemetry-jti</feature>
   </feature>
 
-  <feature name="autostart-sentinel-oce" description="OpenNMS Correlation Engine" version="1.0.0-SNAPSHOT" start-level="200" install="auto">
+  <feature name="autostart-sentinel-oce" description="OpenNMS :: Features :: Correlation Engine" version="1.0.0-SNAPSHOT" start-level="200" install="auto">
     <config name="org.opennms.oce.datasource.opennms.kafka.streams">
       bootstrap.servers = $kafka_servers
       commit.interval.ms = 5000

@@ -80,7 +80,10 @@ sudo sed -r -i '/nrt/{$!{N;N;s/(nrt.*\n  [<]\/filter-mapping[>])\n  --[>]/\1/}}'
 
 echo "### Install OpenNMS Correlation Engine (OCE)..."
 
-for rpm in $(find ~/oce/assembly/opennms-rpm -name *.rpm); do
-  echo "Installing $rpm..."
-  sudo yum -y -q install $rpm
-done
+#for rpm in $(find ~/oce/assembly/opennms-rpm -name *.rpm); do
+#  echo "Installing $rpm..."
+#  sudo yum -y -q install $rpm
+#done
+
+# Using this method, as the KAR file might be deployed after features.xml
+sudo rsync -ar ~/.m2/repository/ $opennms_home/system/
