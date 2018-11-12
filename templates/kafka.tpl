@@ -52,7 +52,6 @@ sed -i -r "s|^[#]?advertised.listeners=.*|advertised.listeners=$security_protoco
 sed -i -r "s|^log.dirs=.*|log.dirs=$kafka_data|" $kafka_cfg
 sed -i -r "s|^zookeeper.connect=.*|zookeeper.connect=$zookeeper_connect|" $kafka_cfg
 
-fetch_max_size=$(expr $max_message_size * 2)
 cat <<EOF >> $kafka_cfg
 
 # Broker Settings
@@ -61,10 +60,10 @@ min.insync.replicas=$min_insync_replicas
 controlled.shutdown.enable=true
 auto.create.topics.enable=true
 delete.topic.enable=false
+
+# Message Size
 message.max.bytes=$max_message_size
-max.request.size=$max_message_size
-replica.fetch.max.bytes=$fetch_max_size
-fetch.message.max.bytes=$fetch_max_size
+replica.fetch.max.bytes=$max_message_size
 compression.type=producer
 
 # Security

@@ -260,11 +260,9 @@ EOF
   done
 
   cat <<EOF >> org.opennms.core.ipc.rpc.kafka.cfg
-acks=1
 compression.type=gzip
 request.timeout.ms=30000
 # Consumer
-fetch.message.max.bytes=$kafka_max_message_size
 max.partition.fetch.bytes=$kafka_max_message_size
 # Producer
 max.request.size=$kafka_max_message_size
