@@ -18,6 +18,7 @@ data "template_file" "kafka" {
     admin_password      = "${lookup(var.settings, "kafka_admin_password")}"
     user_name           = "${lookup(var.settings, "kafka_user_name")}"
     user_password       = "${lookup(var.settings, "kafka_user_password")}"
+    max_message_size    = "${lookup(var.settings, "kafka_max_message_size")}"
   }
 }
 
