@@ -197,8 +197,8 @@ if [ ! -f "/opt/minion/etc/.git" ]; then
   fi
 
   sysconfig=/etc/sysconfig/minion
-  sed -r -i '/JAVA_MAX_MEM/s/^# //' $sysconfig
-  sed -i -r "/JAVA_MAX_MEM/s/=.*/=${mem_in_mb}M/" $sysconfig
+  sed -r -i '/export JAVA_MAX_MEM/s/^# //' $sysconfig
+  sed -i -r "/export JAVA_MAX_MEM/s/=.*/=${mem_in_mb}M/" $sysconfig
 
   sed -r -i '/JAVA_OPTS/i ADDITIONAL_MANAGER_OPTIONS="-d64" \
 ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -Djava.net.preferIPv4Stack=true" \
