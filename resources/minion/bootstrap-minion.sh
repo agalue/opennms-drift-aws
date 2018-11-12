@@ -197,8 +197,8 @@ if [ ! -f "/opt/minion/etc/.git" ]; then
   fi
 
   sysconfig=/etc/sysconfig/minion
-  sed -r -i '/JAVA_MAX_MEM/s/^# //' $sysconfig
-  sed -i -r "/JAVA_MAX_MEM/s/=.*/=${mem_in_mb}M/" $sysconfig
+  sed -r -i '/export JAVA_MAX_MEM/s/^# //' $sysconfig
+  sed -i -r "/export JAVA_MAX_MEM/s/=.*/=${mem_in_mb}M/" $sysconfig
 
   sed -r -i '/JAVA_OPTS/i ADDITIONAL_MANAGER_OPTIONS="-d64" \
 ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -Djava.net.preferIPv4Stack=true" \
@@ -260,11 +260,9 @@ EOF
   done
 
   cat <<EOF >> org.opennms.core.ipc.rpc.kafka.cfg
-acks=1
 compression.type=gzip
 request.timeout.ms=30000
 # Consumer
-fetch.message.max.bytes=$kafka_max_message_size
 max.partition.fetch.bytes=$kafka_max_message_size
 # Producer
 max.request.size=$kafka_max_message_size

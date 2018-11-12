@@ -193,7 +193,6 @@ org.opennms.core.ipc.rpc.kafka.ttl=$rpc_ttl
 org.opennms.core.ipc.rpc.kafka.compression.type=gzip
 org.opennms.core.ipc.rpc.kafka.request.timeout.ms=30000
 # Consumer
-org.opennms.core.ipc.rpc.kafka.fetch.message.max.bytes=$kafka_max_message_size
 org.opennms.core.ipc.rpc.kafka.max.partition.fetch.bytes=$kafka_max_message_size
 # Producer
 org.opennms.core.ipc.rpc.kafka.max.request.size=$kafka_max_message_size
