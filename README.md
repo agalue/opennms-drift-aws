@@ -132,6 +132,10 @@ done
 
 If the performance metrics are also being forwarded to Kafka, it is also recommended to set a more conservative numbers for the retention, as the intention for this is being able to process the metrics through the Streaming API, or forward the metrics to another application through the Kafka Sink API (or a standalone application). Once the data is processed, it can be discarded.
 
+The default limits for message sizes are very conservative for the kind of data OpenNMS will be exchanging with Minions. For huge devices like a full Cisco Nexus, the CollectionSet (which is sent as a plain indented XML) can be multiple megabytes. Also, while scanning the device the size of the ifTable/ifXTable combination can easily be very big.
+
+At runtime, the `max.message.bytes` can be configured per topic to avoid issues (which overrides the cluster wide `message.max.bytes`). In case you're seeing that big devices cannot be monitored and requests always end due to TTL, try increasing this setting using the above script.
+
 ## Limitations
 
 * Be aware of EC2 instance limits on your AWS account for the chosen region, as it might be possible that you won't be able to use this POC unless you increase the limits. The default limit is 20, and this POC will be creating more than that.

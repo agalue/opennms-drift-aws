@@ -284,7 +284,7 @@ variable "settings" {
 
   default = {
     cluster_name                 = "OpenNMS-Cluster"
-    kafka_num_partitions         = 32
+    kafka_num_partitions         = 16
     kafka_replication_factor     = 2
     kafka_min_insync_replicas    = 1
     kafka_security_protocol      = "PLAINTEXT" # To disable SASL, use "PLAINTEXT"
@@ -294,6 +294,8 @@ variable "settings" {
     kafka_admin_password         = "0p3nNMS"
     kafka_user_name              = "opennms"
     kafka_user_password          = "0p3nNMS"
+    kafka_max_message_size       = 5242880
+    rpc_ttl                      = 300000
     cassandra_datacenter         = "AWS"
     cassandra_replication_factor = 2
     postgresql_version_family    = "10-2"

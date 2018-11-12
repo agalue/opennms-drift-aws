@@ -1,5 +1,6 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+# https://www.cloudera.com/documentation/kafka/1-2-x/topics/kafka_performance.html
 
 # AWS Template Variables
 
@@ -16,6 +17,7 @@ security_mechanisms="${security_mechanisms}"
 admin_password="${admin_password}"
 user_name="${user_name}"
 user_password="${user_password}"
+max_message_size="${max_message_size}"
 
 echo "### Configuring Hostname and Domain..."
 
@@ -25,6 +27,10 @@ echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Kafka..."
+
+cat <<EOF > /etc/profile.d/kafka.sh
+PATH=/opt/kafka/bin:\$PATH
+EOF
 
 kafka_data=/data/kafka
 mkdir -p $kafka_data
@@ -46,15 +52,20 @@ sed -i -r "s|^[#]?advertised.listeners=.*|advertised.listeners=$security_protoco
 sed -i -r "s|^log.dirs=.*|log.dirs=$kafka_data|" $kafka_cfg
 sed -i -r "s|^zookeeper.connect=.*|zookeeper.connect=$zookeeper_connect|" $kafka_cfg
 
+fetch_max_size=$(expr $max_message_size * 2)
 cat <<EOF >> $kafka_cfg
 
-# Additional Settings
-
+# Broker Settings
 default.replication.factor=$replication_factor
 min.insync.replicas=$min_insync_replicas
+controlled.shutdown.enable=true
 auto.create.topics.enable=true
 delete.topic.enable=false
-controlled.shutdown.enable=true
+message.max.bytes=$max_message_size
+max.request.size=$max_message_size
+replica.fetch.max.bytes=$fetch_max_size
+fetch.message.max.bytes=$fetch_max_size
+compression.type=producer
 
 # Security
 security.inter.broker.protocol=$security_protocol

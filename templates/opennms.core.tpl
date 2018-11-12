@@ -14,6 +14,8 @@ kafka_security_module="${kafka_security_module}"
 kafka_client_mechanism="${kafka_client_mechanism}"
 kafka_user_name="${kafka_user_name}"
 kafka_user_password="${kafka_user_password}"
+kafka_max_message_size="${kafka_max_message_size}"
+rpc_ttl="${rpc_ttl}"
 cassandra_seed="${cassandra_seed}"
 cassandra_datacenter="${cassandra_datacenter}"
 cassandra_repfactor="${cassandra_repfactor}"
@@ -139,18 +141,11 @@ org.opennms.core.ipc.sink.kafka.sasl.jaas.config=$kafka_security_module required
 EOF
 fi
 
-# RPC Threads
-
-cat <<EOF > $opennms_etc/opennms.properties.d/rpc.properties
-org.opennms.jms.timeout=60000
-org.opennms.ipc.rpc.threads=1
-org.opennms.ipc.rpc.queue.max=50000
-org.opennms.ipc.rpc.threads.max=100
-EOF
-
-# RPC Pattern
+# RPC Pattern (ActiveMQ or Kafka)
 
 if [ "$activemq_url" != "" ]; then
+
+  # Local vs External ActiveMQ
   if [ "$activemq_url" == "127.0.0.1" ]; then
     amq_file=$opennms_etc/opennms-activemq.xml
     sed -r -i '/0.0.0.0:61616/s/[<][!]--//' $amq_file
@@ -165,6 +160,16 @@ org.opennms.activemq.broker.username=admin
 org.opennms.activemq.broker.password=admin
 EOF
   fi
+
+  # RPC Threads and TTL
+  cat <<EOF > $opennms_etc/opennms.properties.d/rpc.properties
+org.opennms.jms.timeout=$rpc_ttl
+org.opennms.ipc.rpc.threads=1
+org.opennms.ipc.rpc.queue.max=50000
+org.opennms.ipc.rpc.threads.max=100
+EOF
+
+  # Common ActiveMQ Settings
   cat <<EOF >> $opennms_etc/opennms.properties.d/amq.properties
 # For pooledConnectionFactory from applicationContext-daemon.xml
 org.opennms.activemq.client.max-connections=8
@@ -172,16 +177,29 @@ org.opennms.activemq.client.idle-timeout=30000
 org.opennms.activemq.client.reconnect-on-exception=true
 org.opennms.activemq.client.concurrent-consumers=10
 EOF
+
 else
+
   # TODO: Verify if this is possible, to avoid waste resources if ActiveMQ won't be used 
   cat <<EOF > $opennms_etc/opennms.properties.d/amq.properties
 org.opennms.activemq.broker.disable=true
 EOF
+
+  # Basic Kafka Settings
   cat <<EOF > $opennms_etc/opennms.properties.d/kafka-rpc.properties
 org.opennms.core.ipc.rpc.strategy=kafka
 org.opennms.core.ipc.rpc.kafka.bootstrap.servers=$kafka_servers
-org.opennms.core.ipc.rpc.kafka.ttl=30000
+org.opennms.core.ipc.rpc.kafka.ttl=$rpc_ttl
+org.opennms.core.ipc.rpc.kafka.compression.type=gzip
+org.opennms.core.ipc.rpc.kafka.request.timeout.ms=30000
+# Consumer
+org.opennms.core.ipc.rpc.kafka.fetch.message.max.bytes=$kafka_max_message_size
+org.opennms.core.ipc.rpc.kafka.max.partition.fetch.bytes=$kafka_max_message_size
+# Producer
+org.opennms.core.ipc.rpc.kafka.max.request.size=$kafka_max_message_size
 EOF
+
+  # Kafka SASL when enabled
   if [[ $kafka_security_protocol == *"SASL"* ]]; then
     cat <<EOF >> $opennms_etc/opennms.properties.d/kafka-rpc.properties
 org.opennms.core.ipc.rpc.kafka.security.protocol=$kafka_security_protocol
@@ -189,6 +207,7 @@ org.opennms.core.ipc.rpc.kafka.sasl.mechanism=$kafka_client_mechanism
 org.opennms.core.ipc.rpc.kafka.sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
 EOF
   fi
+
 fi
 
 # Kafka Producer
@@ -262,6 +281,14 @@ archiveAlarmChangeEvents=false
 logAllEvents=false
 retries=1
 connTimeout=3000
+EOF
+
+# External Elasticsearch for Flows
+
+cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
+elasticUrl=$elastic_url
+globalElasticUser=$elastic_user
+globalElasticPassword=$elastic_password
 EOF
 
 # Enable Path Outages

@@ -12,12 +12,13 @@ location=${3-Vagrant};
 timezone=${4-America/New_York};
 runas_root=${5-yes};
 opennms_url=${6-http://onmscore.aws.opennms.org:8980/opennms};
-kafka_servers=${7-kafka1.aws.opennms.org:9092,kafka2.aws.opennms.org:9092,kafka3.aws.opennms.org:9092};
-kafka_security_protocol=${8-SASL_PLAINTEXT};
+kafka_servers=${7-kafka1.aws.opennms.org:9092};
+kafka_security_protocol=${8-PLAINTEXT};
 kafka_security_mechanism=${9-PLAIN};
 kafka_security_module=${10-org.apache.kafka.common.security.plain.PlainLoginModule};
 kafka_user_name=${11-opennms}
 kafka_user_password=${12-0p3nNMS};
+kafka_max_message_size=${13-5242880};
 
 # Internal Variables
 java_url="http://download.oracle.com/otn-pub/java/jdk/8u191-b12/2787e4a523244c269598db4e85c51e0c/jdk-8u191-linux-x64.rpm"
@@ -197,7 +198,7 @@ if [ ! -f "/opt/minion/etc/.git" ]; then
 
   sysconfig=/etc/sysconfig/minion
   sed -r -i '/JAVA_MAX_MEM/s/^# //' $sysconfig
-  sed -i -r "/JAVA_MAX_MEM/s/=.*/=$${mem_in_mb}M/" $sysconfig
+  sed -i -r "/JAVA_MAX_MEM/s/=.*/=${mem_in_mb}M/" $sysconfig
 
   sed -r -i '/JAVA_OPTS/i ADDITIONAL_MANAGER_OPTIONS="-d64" \
 ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -Djava.net.preferIPv4Stack=true" \
@@ -257,6 +258,17 @@ sasl.jaas.config=$kafka_security_module required username="$kafka_user_name" pas
 EOF
     fi
   done
+
+  cat <<EOF >> org.opennms.core.ipc.rpc.kafka.cfg
+acks=1
+compression.type=gzip
+request.timeout.ms=30000
+# Consumer
+fetch.message.max.bytes=$kafka_max_message_size
+max.partition.fetch.bytes=$kafka_max_message_size
+# Producer
+max.request.size=$kafka_max_message_size
+EOF
 
   cat <<EOF > org.opennms.netmgt.trapd.cfg
 trapd.listen.interface=0.0.0.0
