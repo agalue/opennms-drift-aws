@@ -111,9 +111,17 @@ rm -f es.txt
 
 # Adding additional Karaf Features
 
-features="opennms-es-rest, opennms-kafka-producer, opennms-oce-plugin"
-sed -r -i "/^featuresRepositories/a mvn:org.opennms.oce/oce-karaf-features/1.0.0-SNAPSHOT/xml, \\\\" $opennms_etc/org.apache.karaf.features.cfg
-sed -r -i "s/opennms-bundle-refresher.*/opennms-bundle-refresher, $features/" $opennms_etc/org.apache.karaf.features.cfg
+cat <<EOF > $sentinel_etc/featuresBoot.d/oce.boot
+opennms-oce-plugin wait-for-kar=opennms-oce-plugin
+EOF
+
+cat <<EOF > $sentinel_etc/featuresBoot.d/kafka.boot
+opennms-kafka-producer
+EOF
+
+cat <<EOF > $sentinel_etc/featuresBoot.d/elastic.boot
+opennms-es-rest
+EOF
 
 # Exposing Karaf Console
 
@@ -190,12 +198,12 @@ EOF
 org.opennms.core.ipc.rpc.strategy=kafka
 org.opennms.core.ipc.rpc.kafka.bootstrap.servers=$kafka_servers
 org.opennms.core.ipc.rpc.kafka.ttl=$rpc_ttl
-org.opennms.core.ipc.rpc.kafka.compression.type=gzip
 org.opennms.core.ipc.rpc.kafka.request.timeout.ms=30000
-# Consumer
-org.opennms.core.ipc.rpc.kafka.max.partition.fetch.bytes=$kafka_max_message_size
 # Producer
 org.opennms.core.ipc.rpc.kafka.max.request.size=$kafka_max_message_size
+org.opennms.core.ipc.rpc.kafka.compression.type=gzip
+# Consumer
+org.opennms.core.ipc.rpc.kafka.max.partition.fetch.bytes=$kafka_max_message_size
 EOF
 
   # Kafka SASL when enabled
@@ -224,6 +232,10 @@ EOF
 fi
 
 cat <<EOF > $opennms_etc/org.opennms.features.kafka.producer.cfg
+eventTopic=OpenNMS.Events
+alarmTopic=OpenNMS.Alarms
+nodeTopic=OpenNMS.Nodes
+metricTopic=OpenNMS.Metrics
 forward.metrics=true
 suppressIncrementalAlarms=false
 nodeRefreshTimeoutMs=300000

@@ -260,12 +260,12 @@ EOF
   done
 
   cat <<EOF >> org.opennms.core.ipc.rpc.kafka.cfg
-compression.type=gzip
 request.timeout.ms=30000
-# Consumer
-max.partition.fetch.bytes=$kafka_max_message_size
 # Producer
 max.request.size=$kafka_max_message_size
+compression.type=gzip
+# Consumer
+max.partition.fetch.bytes=$kafka_max_message_size
 EOF
 
   cat <<EOF > org.opennms.netmgt.trapd.cfg

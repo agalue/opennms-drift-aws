@@ -43,11 +43,9 @@ sudo chown sentinel:sentinel $sentinel_etc
 
 echo "### Install OpenNMS Correlation Engine (OCE)..."
 
-#for rpm in $(find ~/oce/assembly/sentinel-rpm -name *.rpm); do
-#  echo "Installing $rpm..."
-#  sudo yum -y -q install $rpm
-#done
+for rpm in $(find ~/oce/assembly/sentinel-rpm -name *.rpm); do
+  echo "Installing $rpm..."
+  sudo yum -y -q install $rpm
+done
 
-# Using this method, as the KAR file might be deployed after features.xml
-sudo rsync -ar ~/.m2/repository/ $sentinel_home/system/
 sudo chown -R sentinel:sentinel $sentinel_home
