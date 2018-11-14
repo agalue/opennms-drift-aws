@@ -34,26 +34,28 @@ sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Sentinel..."
 
-num_of_cores=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
-
 sentinel_home=/opt/sentinel
 sentinel_etc=$sentinel_home/etc
+telemedry_dir=$sentinel_etc/telemetryd-adapters
 sysconfig=/etc/sysconfig/sentinel
 
-sasl_security=""
-if [[ $kafka_security_protocol == *"SASL"* ]]; then
-  read -r -d '' sasl_security <<- EOF
-      security.protocol = $kafka_security_protocol
-      sasl.mechanism = $kafka_client_mechanism
-      sasl.jaas.config = $kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
-EOF
-fi
-
+num_of_cores=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
 total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
 mem_in_mb=$(expr $total_mem_in_mb / 2)
 if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
+
+sasl_security=""
+if [[ $kafka_security_protocol == *"SASL"* ]]; then
+  read -r -d '' sasl_security <<- EOF
+security.protocol = $kafka_security_protocol
+sasl.mechanism = $kafka_client_mechanism
+sasl.jaas.config = $kafka_security_module required username="$kafka_user_name" password="$kafka_user_password";
+EOF
+fi
+
+# JVM
 
 sed -r -i '/export JAVA_MAX_MEM/s/^# //' $sysconfig
 sed -i -r "/export JAVA_MAX_MEM/s/=.*/=$${mem_in_mb}M/" $sysconfig
@@ -70,7 +72,6 @@ ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC"' $sysconfi
 sed -r -i "/JAVA_OPTS/s/^# //" $sysconfig
 sed -i -r "/JAVA_OPTS/s/=.*/=\$ADDITIONAL_MANAGER_OPTIONS/" $sysconfig
 
-telemedry_dir=/opt/sentinel/etc/telemetryd-adapters
 
 # Basic Configuration
 
@@ -163,7 +164,7 @@ sentinel-telemetry-nxos
 sentinel-telemetry-jti
 EOF
 
-# OCE Files
+# OCE
 
 cat <<EOF > $sentinel_etc/org.opennms.oce.datasource.opennms.kafka.cfg
 alarmTopic=OpenNMS.Alarms
