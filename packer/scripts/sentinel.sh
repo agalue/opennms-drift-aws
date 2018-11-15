@@ -41,6 +41,13 @@ sudo chown -R root:root $src_dir/
 sudo rsync -avr $src_dir/ $sentinel_etc/
 sudo chown sentinel:sentinel $sentinel_etc
 
+echo "### Increasing file descriptors for the sentinel user..."
+
+cat <<EOF > /etc/security/limits.d/sentinel.conf
+sentinel soft nofile 300000
+sentinel hard nofile 300000
+EOF
+
 echo "### Install OpenNMS Correlation Engine (OCE)..."
 
 for rpm in $(find ~/oce/assembly/sentinel-rpm -name *.rpm); do
