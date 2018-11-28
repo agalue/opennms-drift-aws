@@ -44,6 +44,8 @@ resource "aws_instance" "kibana" {
 
   tags {
     Name = "Terraform Kibana Server"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

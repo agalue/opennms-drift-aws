@@ -28,10 +28,6 @@ sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
 
 echo "### Configuring Kafka..."
 
-cat <<EOF > /etc/profile.d/kafka.sh
-PATH=/opt/kafka/bin:\$PATH
-EOF
-
 kafka_data=/data/kafka
 mkdir -p $kafka_data
 

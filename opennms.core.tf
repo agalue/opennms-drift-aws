@@ -65,6 +65,8 @@ resource "aws_instance" "opennms" {
 
   tags {
     Name = "Terraform OpenNMS Core Server"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

@@ -7,6 +7,8 @@ resource "aws_vpc" "default" {
 
   tags {
     Name = "Terraform VPC"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -19,6 +21,8 @@ resource "aws_internet_gateway" "default" {
 
   tags {
     Name = "Terraform IG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -31,6 +35,8 @@ resource "aws_subnet" "public" {
 
   tags {
     Name = "Terraform Public Subnet"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -44,6 +50,8 @@ resource "aws_route_table" "gw" {
 
   tags {
     Name = "Terraform Routing Public Subnet"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -60,6 +68,8 @@ resource "aws_vpc_dhcp_options" "main" {
 
   tags {
     Name = "Terraform Internal Name"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

@@ -38,6 +38,8 @@ resource "aws_security_group" "common" {
 
   tags {
     Name = "Terraform Common SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -88,6 +90,8 @@ resource "aws_security_group" "zookeeper" {
 
   tags {
     Name = "Terraform Zookeeper SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -122,6 +126,8 @@ resource "aws_security_group" "kafka" {
 
   tags {
     Name = "Terraform Kafka SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -172,6 +178,8 @@ resource "aws_security_group" "cassandra" {
 
   tags {
     Name = "Terraform Cassandra SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -198,6 +206,8 @@ resource "aws_security_group" "postgresql" {
 
   tags {
     Name = "Terraform PostgreSQL SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -232,6 +242,8 @@ resource "aws_security_group" "elasticsearch" {
 
   tags {
     Name = "Terraform Elasticsearch SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -258,6 +270,8 @@ resource "aws_security_group" "kibana" {
 
   tags {
     Name = "Terraform Kibana SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -308,6 +322,8 @@ resource "aws_security_group" "opennms" {
 
   tags {
     Name = "Terraform OpenNMS Core SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -350,6 +366,8 @@ resource "aws_security_group" "sentinel" {
 
   tags {
     Name = "Terraform Sentinel SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -392,5 +410,7 @@ resource "aws_security_group" "opennms_ui" {
 
   tags {
     Name = "Terraform OpenNMS UI SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }

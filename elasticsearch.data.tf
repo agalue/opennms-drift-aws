@@ -56,6 +56,8 @@ resource "aws_instance" "elasticsearch_data" {
 
   tags {
     Name = "Terraform Elasticsearch Data Server ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

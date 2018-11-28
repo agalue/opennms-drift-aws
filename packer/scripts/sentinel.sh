@@ -26,8 +26,6 @@ sudo yum install -y -q opennms-sentinel*
 echo "### Initializing GIT at $sentinel_etc..."
 
 cd $sentinel_etc
-sudo git config --global user.name "OpenNMS"
-sudo git config --global user.email "support@opennms.org"
 sudo git init .
 sudo git add .
 sudo git commit -m "Sentinel Installed."

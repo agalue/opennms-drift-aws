@@ -52,6 +52,8 @@ resource "aws_instance" "cassandra" {
 
   tags {
     Name = "Terraform Cassandra Server ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
