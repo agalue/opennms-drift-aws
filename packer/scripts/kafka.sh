@@ -1,10 +1,11 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+# IMPORTANT: It is impossible to downgrade Kafka when using 2.1.
 
 ######### CUSTOMIZED VARIABLES #########
 
-scala_version="2.11"
-kafka_version="2.0.0"
+scala_version="2.12"
+kafka_version="2.1.0"
 
 ########################################
 
@@ -27,8 +28,6 @@ cd
 echo "### Initializing GIT at $kafka_cfg..."
 
 cd $kafka_cfg
-sudo git config --global user.name "OpenNMS"
-sudo git config --global user.email "support@opennms.org"
 sudo git init .
 sudo git add .
 sudo git commit -m "Kafka $kafka_version installed."
@@ -106,6 +105,10 @@ EOF
 sudo chmod 0644 $systemd_zoo
 
 sudo systemctl daemon-reload
+
+cat <<EOF | sudo tee -a /etc/profile.d/kafka.sh
+PATH=/opt/kafka/bin:\$PATH
+EOF
 
 echo "### Configuring Kernel..."
 

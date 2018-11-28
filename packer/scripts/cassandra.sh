@@ -25,8 +25,6 @@ sudo yum install -y -q cassandra cassandra-tools
 echo "### Initializing GIT at $cassandra_config..."
 
 cd $cassandra_config
-sudo git config --global user.name "OpenNMS"
-sudo git config --global user.email "support@opennms.org"
 sudo git init .
 sudo git add .
 sudo git commit -m "Cassandra $repo_version installed."

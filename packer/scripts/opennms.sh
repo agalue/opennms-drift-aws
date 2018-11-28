@@ -5,7 +5,7 @@
 
 onms_repo="branches-features-sextant"
 onms_version="-latest-"
-grafana_version="5.3.2"
+grafana_version="5.3.4"
 
 ########################################
 
@@ -51,8 +51,6 @@ sudo yum clean all
 echo "### Initializing GIT at $opennms_etc..."
 
 cd $opennms_etc
-sudo git config --global user.name "OpenNMS"
-sudo git config --global user.email "support@opennms.org"
 sudo git init .
 sudo git add .
 sudo git commit -m "OpenNMS Installed."

@@ -21,8 +21,6 @@ sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch x-pack
 echo "### Initializing GIT at $es_config..."
 
 sudo cd $es_config
-sudo git config --global user.name "OpenNMS"
-sudo git config --global user.email "support@opennms.org"
 sudo git init .
 sudo git add .
 sudo git commit -m "Elasticsearch $es_version installed."

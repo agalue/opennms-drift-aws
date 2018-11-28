@@ -51,6 +51,8 @@ resource "aws_instance" "elasticsearch_master" {
 
   tags {
     Name = "Terraform Elasticsearch Master Server ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

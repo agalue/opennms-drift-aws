@@ -57,6 +57,8 @@ resource "aws_instance" "opennms_sentinel" {
 
   tags {
     Name = "Terraform OpenNMS Sentinel ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

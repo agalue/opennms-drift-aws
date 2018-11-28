@@ -54,6 +54,8 @@ resource "aws_instance" "opennms_ui" {
 
   tags {
     Name = "Terraform OpenNMS UI Server ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

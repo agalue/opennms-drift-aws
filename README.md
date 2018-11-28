@@ -160,6 +160,8 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 * Tune the security groups to only expose what Minions need.
 
+* Update the Kafka AMI to make sure to run Zookeeper and Kafka as non-root (and adjust the templates and kernel settings for this to work).
+
 * Add cron jobs to OpenNMS to apply the constraints for the RPC Topics on Kafka, as default retention/storage is not required in this particular case, but unfortunately this cannot be configured within OpenNMS.
 
 * Improve the Elasticsearch cluster architecture to have a dedicated monitoring cluster (assuming X-Pack will be used).

@@ -20,6 +20,11 @@ sudo yum -y -q update
 sudo yum -y -q install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 sudo yum -y -q install jq unzip net-snmp net-snmp-utils git pytz dstat htop sysstat nmap-ncat tree sshpass tmux
 
+echo "### Configuring GIT..."
+
+sudo git config --global user.name "OpenNMS"
+sudo git config --global user.email "support@opennms.org"
+
 echo "### Configuring Net-SNMP..."
 
 snmp_cfg=/etc/snmp/snmpd.conf

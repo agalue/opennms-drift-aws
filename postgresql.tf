@@ -54,6 +54,8 @@ resource "aws_instance" "postgresql" {
 
   tags {
     Name = "Terraform PostgreSQL Server ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

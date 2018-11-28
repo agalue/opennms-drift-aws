@@ -59,6 +59,8 @@ resource "aws_instance" "kafka" {
 
   tags {
     Name = "Terraform Kafka Server ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
