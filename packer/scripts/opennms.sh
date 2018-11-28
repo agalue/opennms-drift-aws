@@ -3,7 +3,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="branches-features-sextant"
+onms_repo="bleeding"
 onms_version="-latest-"
 grafana_version="5.3.4"
 

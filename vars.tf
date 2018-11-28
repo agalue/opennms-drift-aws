@@ -84,7 +84,7 @@ data "aws_ami" "opennms" {
 
   filter {
     name   = "name"
-    values = ["opennms-horizon-23-*"]
+    values = ["opennms-horizon-24-*"]
   }
 }
 
