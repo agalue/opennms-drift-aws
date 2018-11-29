@@ -112,7 +112,6 @@ rm -f es.txt
 # Adding additional Karaf Features
 
 features="opennms-es-rest, opennms-kafka-producer"
-sed -r -i "/^featuresRepositories/a mvn:org.opennms.oce/oce-karaf-features/1.0.0-SNAPSHOT/xml, \\\\" $opennms_etc/org.apache.karaf.features.cfg
 sed -r -i "s/.*opennms-bundle-refresher.*/$features, opennms-bundle-refresher/" $opennms_etc/org.apache.karaf.features.cfg
 
 cat <<EOF > $sentinel_etc/featuresBoot.d/oce.boot

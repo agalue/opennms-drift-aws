@@ -5,7 +5,6 @@
 
 sentinel_repo="bleeding"
 sentinel_version="-latest-"
-maven_version="3.6.0"
 
 ########################################
 
