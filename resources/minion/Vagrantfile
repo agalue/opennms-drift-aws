@@ -5,7 +5,7 @@
 opts = {
   :mem       => "1024",
   :cpu       => "1",
-  :onms_repo => "bleeding",
+  :onms_repo => "stable",
   :onms_ver  => "-latest-",
   :location  => "Vagrant",
   :timezone  => "America/New_York"
