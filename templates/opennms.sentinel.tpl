@@ -72,7 +72,6 @@ ADDITIONAL_MANAGER_OPTIONS="$ADDITIONAL_MANAGER_OPTIONS -XX:+UseG1GC"' $sysconfi
 sed -r -i "/JAVA_OPTS/s/^# //" $sysconfig
 sed -i -r "/JAVA_OPTS/s/=.*/=\$ADDITIONAL_MANAGER_OPTIONS/" $sysconfig
 
-
 # Basic Configuration
 
 cat <<EOF > $sentinel_etc/org.opennms.sentinel.controller.cfg
@@ -123,37 +122,37 @@ EOF
 
 cat <<EOF > $sentinel_etc/org.opennms.features.telemetry.adapters-sflow-telemetry.cfg
 adapters.1.name = SFlow
-adapters.1.class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowAdapter
+adapters.1.class-name = org.opennms.netmgt.telemetry.protocols.sflow.adapter.SFlowAdapter
 adapters.2.name = SFlow-Telemetry
-adapters.2.class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowTelemetryAdapter
+adapters.2.class-name = org.opennms.netmgt.telemetry.protocols.sflow.adapter.SFlowTelemetryAdapter
 adapters.2.parameters.script = $telemedry_dir/sflow-host.groovy
 EOF
 
 cat <<EOF > $sentinel_etc/org.opennms.features.telemetry.adapters-nxos.cfg
 name = NXOS
-class-name = org.opennms.netmgt.telemetry.adapters.nxos.NxosGpbAdapter
+class-name = org.opennms.netmgt.telemetry.protocols.nxos.adapter.NxosGpbAdapter
 parameters.script = $telemedry_dir/cisco-nxos-telemetry-interface.groovy
 EOF
 
 cat <<EOF > $sentinel_etc/org.opennms.features.telemetry.adapters-jti.cfg
 name = JTI
-class-name = org.opennms.netmgt.telemetry.adapters.jti.JtiGpbAdapter
+class-name = org.opennms.netmgt.telemetry.protocols.jti.adapter.JtiGpbAdapter
 parameters.script = $telemedry_dir/junos-telemetry-interface.groovy
 EOF
 
 cat <<EOF > $sentinel_etc/org.opennms.features.telemetry.adapters-ipfix.cfg
 name = IPFIX
-class-name = org.opennms.netmgt.telemetry.adapters.netflow.ipfix.IpfixAdapter
+class-name = org.opennms.netmgt.telemetry.protocols.netflow.adapter.ipfix.IpfixAdapter
 EOF
 
 cat <<EOF > $sentinel_etc/org.opennms.features.telemetry.adapters-netflow5.cfg
 name = Netflow-5
-class-name = org.opennms.netmgt.telemetry.adapters.netflow.v5.Netflow5Adapter
+class-name = org.opennms.netmgt.telemetry.protocols.netflow.adapter.netflow5.Netflow5Adapter
 EOF
 
 cat <<EOF > $sentinel_etc/org.opennms.features.telemetry.adapters-netflow9.cfg
 name = Netflow-9
-class-name = org.opennms.netmgt.telemetry.adapters.netflow.v9.Netflow9Adapter
+class-name = org.opennms.netmgt.telemetry.protocols.netflow.adapter.netflow9.Netflow9Adapter
 EOF
 
 cat <<EOF > $sentinel_etc/featuresBoot.d/sentinel.boot

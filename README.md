@@ -154,6 +154,8 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 ## Future enhancements
 
+* Have a dedicated sentinel instance for OCE, and leave the sentinel instances for flow/telemetry separated.
+
 * Enable authentication for all services.
 
 * Add an instance for Kafka Manager to avoid exposing JMX to the public.
