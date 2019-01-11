@@ -40,7 +40,7 @@ sudo chown sentinel:sentinel $sentinel_etc
 
 echo "### Increasing file descriptors for the sentinel user..."
 
-cat <<EOF > /etc/security/limits.d/sentinel.conf
+cat <<EOF | sudo tee -a /etc/security/limits.d/sentinel.conf
 sentinel soft nofile 300000
 sentinel hard nofile 300000
 EOF
