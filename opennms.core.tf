@@ -24,6 +24,7 @@ data "template_file" "opennms" {
     elastic_url             = "${join(",",formatlist("http://%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
     elastic_user            = "${lookup(var.settings, "elastic_user")}"
     elastic_password        = "${lookup(var.settings, "elastic_password")}"
+    elastic_index_strategy  = "${lookup(var.settings, "elastic_flow_index_strategy")}"
     use_redis               = "false"
     use_30sec_frequency     = "${lookup(var.settings, "onms_use_30sec_frequency")}"
   }

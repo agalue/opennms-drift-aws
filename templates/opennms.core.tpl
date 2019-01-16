@@ -23,6 +23,7 @@ opennms_ui_servers="${opennms_ui_servers}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
+elastic_index_strategy="${elastic_index_strategy}"
 use_redis="${use_redis}"
 use_30sec_frequency="${use_30sec_frequency}"
 
@@ -296,6 +297,7 @@ cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
 elasticUrl=$elastic_url
 globalElasticUser=$elastic_user
 globalElasticPassword=$elastic_password
+elasticIndexStrategy=$elastic_index_strategy
 EOF
 
 # Enable Path Outages
