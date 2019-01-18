@@ -308,7 +308,6 @@ parameters.port=4729
 parameters.maxPacketSize=8096
 parsers.0.name=Netflow-9
 parsers.0.class-name=org.opennms.netmgt.telemetry.protocols.netflow.parser.Netflow9UdpParser
-parsers.0.parameters.templateTimeout=1800000
 EOF
 
   cat <<EOF > org.opennms.features.telemetry.listeners-udp-6343.cfg
@@ -329,7 +328,6 @@ parameters.port=4738
 parameters.maxPacketSize=8096
 parsers.0.name=IPFIX
 parsers.0.class-name=org.opennms.netmgt.telemetry.protocols.netflow.parser.IpfixUdpParser
-parsers.0.parameters.templateTimeout=1800000
 EOF
 
   # Append the same relaxed SNMP4J options that OpenNMS has to make sure that broken SNMP devices still work with Minions.
