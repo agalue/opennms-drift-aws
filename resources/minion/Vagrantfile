@@ -2,31 +2,42 @@
 # vi: set ft=ruby :
 # Author: Alejandro Galue <agalue@opennms.org>
 
-minion = {
-  :name      => "Telemetry-Minion",
-  :host      => "minion.local",
-  :ip        => "192.168.205.142",
+opts = {
   :mem       => "1024",
-  :cpu       => "2",
-  :onms_repo => "branches-features-sentinel",
+  :cpu       => "1",
+  :onms_repo => "stable",
   :onms_ver  => "-latest-",
-  :location  => "Vagrant"
+  :location  => "Vagrant",
+  :timezone  => "America/New_York"
 }
+
+boxes = [
+  {
+    :name => "Telemetry-Minion-01",
+    :host => "minion01.local",
+    :ip   => "192.168.205.141"
+  }, {
+    :name => "Telemetry-Minion-02",
+    :host => "minion02.local",
+    :ip   => "192.168.205.142"
+  }
+]
 
 Vagrant.configure(2) do |config|
   config.vm.box = "centos/7"
-  config.vm.define minion[:name] do |config|
-    config.vm.hostname = minion[:host]
-    config.vm.provider "virtualbox" do |v|
-      v.name = minion[:name]
-      v.customize [ "modifyvm", :id, "--cpus", minion[:cpu] ]
-      v.customize [ "modifyvm", :id, "--memory", minion[:mem] ]
-    end
-    config.vm.network "private_network", ip: minion[:ip]
-    config.vm.provision "shell" do |s|
-      s.path = "bootstrap-minion.sh"
-      s.args = [ minion[:onms_repo], minion[:onms_ver], minion[:location] ]
+  boxes.each do |box|
+    config.vm.define box[:name] do |config|
+      config.vm.hostname = box[:host]
+      config.vm.provider "virtualbox" do |v|
+        v.name = box[:name]
+        v.customize [ "modifyvm", :id, "--cpus", opts[:cpu] ]
+        v.customize [ "modifyvm", :id, "--memory", opts[:mem] ]
+      end
+      config.vm.network "private_network", ip: box[:ip]
+      config.vm.provision "shell" do |s|
+        s.path = "bootstrap-minion.sh"
+        s.args = [ opts[:onms_repo], opts[:onms_ver], opts[:location], opts[:timezone] ]
+      end
     end
   end
-
 end

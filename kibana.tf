@@ -6,7 +6,8 @@ data "template_file" "kibana" {
   vars {
     hostname    = "${element(keys(var.kibana_ip_addresses),0)}"
     domainname  = "${aws_route53_zone.private.name}"
-    es_url      = "http://${aws_elb.elasticsearch.dns_name}:9200"
+    es_servers  = "${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_data_private.*.name))}"
+    es_user     = "${lookup(var.settings, "elastic_user")}"
     es_password = "${lookup(var.settings, "elastic_password")}"
     es_monsrv   = ""
   }
@@ -43,6 +44,8 @@ resource "aws_instance" "kibana" {
 
   tags {
     Name = "Terraform Kibana Server"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

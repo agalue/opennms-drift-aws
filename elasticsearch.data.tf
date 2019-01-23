@@ -5,13 +5,14 @@ data "template_file" "elasticsearch_data" {
   template = "${file("${path.module}/templates/elasticsearch.tpl")}"
 
   vars {
-    node_id         = "${count.index + length(var.es_master_ip_addresses)}"
+    node_id         = "${count.index + 1 + length(var.es_master_ip_addresses)}"
     hostname        = "${element(keys(var.es_data_ip_addresses), count.index)}"
     domainname      = "${aws_route53_zone.private.name}"
     dependencies    = "${join(",",formatlist("%v:9200", aws_route53_record.elasticsearch_master_private.*.name))}"
     es_cluster_name = "${lookup(var.settings, "cluster_name")}"
     es_seed_name    = "${join(",",aws_route53_record.elasticsearch_master_private.*.name)}"
     es_password     = "${lookup(var.settings, "elastic_password")}"
+    es_license      = "${lookup(var.settings, "elastic_license")}"
     es_role         = "data"
     es_xpack        = "true"
     es_monsrv       = ""
@@ -55,6 +56,8 @@ resource "aws_instance" "elasticsearch_data" {
 
   tags {
     Name = "Terraform Elasticsearch Data Server ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -78,38 +81,6 @@ resource "aws_route53_record" "elasticsearch_data_private" {
   records = [
     "${element(values(var.es_data_ip_addresses), count.index)}",
   ]
-}
-
-resource "aws_elb" "elasticsearch" {
-  name            = "elasticsearch"
-  internal        = false
-  subnets         = ["${aws_subnet.elb.id}"]
-  security_groups = ["${aws_security_group.elasticsearch.id}"]
-
-  listener {
-    instance_port     = 9200
-    instance_protocol = "tcp"
-    lb_port           = 9200
-    lb_protocol       = "tcp"
-  }
-
-  health_check {
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    timeout             = 3
-    target              = "TCP:9200"
-    interval            = 30
-  }
-
-  tags {
-    Name = "Terraform Elasticsearch ELB"
-  }
-}
-
-resource "aws_elb_attachment" "elasticsearch" {
-  count    = "${length(var.es_data_ip_addresses)}"
-  elb      = "${aws_elb.elasticsearch.id}"
-  instance = "${element(aws_instance.elasticsearch_data.*.id, count.index)}"
 }
 
 resource "aws_route53_record" "elasticsearch_elb" {

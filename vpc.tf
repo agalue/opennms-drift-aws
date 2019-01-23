@@ -7,6 +7,8 @@ resource "aws_vpc" "default" {
 
   tags {
     Name = "Terraform VPC"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -19,6 +21,8 @@ resource "aws_internet_gateway" "default" {
 
   tags {
     Name = "Terraform IG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -31,16 +35,8 @@ resource "aws_subnet" "public" {
 
   tags {
     Name = "Terraform Public Subnet"
-  }
-}
-
-resource "aws_subnet" "elb" {
-  vpc_id            = "${aws_vpc.default.id}"
-  cidr_block        = "${var.elb_subnet_cidr}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-
-  tags {
-    Name = "Terraform ELB Subnet"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -54,16 +50,13 @@ resource "aws_route_table" "gw" {
 
   tags {
     Name = "Terraform Routing Public Subnet"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
 resource "aws_route_table_association" "public" {
   subnet_id      = "${aws_subnet.public.id}"
-  route_table_id = "${aws_route_table.gw.id}"
-}
-
-resource "aws_route_table_association" "elb" {
-  subnet_id      = "${aws_subnet.elb.id}"
   route_table_id = "${aws_route_table.gw.id}"
 }
 
@@ -75,6 +68,8 @@ resource "aws_vpc_dhcp_options" "main" {
 
   tags {
     Name = "Terraform Internal Name"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -89,6 +84,7 @@ data "aws_route53_zone" "parent" {
 
 resource "aws_route53_zone" "main" {
   name = "${var.dns_zone}"
+<<<<<<< HEAD
 }
 
 resource "aws_route53_record" "main-ns" {
@@ -104,6 +100,23 @@ resource "aws_route53_record" "main-ns" {
   ]
 }
 
+=======
+}
+
+resource "aws_route53_record" "main-ns" {
+  zone_id = "${data.aws_route53_zone.parent.zone_id}"
+  name    = "${aws_route53_zone.main.name}"
+  type    = "NS"
+  ttl     = "${var.dns_ttl}"
+  records = [
+    "${aws_route53_zone.main.name_servers.0}",
+    "${aws_route53_zone.main.name_servers.1}",
+    "${aws_route53_zone.main.name_servers.2}",
+    "${aws_route53_zone.main.name_servers.3}",
+  ]
+}
+
+>>>>>>> release/horizon-23
 resource "aws_route53_zone" "private" {
   name   = "${var.dns_zone_private}"
   vpc_id = "${aws_vpc.default.id}"

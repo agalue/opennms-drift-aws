@@ -1,9 +1,10 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-8c122be9",
+    "source_ami": "ami-0303c7b2e7066b60d",
     "app_name": "OpenNMS Horizon 23",
-    "environment": "Drift"
+    "environment": "Test",
+    "department": "Support"
   },
   "description": "{{ user `app_name` }} for {{ user `environment` }}",
   "builders": [
@@ -14,14 +15,16 @@
       "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
       "ami_name": "opennms-horizon-23-drift-{{ timestamp }}",
-      "ami_description": "{{ user `app_name` }} for {{ user `environment` }} from the features/sentinel branch on GitHub",
+      "ami_description": "{{ user `app_name` }} for {{ user `environment` }}",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",
-        "Environment": "{{ user `environment` }}"
+        "Environment": "{{ user `environment` }}",
+        "Department": "{{ user `department` }}"
       },
       "tags": {
         "Name": "{{ user `app_name` }}",
-        "Environment": "{{ user `environment` }}"
+        "Environment": "{{ user `environment` }}",
+        "Department": "{{ user `department` }}"
       }
     }
   ],

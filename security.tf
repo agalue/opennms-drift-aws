@@ -38,6 +38,11 @@ resource "aws_security_group" "common" {
 
   tags {
     Name = "Terraform Common SG"
+<<<<<<< HEAD
+=======
+    Environment = "Test"
+    Department = "Support"
+>>>>>>> release/horizon-23
   }
 }
 
@@ -50,7 +55,11 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 2181
     protocol    = "tcp"
     description = "Clients"
+<<<<<<< HEAD
     cidr_blocks = ["0.0.0.0/0"]
+=======
+    cidr_blocks = ["${var.vpc_cidr}"]
+>>>>>>> release/horizon-23
   }
 
   ingress {
@@ -74,7 +83,11 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 9998
     protocol    = "tcp"
     description = "JMX"
+<<<<<<< HEAD
     cidr_blocks = ["0.0.0.0/0"]
+=======
+    cidr_blocks = ["${var.vpc_cidr}"]
+>>>>>>> release/horizon-23
   }
 
   egress {
@@ -88,6 +101,8 @@ resource "aws_security_group" "zookeeper" {
 
   tags {
     Name = "Terraform Zookeeper SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -108,7 +123,11 @@ resource "aws_security_group" "kafka" {
     to_port     = 9999
     protocol    = "tcp"
     description = "JMX"
+<<<<<<< HEAD
     cidr_blocks = ["0.0.0.0/0"]
+=======
+    cidr_blocks = ["${var.vpc_cidr}"]
+>>>>>>> release/horizon-23
   }
 
   egress {
@@ -122,6 +141,8 @@ resource "aws_security_group" "kafka" {
 
   tags {
     Name = "Terraform Kafka SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -158,6 +179,7 @@ resource "aws_security_group" "cassandra" {
     to_port     = 9160
     protocol    = "tcp"
     description = "Thrift"
+<<<<<<< HEAD
     cidr_blocks = ["${var.vpc_cidr}"]
   }
 
@@ -166,6 +188,8 @@ resource "aws_security_group" "cassandra" {
     to_port     = 10000
     protocol    = "tcp"
     description = "Scylla ReST"
+=======
+>>>>>>> release/horizon-23
     cidr_blocks = ["${var.vpc_cidr}"]
   }
 
@@ -180,6 +204,8 @@ resource "aws_security_group" "cassandra" {
 
   tags {
     Name = "Terraform Cassandra SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -206,6 +232,8 @@ resource "aws_security_group" "postgresql" {
 
   tags {
     Name = "Terraform PostgreSQL SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -218,7 +246,11 @@ resource "aws_security_group" "elasticsearch" {
     to_port     = 9200
     protocol    = "tcp"
     description = "HTTP"
+<<<<<<< HEAD
     cidr_blocks = ["0.0.0.0/0"]
+=======
+    cidr_blocks = ["${var.vpc_cidr}"]
+>>>>>>> release/horizon-23
   }
 
   ingress {
@@ -240,6 +272,8 @@ resource "aws_security_group" "elasticsearch" {
 
   tags {
     Name = "Terraform Elasticsearch SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -266,6 +300,8 @@ resource "aws_security_group" "kibana" {
 
   tags {
     Name = "Terraform Kibana SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -316,6 +352,52 @@ resource "aws_security_group" "opennms" {
 
   tags {
     Name = "Terraform OpenNMS Core SG"
+    Environment = "Test"
+    Department = "Support"
+  }
+}
+
+resource "aws_security_group" "sentinel" {
+  name        = "terraform-sentinel-sg"
+  description = "Allow Sentinel connections."
+
+  ingress {
+    from_port   = 5005
+    to_port     = 5005
+    protocol    = "tcp"
+    description = "Karaf Debug"
+    cidr_blocks = ["${var.vpc_cidr}"]
+  }
+
+  ingress {
+    from_port   = 8301
+    to_port     = 8301
+    protocol    = "tcp"
+    description = "Karaf SSH"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8181
+    to_port     = 8181
+    protocol    = "tcp"
+    description = "Hawtio WebUI"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  vpc_id = "${aws_vpc.default.id}"
+
+  tags {
+    Name = "Terraform Sentinel SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
@@ -392,5 +474,7 @@ resource "aws_security_group" "opennms_ui" {
 
   tags {
     Name = "Terraform OpenNMS UI SG"
+    Environment = "Test"
+    Department = "Support"
   }
 }

@@ -3,15 +3,14 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-onms_repo="branches-features-sentinel"
+onms_repo="stable"
 onms_version="-latest-"
-grafana_version="5.2.2"
+grafana_version="5.3.4"
 
 ########################################
 
 opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
-tmp_file=/tmp/_onms_temp_file
 
 echo "### Installing Common Packages..."
 
@@ -28,7 +27,6 @@ sudo sed -r -i '/name=Amazon Linux 2/a exclude=rrdtool-*' /etc/yum.repos.d/amzn2
 sudo yum install -y -q http://yum.opennms.org/repofiles/opennms-repo-stable-rhel7.noarch.rpm
 sudo rpm --import /etc/yum.repos.d/opennms-repo-stable-rhel7.gpg
 sudo yum install -y -q jicmp jicmp6 jrrd jrrd2 rrdtool 'perl(LWP)' 'perl(XML::Twig)'
-sudo yum install -y -q opennms-helm
 
 echo "### Installing OpenNMS..."
 
@@ -47,12 +45,12 @@ else
   suffix="-$onms_version"
 fi
 sudo yum install -y -q opennms-core$suffix opennms-webapp-jetty$suffix opennms-webapp-hawtio$suffix
+sudo yum install -y -q opennms-helm
+sudo yum clean all
 
 echo "### Initializing GIT at $opennms_etc..."
 
 cd $opennms_etc
-sudo git config --global user.name "OpenNMS"
-sudo git config --global user.email "support@opennms.org"
 sudo git init .
 sudo git add .
 sudo git commit -m "OpenNMS Installed."

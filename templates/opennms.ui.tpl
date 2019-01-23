@@ -5,12 +5,12 @@
 
 hostname="${hostname}"
 domainname="${domainname}"
+domainname_public="${domainname_public}"
 dependencies="${dependencies}"
 redis_server="${redis_server}"
 postgres_onms_url="${postgres_onms_url}"
 postgres_server="${postgres_server}"
 cassandra_seed="${cassandra_seed}"
-webui_endpoint="${webui_endpoint}"
 elastic_url="${elastic_url}"
 elastic_user="${elastic_user}"
 elastic_password="${elastic_password}"
@@ -19,7 +19,7 @@ use_30sec_frequency="${use_30sec_frequency}"
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -30,17 +30,17 @@ opennms_home=/opt/opennms
 opennms_etc=$opennms_home/etc
 
 # Database connections
-postgres_tmpl_url=`echo $postgres_onms_url | sed 's|/opennms|/template1|'`
-onms_url=`echo $postgres_onms_url | sed 's|[&]|\\\\&|'`
-tmpl_url=`echo $postgres_tmpl_url | sed 's|[&]|\\\\&|'`
+postgres_tmpl_url=$(echo $postgres_onms_url | sed 's|/opennms|/template1|')
+onms_url=$(echo $postgres_onms_url | sed 's|[&]|\\&|')
+tmpl_url=$(echo $postgres_tmpl_url | sed 's|[&]|\\&|')
 sed -r -i "/jdbc.*opennms/s|url=\".*\"|url=\"$onms_url\"|" $opennms_etc/opennms-datasources.xml
 sed -r -i "/jdbc.*template1/s|url=\".*\"|url=\"$tmpl_url\"|" $opennms_etc/opennms-datasources.xml
 
 # JVM Settings
-num_of_cores=`cat /proc/cpuinfo | grep "^processor" | wc -l`
-half_of_cores=`expr $num_of_cores / 2`
-total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-mem_in_mb=`expr $total_mem_in_mb / 2`
+num_of_cores=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
+half_of_cores=$(expr $num_of_cores / 2)
+total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
+mem_in_mb=$(expr $total_mem_in_mb / 2)
 if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
@@ -77,8 +77,8 @@ fi
 # External Elasticsearch for Flows
 cat <<EOF > $opennms_etc/org.opennms.features.flows.persistence.elastic.cfg
 elasticUrl=$elastic_url
-elasticGlobalUser=$elastic_user
-elasticGlobalPassword=$elastic_password
+globalElasticUser=$elastic_user
+globalElasticPassword=$elastic_password
 elasticIndexStrategy=$elastic_index_strategy
 EOF
 
@@ -107,7 +107,6 @@ cat <<EOF > $opennms_etc/eventconf.xml
   <event-file>events/opennms.internal.events.xml</event-file>
   <event-file>events/opennms.linkd.events.xml</event-file>
   <event-file>events/opennms.mib.events.xml</event-file>
-  <event-file>events/opennms.ncs-component.events.xml</event-file>
   <event-file>events/opennms.pollerd.events.xml</event-file>
   <event-file>events/opennms.provisioning.events.xml</event-file>
   <event-file>events/opennms.minion.events.xml</event-file>
@@ -160,7 +159,7 @@ EOF
 
 # Configuring Deep Dive Tool
 cat <<EOF > $opennms_etc/org.opennms.netmgt.flows.rest.cfg
-flowGraphUrl=http://$webui_endpoint/grafana/dashboard/flows?node=\$nodeId&interface=\$ifIndex
+flowGraphUrl=http://$hostname.$domainname_public/grafana/dashboard/flows?node=\$nodeId&interface=\$ifIndex
 EOF
 
 echo "### Forcing OpenNMS to be read-only in terms of administrative changes..."
@@ -177,6 +176,7 @@ if [ "$dependencies" != "" ]; then
     data=($${service//:/ })
     echo "Waiting for server $${data[0]} on port $${data[1]}..."
     until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+    echo " ok"
   done
 fi
 
@@ -184,7 +184,7 @@ echo "### Configurng Grafana..."
 
 grafana_cfg=/etc/grafana/grafana.ini
 cp $grafana_cfg $grafana_cfg.bak
-sed -r -i "s/;domain = localhost/domain = $webui_endpoint/" $grafana_cfg
+sed -r -i "s/;domain = localhost/domain = $hostname.$domainname_public/" $grafana_cfg
 sed -r -i "s/;root_url = .*/root_url = %(protocol)s:\/\/%(domain)s:\/grafana/" $grafana_cfg
 sed -r -i "s/;type = sqlite3/type = postgres/" $grafana_cfg
 sed -r -i "s/;host = 127.0.0.1:3306/host = $postgres_server:5432/" $grafana_cfg
@@ -197,10 +197,10 @@ sed -r -i "s/;provider_config = sessions/provider_config = user=grafana password
 echo "### Configurng PostgreSQL database for Grafana..."
 echo "### WARNING - Grafana doesn't support multi-host database configuration..."
 
-PGHOST=$postgres_server
-PGPORT=5432
-PGUSER=postgres
-PGPASSWORD=postgres
+export PGHOST="$postgres_server"
+export PGPORT=5432
+export PGUSER=postgres
+export PGPASSWORD=postgres
 
 if ! psql -lqt | cut -d \| -f 1 | grep -qw grafana; then
   echo "Creating grafana user and database in PostgreSQL..."
@@ -216,11 +216,11 @@ systemctl enable grafana-server
 systemctl start grafana-server
 sleep 10
 
-grafana_key=`curl -X POST -H "Content-Type: application/json" -d '{"name":"opennms-ui", "role": "Viewer"}' http://admin:admin@localhost:3000/api/auth/keys 2>/dev/null | jq .key - | sed 's/"//g'`
+grafana_key=$(curl -X POST -H "Content-Type: application/json" -d '{"name":"opennms-ui", "role": "Viewer"}' http://admin:admin@localhost:3000/api/auth/keys 2>/dev/null | jq .key - | sed 's/"//g')
 if [ "$grafana_key" != "null" ]; then
   cat <<EOF > $opennms_etc/opennms.properties.d/grafana.properties
 org.opennms.grafanaBox.show=true
-org.opennms.grafanaBox.hostname=$webui_endpoint
+org.opennms.grafanaBox.hostname=$hostname.$domainname_public
 org.opennms.grafanaBox.port=80
 org.opennms.grafanaBox.basePath=/grafana
 org.opennms.grafanaBox.apiKey=$grafana_key
@@ -230,7 +230,7 @@ fi
 echo "### Enabling Helm..."
 
 helm_url="http://localhost:3000/api/plugins/opennms-helm-app/settings"
-helm_enabled=`curl -u admin:admin "$helm_url" 2>/dev/null | jq '.enabled'`
+helm_enabled=$(curl -u admin:admin "$helm_url" 2>/dev/null | jq '.enabled')
 if [ "$helm_enabled" != "true" ]; then
   curl -u admin:admin -XPOST "$helm_url" -d "id=opennms-helm-app&enabled=true" 2>/dev/null
   cat <<EOF > data.json
@@ -286,7 +286,6 @@ systemctl start httpd
 
 echo "### Enabling and starting OpenNMS..."
 
-sleep 180
 systemctl daemon-reload
 $opennms_home/bin/runjava -S /usr/java/latest/bin/java
 touch $opennms_etc/configured

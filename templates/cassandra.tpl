@@ -13,7 +13,7 @@ rack="${rack}"
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -101,7 +101,7 @@ chown -R scylla /etc/cassandra
 
 echo "### Checking cluster prior start..."
 
-start_delay=$((60*($node_id-1)))
+start_delay=$((45*($node_id-1)))
 if [[ $start_delay != 0 ]]; then
   until echo -n > /dev/tcp/$seed_name/9042; do
     echo "### $seed_name is unavailable - sleeping"

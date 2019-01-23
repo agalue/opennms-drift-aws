@@ -1,5 +1,8 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
+#
+# TODO: Create/Update users using API:
+# https://www.elastic.co/guide/en/elasticsearch/reference/6.4/security-api-change-password.html
 
 # AWS Template Variables
 
@@ -10,13 +13,14 @@ dependencies="${dependencies}"
 es_cluster_name="${es_cluster_name}"
 es_seed_name="${es_seed_name}"
 es_password="${es_password}"
+es_license="${es_license}"
 es_role="${es_role}"
 es_xpack="${es_xpack}"
 es_monsrv="${es_monsrv}"
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -29,8 +33,8 @@ es_jvm=$es_dir/jvm.options
 
 # JVM Memory
 
-total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-mem_in_mb=`expr $total_mem_in_mb / 2`
+total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
+mem_in_mb=$(expr $total_mem_in_mb / 2)
 if [ "$mem_in_mb" -gt "30720" ]; then
   mem_in_mb="30720"
 fi
@@ -53,48 +57,53 @@ fi
 echo >> $es_yaml
 
 if [ "$es_role" == "master" ]; then
-  echo "node.master: true" >> $es_yaml
-  echo "node.data: false" >> $es_yaml
-  echo "node.ingest: false" >> $es_yaml
+  cat <<EOF >> $es_yaml
+node.master: true
+node.data: false
+node.ingest: false
+EOF
 fi
 
 if [ "$es_role" == "data" ]; then
-  echo "node.master: false" >> $es_yaml
-  echo "node.data: true" >> $es_yaml
-  echo "node.ingest: true" >> $es_yaml
+  cat <<EOF >> $es_yaml
+node.master: false
+node.data: true
+node.ingest: true
+EOF
 fi
 
 if [ "$es_role" == "coordinator" ]; then
-  echo "node.master: false" >> $es_yaml
-  echo "node.data: false" >> $es_yaml
-  echo "node.ingest: false" >> $es_yaml
+  cat <<EOF >> $es_yaml
+node.master: false
+node.data: false
+node.ingest: false
+EOF
 fi
 
 # X-Pack
 
-echo >> $es_yaml
-echo "xpack.license.self_generated.type: basic" >> $es_yaml
-
 if [ "$es_xpack" == "true" ]; then
-  echo $es_password | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x 'bootstrap.password'
+  echo $es_password | /usr/share/elasticsearch/bin/elasticsearch-keystore add --stdin 'bootstrap.password'
+  cat <<EOF >> $es_yaml
 
+xpack.license.self_generated.type: $es_license
+EOF
   if [ "$es_monsrv" != "" ]; then
-    echo "xpack.monitoring.exporters:" >> $es_yaml
-    echo "  remote: " >> $es_yaml
-    echo "    type: http" >> $es_yaml
-    echo "    host: [ $es_monsrv ]" >> $es_yaml
-    echo "    connection:" >> $es_yaml
-    echo "      timeout: 6s" >> $es_yaml
-    echo "      read_timeout: 60s" >> $es_yaml
+    cat <<EOF >> $es_yaml
+xpack.monitoring.exporters:
+  remote:
+    type: http
+    host: [ $es_monsrv ]
+    connection:
+      timeout: 6s
+      read_timeout: 60s
+EOF
   fi
-else
-  echo "xpack.security.enabled=false" >> $es_yaml
-  echo "xpack.monitoring.enabled=false" >> $es_yaml
 fi
 
 # CORS (Required to use Grafana Plugin)
 
-echo <<EOF >> $es_yaml
+cat <<EOF >> $es_yaml
 
 http.cors.enabled: true
 http.cors.allow-origin: "*"
@@ -105,7 +114,7 @@ EOF
 if [ "$es_role" == "master" ]; then
   echo "### Configuring Curator..."
 
-  echo <<EOF > /etc/elasticsearch-curator/config.yml
+  cat <<EOF > /etc/elasticsearch-curator/config.yml
 client:
   host:
     - $es_seed_name
@@ -127,7 +136,7 @@ logging:
   blacklist: ['elasticsearch', 'urllib3']
 EOF
 
-  echo <<EOF > /etc/elasticsearch-curator/delete_indices.yml
+  cat <<EOF > /etc/elasticsearch-curator/delete_indices.yml
 actions:
   1:
     action: delete_indices
@@ -148,7 +157,7 @@ actions:
         unit_count: 720
 EOF
 
-cat <<EOF > /etc/elasticsearch-curator/forcemerge_indices.yml
+  cat <<EOF > /etc/elasticsearch-curator/forcemerge_indices.yml
 actions:
   1:
     action: forcemerge
@@ -182,10 +191,11 @@ if [ "$dependencies" != "" ]; then
     data=($${service//:/ })
     echo "Waiting for server $${data[0]} on port $${data[1]}..."
     until printf "" 2>>/dev/null >>/dev/tcp/$${data[0]}/$${data[1]}; do printf '.'; sleep 1; done
+    echo " ok"
   done
 fi
 
-start_delay=$((30*($node_id-1)))
+start_delay=$((15*($node_id-1)))
 if [[ $start_delay != 0 ]]; then
   echo "### Waiting $start_delay seconds prior starting Elasticsearch..."
   sleep $start_delay

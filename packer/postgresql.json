@@ -1,9 +1,10 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-8c122be9",
+    "source_ami": "ami-0303c7b2e7066b60d",
     "app_name": "PostgreSQL 10",
-    "environment": "Drift"
+    "environment": "Test",
+    "department": "Support"
   },
   "description": "{{ user `app_name` }} for {{ user `environment` }}",
   "builders": [
@@ -17,11 +18,13 @@
       "ami_description": "{{ user `app_name` }} for {{ user `environment` }}, includes repmgr",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",
-        "Environment": "{{ user `environment` }}"
+        "Environment": "{{ user `environment` }}",
+        "Department": "{{ user `department` }}"
       },
       "tags": {
         "Name": "{{ user `app_name` }}",
-        "Environment": "{{ user `environment` }}"
+        "Environment": "{{ user `environment` }}",
+        "Department": "{{ user `department` }}"
       }
     }
   ],

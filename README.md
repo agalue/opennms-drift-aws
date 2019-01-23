@@ -2,6 +2,8 @@
 
 ![diagram](resources/diagram.png)
 
+> IMPORTANT: This deployment uses Kafka SASL authentication by default. For this reason Horizon 23.0.1 is required. In order to use an older version, SASL authentication for Kafka has to be disabled.
+
 ## Installation and usage
 
 * Make sure you have your AWS credentials on `~/.aws/credentials`, for example:
@@ -57,7 +59,7 @@ terraform plan
 terraform apply
 ```
 
-* Initialize the Minion VM using Vagrant:
+* Initialize the Minion VMs using Vagrant:
 
 ```SHELL
 cd resources/minion
@@ -68,7 +70,7 @@ vagrant up
 
 ## Requirements
 
-* OpenNMS Horizon version 23 or newer is required. Currently, the RPMs from the `features/sentinel` branch are being used in order to test Sentinel.
+* OpenNMS Horizon version 23.0.1 or newer is required. Currently, the RPMs from the `release-23.0.1` branch are being used in order to test Sentinels and Minions, all with SASL Auth for Kafka.
 
 * Time synchronization is mandatory on every single device (including monitored devices). AWS guarrantees that, meaning the Minion and the Flow Exporters should also be synchronized prior start using this lab (either by using NTP or manual sync).
 
@@ -102,13 +104,11 @@ The architecture involves the following components:
 
 * An EC2 instance for Kibana.
 
-* A elastic load balancer for the Elasticsearch instances.
-
-* A elastic load balancer for the OpenNMS UI instances.
-
 * Private DNS through Route 53 for all the instances.
 
 * Public DNS through Route 53 for all the instances, based on an existing Hosted Zone associated with a Public Domain.
+
+* Outside AWS, there is a Vagrant script to setup 2 Minions, pointing to the AWS environment through the external DNS.
 
 For scalability, the clusters for Kafka, ES Data, ScyllaDB and ONMS UI can be increased without issues. That being said, the clusters for Zookeeper, and ES Master should remain at 3.
 
@@ -132,6 +132,10 @@ done
 
 If the performance metrics are also being forwarded to Kafka, it is also recommended to set a more conservative numbers for the retention, as the intention for this is being able to process the metrics through the Streaming API, or forward the metrics to another application through the Kafka Sink API (or a standalone application). Once the data is processed, it can be discarded.
 
+The default limits for message sizes are very conservative for the kind of data OpenNMS will be exchanging with Minions. For huge devices like a full Cisco Nexus, the CollectionSet (which is sent as a plain indented XML) can be multiple megabytes. Also, while scanning the device the size of the ifTable/ifXTable combination can easily be very big.
+
+At runtime, the `max.message.bytes` can be configured per topic to avoid issues (which overrides the cluster wide `message.max.bytes`). In case you're seeing that big devices cannot be monitored and requests always end due to TTL, try increasing this setting using the above script.
+
 ## Limitations
 
 * Be aware of EC2 instance limits on your AWS account for the chosen region, as it might be possible that you won't be able to use this POC unless you increase the limits. The default limit is 20, and this POC will be creating more than that.
@@ -150,10 +154,26 @@ curl http://169.254.169.254/latest/user-data > /tmp/bootstrap-script.sh
 
 ## Future enhancements
 
+* Enable authentication for all services.
+
+* Add an instance for Kafka Manager to avoid exposing JMX to the public.
+
+* Tune the security groups to only expose what Minions need.
+
+* Update the Kafka AMI to make sure to run Zookeeper and Kafka as non-root (and adjust the templates and kernel settings for this to work).
+
+* Add cron jobs to OpenNMS to apply the constraints for the RPC Topics on Kafka, as default retention/storage is not required in this particular case, but unfortunately this cannot be configured within OpenNMS.
+
 * Improve the Elasticsearch cluster architecture to have a dedicated monitoring cluster (assuming X-Pack will be used).
 
-* Combine all UI technologies into the same servers: OpenNMS UI, Kibana, Kafka Manager, etc.
-
-* Minimize/Eliminate the wait times by waiting on actual applications to be ready.
+* Create a simple NGinx LoadBalancer for the OpenNMS WebUI (on a tiny EC2 instance to avoid an ELB).
 
 * Make the bootstrap scripts reusable (i.e. to be able to execute them multiple times without side effects, in case the bootstrap process was wrong).
+
+* Enable security every where with passwords, SSL/TLS, or other mechanisms.
+  * SSL Certificates might be required, so [Let's Encrypt](https://letsencrypt.org/) can help.
+  * Proper configuration of X-Pack is required for Elasticsearch (at least the trial license).
+  * Use MD5 password authentication for PostgreSQL.
+  * For Kafka, SASL/Kerberos is recommended, so we might need a Kerberos Server (at least from Interface facing perspective, as OpenNMS Core and Sentinels can use PLAINTEXT without issues).
+  * Enable SSL/TLS for Kafka (Internet facing, i.e. for Minions).
+  * Only expose through Security Groups what's required to be accessed and nothing else.

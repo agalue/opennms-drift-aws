@@ -10,7 +10,7 @@ total_servers="${total_servers}"
 
 echo "### Configuring Hostname and Domain..."
 
-ip_address=`curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null`
+ip_address=$(curl http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null)
 hostnamectl set-hostname --static $hostname
 echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sed -i -r "s/^[#]?Domain =.*/Domain = $domainname/" /etc/idmapd.conf
@@ -34,7 +34,7 @@ EOF
 
 # Forcing internal domain
 name_prefix=$${hostname::-1}
-for i in `seq 1 $total_servers`;
+for i in $(seq 1 $total_servers);
 do
   echo "server.$i=$name_prefix$i.$domainname:2888:3888" >> $zoo_cfg
 done
@@ -47,8 +47,8 @@ zookeeper zookeeper
 EOF
 chmod 400 $password_file
 
-total_mem_in_mb=`free -m | awk '/:/ {print $2;exit}'`
-mem_in_mb=`expr $total_mem_in_mb / 2`
+total_mem_in_mb=$(free -m | awk '/:/ {print $2;exit}')
+mem_in_mb=$(expr $total_mem_in_mb / 2)
 if [ "$mem_in_mb" -gt "4096" ]; then
   mem_in_mb="4096"
 fi

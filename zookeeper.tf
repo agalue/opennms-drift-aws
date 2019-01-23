@@ -50,6 +50,8 @@ resource "aws_instance" "zookeeper" {
 
   tags {
     Name = "Terraform Zookeeper Server ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 

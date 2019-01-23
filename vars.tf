@@ -1,27 +1,34 @@
 # @author: Alejandro Galue <agalue@opennms.org>
 
+# Region
+
+variable "aws_region" {
+  description = "EC2 Region for the VPC"
+  default     = "us-east-2" # For testing purposes only (should be changed)
+}
+
 # Access (make sure to use your own keys)
 
 variable "aws_key_name" {
   description = "AWS Key Name, to access EC2 instances through SSH"
-  default     = "agalue" # For testing purposes only
+  default     = "agalue" # For testing purposes only (should be changed, based on aws_region)
 }
 
 variable "aws_private_key" {
   description = "AWS Private Key Full Path"
-  default     = "/Users/agalue/.ssh/agalue.private.aws.us-east-2.pem" # For testing purposes only
+  default     = "/Users/agalue/.ssh/agalue.private.aws.us-east-2.pem" # For testing purposes only (should be changed, based on aws_region)
 }
 
 # DNS
 
 variable "parent_dns_zone" {
   description = "Parent DNS Zone Name"
-  default     = "opennms.org" # For testing purposes only
+  default     = "opennms.org" # For testing purposes only (should be changed)
 }
 
 variable "dns_zone" {
   description = "Public DNS Zone Name"
-  default     = "aws.opennms.org" # For testing purposes only
+  default     = "aws.opennms.org" # For testing purposes only (should be changed, based on parent_dns_zone)
 }
 
 variable "dns_zone_private" {
@@ -34,13 +41,7 @@ variable "dns_ttl" {
   default     = 60
 }
 
-# Region and AMIs
 # Make sure to run Packer on the same region
-
-variable "aws_region" {
-  description = "EC2 Region for the VPC"
-  default     = "us-east-2" # For testing purposes only
-}
 
 data "aws_ami" "cassandra" {
   most_recent = true
@@ -141,13 +142,9 @@ variable "public_subnet_cidr" {
   default     = "172.16.1.0/24"
 }
 
-variable "elb_subnet_cidr" {
-  description = "CIDR for the ELB subnet"
-  default     = "172.16.2.0/24"
-}
-
 # Application IP Addresses
 
+# This is a master/slave configuration, so change this carefully.
 variable "pg_ip_addresses" {
   description = "PostgreSQL Servers Private IPs"
   type        = "map"
@@ -158,6 +155,7 @@ variable "pg_ip_addresses" {
   }
 }
 
+# This is a master/slave configuration, so change this carefully.
 variable "pg_roles" {
   description = "PostgreSQL server roles: master or slave"
   type        = "list"
@@ -169,6 +167,7 @@ variable "pg_roles" {
   ]
 }
 
+# There should be only one OpenNMS server
 variable "onms_ip_addresses" {
   description = "OpenNMS Servers Private IPs"
   type        = "map"
@@ -198,6 +197,7 @@ variable "onms_ui_ip_addresses" {
   }
 }
 
+# There should be only 3 Zookeeper servers
 variable "zookeeper_ip_addresses" {
   description = "Zookeeper Servers Private IPs"
   type        = "map"
@@ -231,6 +231,7 @@ variable "cassandra_ip_addresses" {
   }
 }
 
+# There should be only 3 ES master servers
 variable "es_master_ip_addresses" {
   description = "Elasticsearch Master Servers Private IPs"
   type        = "map"
@@ -286,11 +287,24 @@ variable "settings" {
     kafka_num_partitions         = 32
     kafka_replication_factor     = 2
     kafka_min_insync_replicas    = 1
+    kafka_security_protocol      = "SASL_PLAINTEXT" # To disable SASL, use "PLAINTEXT"
+    kafka_security_mechanisms    = "PLAIN,SCRAM-SHA-256"
+    kafka_client_mechanism       = "PLAIN" # SCRAM-SHA-256
+    kafka_security_module        = "org.apache.kafka.common.security.plain.PlainLoginModule" # org.apache.kafka.common.security.scram.ScramLoginModule
+    kafka_admin_password         = "0p3nNMS"
+    kafka_user_name              = "opennms"
+    kafka_user_password          = "0p3nNMS"
+    kafka_max_message_size       = 5242880
+    rpc_ttl                      = 300000
     cassandra_datacenter         = "AWS"
     cassandra_replication_factor = 2
     postgresql_version_family    = "10-2"
     postgresql_max_connections   = 300
+    postgresql_password          = "0p3nNMS"
+    postgresql_opennms_password  = "0p3nNMS"
+    elastic_user                 = "elastic" # This is the default user, do not change it
     elastic_password             = "opennms"
+    elastic_license              = "trial" # Use 'basic' or 'trial'. The last one requires proper authentication configured.
     elastic_flow_index_strategy  = "hourly"
     onms_use_30sec_frequency     = "true"
   }

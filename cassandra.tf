@@ -53,6 +53,8 @@ resource "aws_instance" "cassandra" {
 
   tags {
     Name = "Terraform ScyllaDB Server ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
   }
 }
 
