@@ -83,18 +83,6 @@ resource "aws_route53_record" "elasticsearch_data_private" {
   ]
 }
 
-resource "aws_route53_record" "elasticsearch_elb" {
-  zone_id = "${data.aws_route53_zone.parent.zone_id}"
-  name    = "elasticsearch.${aws_route53_zone.main.name}"
-  type    = "A"
-
-  alias {
-    name                   = "${aws_elb.elasticsearch.dns_name}"
-    zone_id                = "${aws_elb.elasticsearch.zone_id}"
-    evaluate_target_health = true
-  }
-}
-
 output "esdata" {
   value = "${join(",",aws_instance.elasticsearch_data.*.public_ip)}"
 }

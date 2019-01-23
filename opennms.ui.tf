@@ -81,18 +81,6 @@ resource "aws_route53_record" "opennms_ui_private" {
   ]
 }
 
-resource "aws_route53_record" "opennms_ui_elb" {
-  zone_id = "${data.aws_route53_zone.parent.zone_id}"
-  name    = "onmsui.${aws_route53_zone.main.name}"
-  type    = "A"
-
-  alias {
-    name                   = "${aws_elb.opennms_ui.dns_name}"
-    zone_id                = "${aws_elb.opennms_ui.zone_id}"
-    evaluate_target_health = true
-  }
-}
-
 output "onmsui" {
   value = "${join(",",aws_instance.opennms_ui.*.public_ip)}"
 }

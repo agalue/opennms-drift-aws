@@ -371,40 +371,6 @@ resource "aws_security_group" "sentinel" {
   }
 }
 
-resource "aws_security_group" "sentinel" {
-  name        = "terraform-sentinel-sg"
-  description = "Allow Sentinel connections."
-
-  ingress {
-    from_port   = 5005
-    to_port     = 5005
-    protocol    = "tcp"
-    description = "Karaf Debug"
-    cidr_blocks = ["${var.vpc_cidr}"]
-  }
-
-  ingress {
-    from_port   = 8301
-    to_port     = 8301
-    protocol    = "tcp"
-    description = "Karaf SSH"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  vpc_id = "${aws_vpc.default.id}"
-
-  tags {
-    Name = "Terraform Sentinel SG"
-  }
-}
-
 resource "aws_security_group" "opennms_ui" {
   name        = "terraform-opennms-ui-sg"
   description = "Allow OpenNMS UI connections."
