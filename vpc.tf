@@ -84,7 +84,6 @@ data "aws_route53_zone" "parent" {
 
 resource "aws_route53_zone" "main" {
   name = "${var.dns_zone}"
-<<<<<<< HEAD
 }
 
 resource "aws_route53_record" "main-ns" {
@@ -100,23 +99,6 @@ resource "aws_route53_record" "main-ns" {
   ]
 }
 
-=======
-}
-
-resource "aws_route53_record" "main-ns" {
-  zone_id = "${data.aws_route53_zone.parent.zone_id}"
-  name    = "${aws_route53_zone.main.name}"
-  type    = "NS"
-  ttl     = "${var.dns_ttl}"
-  records = [
-    "${aws_route53_zone.main.name_servers.0}",
-    "${aws_route53_zone.main.name_servers.1}",
-    "${aws_route53_zone.main.name_servers.2}",
-    "${aws_route53_zone.main.name_servers.3}",
-  ]
-}
-
->>>>>>> release/horizon-23
 resource "aws_route53_zone" "private" {
   name   = "${var.dns_zone_private}"
   vpc_id = "${aws_vpc.default.id}"
