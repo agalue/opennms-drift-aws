@@ -38,11 +38,8 @@ resource "aws_security_group" "common" {
 
   tags {
     Name = "Terraform Common SG"
-<<<<<<< HEAD
-=======
     Environment = "Test"
     Department = "Support"
->>>>>>> release/horizon-23
   }
 }
 
@@ -55,11 +52,7 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 2181
     protocol    = "tcp"
     description = "Clients"
-<<<<<<< HEAD
-    cidr_blocks = ["0.0.0.0/0"]
-=======
     cidr_blocks = ["${var.vpc_cidr}"]
->>>>>>> release/horizon-23
   }
 
   ingress {
@@ -83,11 +76,7 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 9998
     protocol    = "tcp"
     description = "JMX"
-<<<<<<< HEAD
-    cidr_blocks = ["0.0.0.0/0"]
-=======
     cidr_blocks = ["${var.vpc_cidr}"]
->>>>>>> release/horizon-23
   }
 
   egress {
@@ -123,11 +112,7 @@ resource "aws_security_group" "kafka" {
     to_port     = 9999
     protocol    = "tcp"
     description = "JMX"
-<<<<<<< HEAD
-    cidr_blocks = ["0.0.0.0/0"]
-=======
     cidr_blocks = ["${var.vpc_cidr}"]
->>>>>>> release/horizon-23
   }
 
   egress {
@@ -179,17 +164,6 @@ resource "aws_security_group" "cassandra" {
     to_port     = 9160
     protocol    = "tcp"
     description = "Thrift"
-<<<<<<< HEAD
-    cidr_blocks = ["${var.vpc_cidr}"]
-  }
-
-  ingress {
-    from_port   = 10000
-    to_port     = 10000
-    protocol    = "tcp"
-    description = "Scylla ReST"
-=======
->>>>>>> release/horizon-23
     cidr_blocks = ["${var.vpc_cidr}"]
   }
 
@@ -246,11 +220,7 @@ resource "aws_security_group" "elasticsearch" {
     to_port     = 9200
     protocol    = "tcp"
     description = "HTTP"
-<<<<<<< HEAD
-    cidr_blocks = ["0.0.0.0/0"]
-=======
     cidr_blocks = ["${var.vpc_cidr}"]
->>>>>>> release/horizon-23
   }
 
   ingress {
