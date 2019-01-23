@@ -5,7 +5,7 @@
 
 onms_repo="bleeding"
 onms_version="-latest-"
-grafana_version="5.3.4"
+grafana_version="5.4.3"
 
 ########################################
 

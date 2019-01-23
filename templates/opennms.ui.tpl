@@ -158,8 +158,9 @@ org.opennms.web.console.centerUrl=/status/status-box.jsp,/geomap/map-box.jsp,/he
 EOF
 
 # Configuring Deep Dive Tool
+flow_dashboard=$(curl 'http://admin:admin@localhost:3000/api/search?query=flow' 2>/dev/null | jq '.[0].url' | sed 's/"//g')
 cat <<EOF > $opennms_etc/org.opennms.netmgt.flows.rest.cfg
-flowGraphUrl=http://$hostname.$domainname_public/grafana/dashboard/flows?node=\$nodeId&interface=\$ifIndex
+flowGraphUrl=http://$hostname.$domainname_public/grafana$flow_dashboard?node=\$nodeId&interface=\$ifIndex
 EOF
 
 echo "### Forcing OpenNMS to be read-only in terms of administrative changes..."

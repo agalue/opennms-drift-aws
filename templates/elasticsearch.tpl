@@ -116,8 +116,7 @@ if [ "$es_role" == "master" ]; then
 
   cat <<EOF > /etc/elasticsearch-curator/config.yml
 client:
-  host:
-    - $es_seed_name
+  hosts: $es_seed_name
   port: 9200
   url_prefix:
   use_ssl: false
@@ -152,7 +151,7 @@ actions:
       - filtertype: age
         source: name
         direction: older
-        timesharing: '%Y-%m-%d-%H'
+        timestring: '%Y-%m-%d-%H'
         unit: hours
         unit_count: 720
 EOF
@@ -166,8 +165,6 @@ actions:
     options:
       num_max_segments: 1
       delay: 120
-      timneout_override:
-      continue_if_exeption: False
       disable_action: False
     filters:
       - filtertype: pattern
@@ -176,7 +173,7 @@ actions:
       - filtertype: age
         source: name
         direction: older
-        timesharing: '%Y-%m-%d-%H'
+        timestring: '%Y-%m-%d-%H'
         unit: hours
         unit_count: 12
       - filtertype: forcemerged
