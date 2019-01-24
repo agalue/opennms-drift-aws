@@ -5,11 +5,10 @@
 
 repo_version="2.3"
 timezone="America/New_York"
+ubuntu="bionic"
 max_files="100000"
 
 ########################################
-
-tmp_file=/tmp/_temp.tmp
 
 echo "### Configuring Timezone..."
 
@@ -18,14 +17,14 @@ sudo timedatectl set-timezone $timezone
 echo "### Installing common packages..."
 
 sudo apt-get update
-sudo apt-get upgrade -y
+#sudo apt-get upgrade -y
 sudo apt-get install jq unzip snmp snmpd snmp-mibs-downloader dstat htop sysstat tree -y
 
 echo "### Configuring Net-SNMP..."
 
 snmp_cfg=/etc/snmp/snmpd.conf
 sudo cp $snmp_cfg $snmp_cfg.original
-cat <<EOF > $tmp_file
+cat <<EOF | sudo tee -a $snmp_cfg
 agentaddress udp:161
 view all included .1
 rocommunity public default -V all
@@ -34,14 +33,12 @@ syscontact Account Manager
 dontLogTCPWrappersConnects yes
 disk /
 EOF
-sudo mv $tmp_file $snmp_cfg
 sudo chmod 600 $snmp_cfg
 sudo systemctl enable snmpd
 
 echo "### Downloading and installing ScyllaDB..."
 
-sudo wget -qO /etc/apt/sources.list.d/scylla-$repo_version-xenial.list  http://downloads.scylladb.com.s3.amazonaws.com/deb/ubuntu/scylla-$repo_version-xenial.list
-sudo apt-get update
+sudo wget -qO /etc/apt/sources.list.d/scylla-$repo_version-$ubuntu.list  http://downloads.scylladb.com.s3.amazonaws.com/deb/ubuntu/scylla-$repo_version-$ubuntu.list
 wget -qO - http://downloads.scylladb.com.s3.amazonaws.com/deb/scylladb.gpg.pubkey | sudo apt-key add -
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6B2BFD3660EF3F5B
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 17723034C56D4B19

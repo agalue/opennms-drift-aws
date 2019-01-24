@@ -1,9 +1,10 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-5e8bb23b",
+    "source_ami": "ami-0f65671a86f061fcd",
     "app_name": "ScyllaDB 2.3.x",
-    "environment": "Drift"
+    "environment": "Test",
+    "department": "Support"
   },
   "description": "{{ user `app_name` }} for {{ user `environment` }}",
   "builders": [
@@ -17,11 +18,13 @@
       "ami_description": "{{ user `app_name` }} for {{ user `environment` }}",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",
-        "Environment": "{{ user `environment` }}"
+        "Environment": "{{ user `environment` }}",
+        "Department": "{{ user `department` }}"
       },
       "tags": {
         "Name": "{{ user `app_name` }}",
-        "Environment": "{{ user `environment` }}"
+        "Environment": "{{ user `environment` }}",
+        "Department": "{{ user `department` }}"
       }
     }
   ],

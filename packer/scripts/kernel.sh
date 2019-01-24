@@ -7,13 +7,11 @@ max_files="100000"
 
 ########################################
 
-tmp_file=/tmp/_temp.tmp
-
 echo "### Configuring Kernel..."
 
 sudo sed -i 's/^\(.*swap\)/#\1/' /etc/fstab
 
-cat <<EOF > $tmp_file
+cat <<EOF | sudo tee -a /etc/sysctl.d/application.conf
 net.ipv4.tcp_keepalive_time=60
 net.ipv4.tcp_keepalive_probes=3
 net.ipv4.tcp_keepalive_intvl=10
@@ -34,15 +32,13 @@ vm.swappiness=1
 vm.zone_reclaim_mode=0
 vm.max_map_count=1048575
 EOF
-sudo mv $tmp_file /etc/sysctl.d/application.conf
 
-cat <<EOF > $tmp_file
+cat <<EOF | sudo tee -a /etc/security/limits.d/application.conf
 * soft nofile $max_files
 * hard nofile $max_files
 EOF
-sudo mv $tmp_file /etc/security/limits.d/application.conf
 
-cat <<EOF > $tmp_file
+cat <<EOF | sudo tee -a /etc/systemd/system/disable-thp.service
 [Unit]
 Description=Disable Transparent Huge Pages (THP)
 
@@ -53,6 +49,5 @@ ExecStart=/bin/sh -c "echo 'never' > /sys/kernel/mm/transparent_hugepage/enabled
 [Install]
 WantedBy=multi-user.target
 EOF
-sudo mv $tmp_file /etc/systemd/system/disable-thp.service
 sudo systemctl daemon-reload
 sudo systemctl enable disable-thp

@@ -53,6 +53,7 @@ conf_dir=/etc/scylla
 conf_file=$conf_dir/scylla.yaml
 conf_rackdc=$conf_dir/cassandra-rackdc.properties
 
+sed -r -i "/cluster_name/s/#//" $conf_file
 sed -r -i "/cluster_name/s/Test Cluster/$cluster_name/" $conf_file
 sed -r -i "/seeds/s/127.0.0.1/$seed_name/" $conf_file
 sed -r -i "/listen_address/s/localhost/$ip_address/" $conf_file

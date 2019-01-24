@@ -35,12 +35,6 @@ resource "aws_instance" "cassandra" {
     "aws_route53_record.cassandra_private",
   ]
 
-  ebs_block_device {
-    volume_size = "${lookup(var.disk_space, "cassandra")}"
-    volume_type = "gp2"
-    device_name = "/dev/xvdb"
-  }
-
   connection {
     user        = "ubuntu"
     private_key = "${file("${var.aws_private_key}")}"
@@ -56,6 +50,26 @@ resource "aws_instance" "cassandra" {
     Environment = "Test"
     Department = "Support"
   }
+}
+
+resource "aws_ebs_volume" "cassandra" {
+  count             = "${length(var.cassandra_ip_addresses)}"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  size              = "${lookup(var.disk_space, "cassandra")}"
+  type              = "gp2"
+
+  tags {
+    Name = "Terraform ScyllaDB Volume ${count.index + 1}"
+    Environment = "Test"
+    Department = "Support"
+  }
+}
+
+resource "aws_volume_attachment" "cassandra" {
+  count       = "${length(var.cassandra_ip_addresses)}"
+  device_name = "/dev/xvdb"
+  volume_id   = "${element(aws_ebs_volume.cassandra.*.id, count.index)}"
+  instance_id = "${element(aws_instance.cassandra.*.id, count.index)}"
 }
 
 resource "aws_route53_record" "cassandra" {
