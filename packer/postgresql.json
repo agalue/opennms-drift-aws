@@ -1,7 +1,7 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-0303c7b2e7066b60d",
+    "source_ami": "ami-0de53d8956e8dcf80",
     "app_name": "PostgreSQL 10",
     "environment": "Test",
     "department": "Support"

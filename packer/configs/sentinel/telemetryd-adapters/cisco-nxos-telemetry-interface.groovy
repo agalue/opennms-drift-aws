@@ -26,17 +26,14 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
+import org.opennms.netmgt.telemetry.protocols.nxos.adapter.proto.TelemetryBis
+import org.opennms.netmgt.telemetry.protocols.nxos.adapter.NxosGpbParserUtil
 import groovy.util.logging.Slf4j
-
 import java.util.List
 import java.util.Objects
-
 import org.opennms.netmgt.collection.api.AttributeType
 import org.opennms.netmgt.collection.support.builder.DeferredGenericTypeResource
 import org.opennms.netmgt.collection.support.builder.NodeLevelResource
-import org.opennms.netmgt.telemetry.adapters.nxos.proto.TelemetryBis
-import org.opennms.netmgt.telemetry.adapters.nxos.NxosGpbParserUtil
-import org.opennms.netmgt.telemetry.adapters.nxos.proto.TelemetryBis.TelemetryField
 
 @Slf4j
 class CollectionSetGenerator {

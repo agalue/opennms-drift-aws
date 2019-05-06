@@ -24,6 +24,7 @@ elastic_password="${elastic_password}"
 elastic_index_strategy="${elastic_index_strategy}"
 opennms_url="${opennms_url}"
 sentinel_location="${sentinel_location}"
+num_thread_listeners=6
 
 echo "### Configuring Hostname and Domain..."
 
@@ -93,33 +94,40 @@ cat <<EOF > $features
       cache.strategy = org.opennms.netmgt.newts.support.GuavaSearchableResourceMetadataCache
     </config>
     <config name="org.opennms.features.telemetry.adapters-sflow-telemetry">
-      adapters.1.name = SFlow
-      adapters.1.class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowAdapter
+      name = SFlow
+      adapters.1.name = SFlow-Adapter
+      adapters.1.class-name = org.opennms.netmgt.telemetry.protocols.sflow.adapter.SFlowAdapter
       adapters.2.name = SFlow-Telemetry
-      adapters.2.class-name = org.opennms.netmgt.telemetry.adapters.netflow.sflow.SFlowTelemetryAdapter
+      adapters.2.class-name = org.opennms.netmgt.telemetry.protocols.netflow.adapter.netflow5.Netflow5Adapter
       adapters.2.parameters.script = $telemedry_dir/sflow-host.groovy
+      queue.threads = $num_thread_listeners
     </config>
     <config name="org.opennms.features.telemetry.adapters-nxos">
       name = NXOS
       class-name = org.opennms.netmgt.telemetry.adapters.nxos.NxosGpbAdapter
       parameters.script = $telemedry_dir/cisco-nxos-telemetry-interface.groovy
+      queue.threads = $num_thread_listeners
     </config>
     <config name="org.opennms.features.telemetry.adapters-jti">
       name = JTI
       class-name = org.opennms.netmgt.telemetry.adapters.jti.JtiGpbAdapter
       parameters.script = $telemedry_dir/junos-telemetry-interface.groovy
+      queue.threads = $num_thread_listeners
     </config>
     <config name="org.opennms.features.telemetry.adapters-ipfix">
       name = IPFIX
-      class-name = org.opennms.netmgt.telemetry.adapters.netflow.ipfix.IpfixAdapter
+      class-name = org.opennms.netmgt.telemetry.protocols.netflow.adapter.ipfix.IpfixAdapter
+      queue.threads = $num_thread_listeners
     </config>
     <config name="org.opennms.features.telemetry.adapters-netflow5">
       name = Netflow-5
-      class-name = org.opennms.netmgt.telemetry.adapters.netflow.v5.Netflow5Adapter
+      class-name = org.opennms.netmgt.telemetry.protocols.netflow.adapter.netflow5.Netflow5Adapter
+      queue.threads = $num_thread_listeners
     </config>
     <config name="org.opennms.features.telemetry.adapters-netflow9">
       name = Netflow-9
-      class-name = org.opennms.netmgt.telemetry.adapters.netflow.v9.Netflow9Adapter
+      class-name = org.opennms.netmgt.telemetry.protocols.netflow.adapter.netflow5.Netflow5Adapter
+      queue.threads = $num_thread_listeners
     </config>
     <config name="org.opennms.features.flows.persistence.elastic">
       elasticUrl = $elastic_url
@@ -132,6 +140,7 @@ cat <<EOF > $features
     <config name="org.opennms.core.ipc.sink.kafka.consumer">
       group.id = OpenNMS
       bootstrap.servers = $kafka_servers
+      max.partition.fetch.bytes = $kafka_max_message_size
       $sasl_security
     </config>
     <feature>sentinel-kafka</feature>

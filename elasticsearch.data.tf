@@ -13,8 +13,8 @@ data "template_file" "elasticsearch_data" {
     es_seed_name    = "${join(",",aws_route53_record.elasticsearch_master_private.*.name)}"
     es_password     = "${lookup(var.settings, "elastic_password")}"
     es_license      = "${lookup(var.settings, "elastic_license")}"
+    es_xpack        = "${lookup(var.settings, "elastic_xpack")}"
     es_role         = "data"
-    es_xpack        = "true"
     es_monsrv       = ""
   }
 }

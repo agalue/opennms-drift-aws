@@ -10,7 +10,7 @@ repo=${1-stable};
 version=${2--latest-};
 location=${3-Vagrant};
 timezone=${4-America/New_York};
-runas_root=${5-yes};
+runas_root=${5-no};
 opennms_url=${6-http://onmscore.aws.opennms.org:8980/opennms};
 kafka_servers=${7-kafka1.aws.opennms.org:9092};
 kafka_security_protocol=${8-PLAINTEXT};
@@ -34,7 +34,7 @@ trap_port=162
 syslog_port=514
 
 # Kernel changes to run Minion as non-root
-if [ "$runas_root" == "yes" ]; then
+if [ "$runas_root" == "no" ]; then
   if ! rpm -qa | grep -q kernel-ml; then
     echo "### Installing kernel 4.x in order to run Minion as non-root..."
     rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org 
@@ -231,6 +231,7 @@ hawtio-offline
 EOF
 
   cat <<EOF > featuresBoot.d/kafka.boot
+!minion-jms
 !opennms-core-ipc-sink-camel
 !opennms-core-ipc-rpc-jms
 opennms-core-ipc-sink-kafka

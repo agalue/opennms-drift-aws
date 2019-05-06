@@ -1,8 +1,8 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-0303c7b2e7066b60d",
-    "app_name": "OpenNMS Horizon 23",
+    "source_ami": "ami-0de53d8956e8dcf80",
+    "app_name": "OpenNMS Horizon 24.x",
     "environment": "Test",
     "department": "Support"
   },
@@ -14,7 +14,7 @@
       "source_ami": "{{ user `source_ami` }}",
       "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
-      "ami_name": "opennms-horizon-23-drift-{{ timestamp }}",
+      "ami_name": "opennms-horizon-24-drift-{{ timestamp }}",
       "ami_description": "{{ user `app_name` }} for {{ user `environment` }}",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",
@@ -35,7 +35,10 @@
     },
     {
       "type": "shell",
-      "script": "./scripts/java.sh"
+      "script": "./scripts/java.sh",
+      "environment_vars": [
+        "USE_LATEST_JAVA=yes"
+      ]
     },    
     {
       "type": "shell",

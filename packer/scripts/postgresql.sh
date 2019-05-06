@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: Alejandro Galue <agalue@opennms.org>
-# Note: amazon-linux-extras supports PG 9.6 (uses /var/lib/pgsql/data)
+# Note: amazon-linux-extras supports PG 10 (uses /var/lib/pgsql/data)
 
 ######### CUSTOMIZED VARIABLES #########
 

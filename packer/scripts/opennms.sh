@@ -5,7 +5,7 @@
 
 onms_repo="stable"
 onms_version="-latest-"
-grafana_version="5.3.4"
+grafana_version="6.1.6"
 
 ########################################
 
@@ -19,7 +19,7 @@ sudo systemctl enable haveged
 
 echo "### Installing Grafana $grafana_version..."
 
-sudo yum install -y -q https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-$grafana_version-1.x86_64.rpm
+sudo yum install -y -q https://dl.grafana.com/oss/release/grafana-$grafana_version-1.x86_64.rpm 
 
 echo "### Installing OpenNMS Dependencies from stable repository..."
 
