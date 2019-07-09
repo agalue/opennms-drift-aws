@@ -17,7 +17,7 @@ resource "aws_security_group" "common" {
     to_port     = 161
     protocol    = "udp"
     description = "SNMP"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -34,12 +34,12 @@ resource "aws_security_group" "common" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform Common SG"
+  tags = {
+    Name        = "Terraform Common SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
 
@@ -52,7 +52,7 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 2181
     protocol    = "tcp"
     description = "Clients"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -60,7 +60,7 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 2888
     protocol    = "tcp"
     description = "Peer"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -68,7 +68,7 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 3888
     protocol    = "tcp"
     description = "Leader Election"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -76,7 +76,7 @@ resource "aws_security_group" "zookeeper" {
     to_port     = 9998
     protocol    = "tcp"
     description = "JMX"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   egress {
@@ -86,12 +86,12 @@ resource "aws_security_group" "zookeeper" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform Zookeeper SG"
+  tags = {
+    Name        = "Terraform Zookeeper SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
 
@@ -112,7 +112,7 @@ resource "aws_security_group" "kafka" {
     to_port     = 9999
     protocol    = "tcp"
     description = "JMX"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   egress {
@@ -122,12 +122,12 @@ resource "aws_security_group" "kafka" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform Kafka SG"
+  tags = {
+    Name        = "Terraform Kafka SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
 
@@ -140,7 +140,7 @@ resource "aws_security_group" "cassandra" {
     to_port     = 7199
     protocol    = "tcp"
     description = "JMX"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -148,7 +148,7 @@ resource "aws_security_group" "cassandra" {
     to_port     = 7001
     protocol    = "tcp"
     description = "Intra Node"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -156,7 +156,7 @@ resource "aws_security_group" "cassandra" {
     to_port     = 9042
     protocol    = "tcp"
     description = "CQL Native"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -164,7 +164,7 @@ resource "aws_security_group" "cassandra" {
     to_port     = 9160
     protocol    = "tcp"
     description = "Thrift"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   egress {
@@ -174,12 +174,12 @@ resource "aws_security_group" "cassandra" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform Cassandra SG"
+  tags = {
+    Name        = "Terraform Cassandra SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
 
@@ -192,7 +192,7 @@ resource "aws_security_group" "postgresql" {
     to_port     = 5432
     protocol    = "tcp"
     description = "Clients"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   egress {
@@ -202,12 +202,12 @@ resource "aws_security_group" "postgresql" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform PostgreSQL SG"
+  tags = {
+    Name        = "Terraform PostgreSQL SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
 
@@ -220,7 +220,7 @@ resource "aws_security_group" "elasticsearch" {
     to_port     = 9200
     protocol    = "tcp"
     description = "HTTP"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -228,7 +228,7 @@ resource "aws_security_group" "elasticsearch" {
     to_port     = 9300
     protocol    = "tcp"
     description = "Transport"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   egress {
@@ -238,12 +238,12 @@ resource "aws_security_group" "elasticsearch" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform Elasticsearch SG"
+  tags = {
+    Name        = "Terraform Elasticsearch SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
 
@@ -266,12 +266,12 @@ resource "aws_security_group" "kibana" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform Kibana SG"
+  tags = {
+    Name        = "Terraform Kibana SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
 
@@ -292,7 +292,7 @@ resource "aws_security_group" "opennms" {
     to_port     = 18980
     protocol    = "tcp"
     description = "JMX"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -300,7 +300,7 @@ resource "aws_security_group" "opennms" {
     to_port     = 6379
     protocol    = "tcp"
     description = "Redis"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -318,12 +318,12 @@ resource "aws_security_group" "opennms" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform OpenNMS Core SG"
+  tags = {
+    Name        = "Terraform OpenNMS Core SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
 
@@ -336,7 +336,7 @@ resource "aws_security_group" "sentinel" {
     to_port     = 5005
     protocol    = "tcp"
     description = "Karaf Debug"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -362,12 +362,12 @@ resource "aws_security_group" "sentinel" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform Sentinel SG"
+  tags = {
+    Name        = "Terraform Sentinel SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
 
@@ -388,7 +388,7 @@ resource "aws_security_group" "opennms_ui" {
     to_port     = 18980
     protocol    = "tcp"
     description = "JMX"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -406,11 +406,12 @@ resource "aws_security_group" "opennms_ui" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
-  tags {
-    Name = "Terraform OpenNMS UI SG"
+  tags = {
+    Name        = "Terraform OpenNMS UI SG"
     Environment = "Test"
-    Department = "Support"
+    Department  = "Support"
   }
 }
+

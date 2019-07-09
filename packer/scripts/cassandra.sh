@@ -11,7 +11,7 @@ cassandra_config=/etc/cassandra/conf
 
 echo "### Downloading and installing Cassandra $repo_version..."
 
-cat <<EOF | sudo tee -a /etc/yum.repos.d/cassandra.repo
+cat <<EOF | sudo tee /etc/yum.repos.d/cassandra.repo
 [cassandra]
 name=Apache Cassandra
 baseurl=https://www.apache.org/dist/cassandra/redhat/$repo_version/

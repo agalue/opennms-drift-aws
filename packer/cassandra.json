@@ -1,7 +1,7 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-0de53d8956e8dcf80",
+    "source_ami": "ami-0d8f6eb4f641ef691",
     "app_name": "Apache Cassandra 3.11.x",
     "environment": "Test",
     "department": "Support"

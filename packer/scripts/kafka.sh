@@ -5,7 +5,7 @@
 ######### CUSTOMIZED VARIABLES #########
 
 scala_version="2.12"
-kafka_version="2.2.0"
+kafka_version="2.3.0"
 
 ########################################
 
@@ -36,7 +36,7 @@ cd
 echo "### Configuring Systemd..."
 
 systemd_kafka=/etc/systemd/system/kafka.service
-cat <<EOF | sudo tee -a $systemd_kafka
+cat <<EOF | sudo tee $systemd_kafka
 [Unit]
 Description=Apache Kafka Server
 Documentation=http://kafka.apache.org
@@ -59,7 +59,7 @@ EOF
 sudo chmod 0644 $systemd_kafka
 
 systemd_connect=/etc/systemd/system/connect-distributed.service
-cat <<EOF | sudo tee -a $systemd_connect
+cat <<EOF | sudo tee $systemd_connect
 [Unit]
 Description=Apache Kafka Connect: Distributed Mode
 Documentation=http://kafka.apache.org
@@ -82,7 +82,7 @@ EOF
 sudo chmod 0644 $systemd_connect
 
 systemd_zoo=/etc/systemd/system/zookeeper.service
-cat <<EOF | sudo tee -a $systemd_zoo
+cat <<EOF | sudo tee $systemd_zoo
 [Unit]
 Description=Apache Zookeeper server
 Documentation=http://zookeeper.apache.org
@@ -106,13 +106,13 @@ sudo chmod 0644 $systemd_zoo
 
 sudo systemctl daemon-reload
 
-cat <<EOF | sudo tee -a /etc/profile.d/kafka.sh
+cat <<EOF | sudo tee /etc/profile.d/kafka.sh
 PATH=/opt/kafka/bin:\$PATH
 EOF
 
 echo "### Configuring Kernel..."
 
 nofile=100000
-echo <<EOF | sudo tee -a /etc/security/limits.d/kafka.conf
+echo <<EOF | sudo tee /etc/security/limits.d/kafka.conf
 * - nofile $nofile
 EOF

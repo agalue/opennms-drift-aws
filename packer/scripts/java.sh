@@ -5,9 +5,10 @@
 
 echo "### Downloading and installing latest OpenJDK..."
 
-java_rpms="java-1.8.0-openjdk-devel java-1.8.0-openjdk-headless"
 if [ "$USE_LATEST_JAVA" != "" ]; then
-  java_rpms="java-11-openjdk-devel java-11-openjdk-headless"
+  sudo amazon-linux-extras install java-openjdk11 -y
+  sudo yum install -y -q java-11-openjdk-devel
+else
+  sudo yum install -y -q java-1.8.0-openjdk-devel java-1.8.0-openjdk-headless
 fi
 
-sudo yum install -y -q $java_rpms

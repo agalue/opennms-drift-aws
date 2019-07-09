@@ -24,15 +24,13 @@ vpc_cidr="${vpc_cidr}"
 hostname="${hostname}"
 domainname="${domainname}"
 pg_max_connections="${pg_max_connections}"
-pg_version_family="${pg_version_family}"
+pg_version="${pg_version}"
 pg_role="${pg_role}"
 pg_rep_slots="${pg_rep_slots}"
 pg_master_server="${pg_master_server}"
 
 # Internal Variables
 
-pg_version=$(echo $pg_version_family | sed 's/-.//')
-pg_family=$(echo $pg_version | sed 's/\.//')
 repmgr_cfg=/etc/repmgr/$pg_version/repmgr.conf
 repmgr_bin=/usr/pgsql-$pg_version/bin/repmgr
 data_dir=/var/lib/pgsql/$pg_version/data
@@ -146,7 +144,7 @@ EOF
   sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
 
   echo "### Starting repmgrd..."
-  systemctl start repmgr$pg_family
+  systemctl start repmgr$pg_version
 
 else
 
@@ -179,7 +177,7 @@ else
       sudo -u postgres $repmgr_bin -f $repmgr_cfg cluster show
 
       echo "### Starting repmgrd..."
-      systemctl start repmgr$pg_family
+      systemctl start repmgr$pg_version
 
       touch ~/.pg_configured
     else
