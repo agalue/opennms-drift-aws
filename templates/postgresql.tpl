@@ -2,7 +2,7 @@
 # Author: Alejandro Galue <agalue@opennms.org>
 # Warning: The version family should match the Packer image
 
-# - At the very least, max_val_senders should equal the number of replicas you intend to have.
+# - At the very least, max_wal_senders should equal the number of replicas you intend to have.
 # - repmgr is doing automatic promotion, but keep in mind that this could lead to split-brain situations.
 #
 # synchronous_commit="off" (async replication)
