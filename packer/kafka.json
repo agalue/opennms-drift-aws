@@ -1,7 +1,7 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-0d8f6eb4f641ef691",
+    "source_ami": "ami-02ccb28830b645a41",
     "app_name": "Apache Kafka 2.x",
     "environment": "Test",
     "department": "Support"

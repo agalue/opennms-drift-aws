@@ -1,8 +1,8 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-0d8f6eb4f641ef691",
-    "app_name": "Kibana 6.8.x",
+    "source_ami": "ami-02ccb28830b645a41",
+    "app_name": "Kibana 7.3.x",
     "environment": "Test",
     "department": "Support"
   },

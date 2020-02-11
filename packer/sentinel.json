@@ -1,8 +1,8 @@
 {
   "variables": {
     "region": "us-east-2",
-    "source_ami": "ami-0d8f6eb4f641ef691",
-    "app_name": "OpenNMS Sentinel 24.x",
+    "source_ami": "ami-02ccb28830b645a41",
+    "app_name": "OpenNMS Sentinel 25.x",
     "environment": "Test",
     "department": "Support"
   },
@@ -14,7 +14,7 @@
       "source_ami": "{{ user `source_ami` }}",
       "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
-      "ami_name": "opennms-sentinel-24-drift-{{ timestamp }}",
+      "ami_name": "opennms-sentinel-25-drift-{{ timestamp }}",
       "ami_description": "{{ user `app_name` }} for {{ user `environment` }}",
       "run_tags": {
         "Name": "Packer AMI {{ user `app_name` }}",

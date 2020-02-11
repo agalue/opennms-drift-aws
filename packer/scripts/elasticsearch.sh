@@ -5,8 +5,8 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-es_version="6.8.0"
-curator_version="5.4.1"
+es_version="7.3.0"
+curator_version="5.8.1"
 
 ########################################
 

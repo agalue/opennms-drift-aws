@@ -4,7 +4,7 @@
 
 ######### CUSTOMIZED VARIABLES #########
 
-pg_version="11"
+pg_version="12"
 
 ########################################
 
