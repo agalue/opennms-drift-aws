@@ -116,11 +116,11 @@ if [ "$es_role" == "master" ]; then
 
   cat <<EOF > /etc/elasticsearch-curator/config.yml
 client:
-  host:
-    - $es_seed_name
+  hosts:
+  - $es_seed_name
   port: 9200
   url_prefix:
-  use_ssl: false
+  use_ssl: False
   certificate:
   client_cert:
   client_key:
@@ -136,51 +136,48 @@ logging:
   blacklist: ['elasticsearch', 'urllib3']
 EOF
 
-  cat <<EOF > /etc/elasticsearch-curator/delete_indices.yml
+  cat <<EOF > /etc/elasticsearch-curator/actions.yml
 actions:
   1:
+    action: forcemerge
+    description: Force merge Netflow indices
+    options:
+      max_num_segments: 1
+      delay: 120
+      timneout_override:
+      continue_if_exception: False
+      disable_action: False
+    filters:
+    - filtertype: pattern
+      kind: prefix
+      value: netflow-
+      exclude:
+    - filtertype: age
+      source: name
+      direction: older
+      timestring: '%Y-%m-%d-%H'
+      unit: hours
+      unit_count: 12
+      exclude:
+    - filtertype: forcemerged
+      max_num_segments: 1
+      exclude:
+  2:
     action: delete_indices
-    description: >-
-      Delete indices older than 30 days.
+    description: Delete indices older than 30 days.
     options:
       ignore_empty_list: True
       disable_action: False
     filters:
-      - filtertype: pattern
-        kind: prefix
-        value: netflow-
-      - filtertype: age
-        source: name
-        direction: older
-        timesharing: '%Y-%m-%d-%H'
-        unit: hours
-        unit_count: 720
-EOF
-
-  cat <<EOF > /etc/elasticsearch-curator/forcemerge_indices.yml
-actions:
-  1:
-    action: forcemerge
-    description: >-
-      Force merge Netflow indices
-    options:
-      num_max_segments: 1
-      delay: 120
-      timneout_override:
-      continue_if_exeption: False
-      disable_action: False
-    filters:
-      - filtertype: pattern
-        kind: prefix
-        value: netflow-
-      - filtertype: age
-        source: name
-        direction: older
-        timesharing: '%Y-%m-%d-%H'
-        unit: hours
-        unit_count: 12
-      - filtertype: forcemerged
-        max_num_segments: 1
+    - filtertype: pattern
+      kind: prefix
+      value: netflow-
+    - filtertype: age
+      source: name
+      direction: older
+      timestring: '%Y-%m-%d-%H'
+      unit: hours
+      unit_count: 720
 EOF
 fi
 

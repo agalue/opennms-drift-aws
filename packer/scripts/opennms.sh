@@ -5,7 +5,7 @@
 
 onms_repo="stable"
 onms_version="-latest-"
-grafana_version="6.4.5"
+grafana_version="6.6.1"
 
 ########################################
 
