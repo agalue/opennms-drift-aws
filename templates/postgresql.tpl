@@ -65,9 +65,9 @@ chmod 440 /etc/sudoers.d/postgres
 cp $repmgr_cfg $repmgr_cfg.bak
 cat <<EOF > $repmgr_cfg
 node_id=$node_id
-node_name=$hostname
+node_name='$hostname'
 conninfo='host=$hostname user=repmgr dbname=repmgr'
-data_directory=$data_dir
+data_directory='$data_dir'
 use_replication_slots=true
 log_level=INFO
 failover=automatic
@@ -95,6 +95,8 @@ if [ "$pg_role" == "master" ]; then
 
   echo "### Configuring Master Server..."
 
+  export LANG="en_US.utf8"
+  export PGSETUP_INITDB_OPTIONS="-E 'UTF-8' --lc-collate='en_US.UTF-8' --lc-ctype='en_US.UTF-8'"
   pgsetup=$(find /usr/pgsql-$pg_version/bin/ -name postgresql*setup)
   $pgsetup initdb
 
